@@ -65,7 +65,7 @@ import com.wingify.vwo.VWO;
 
 The VWO client class needs to be instantiated as an instance that exposes various API methods like activate, getVariation and track.
 
-** ASYN EVENT DISPATCHER **
+**ASYN EVENT DISPATCHER**
 
 ```java
 import com.vwo.event.EventDispatcher;
@@ -82,7 +82,7 @@ public class Example {
 
     public static void main(String[] args) {
 
-        String settingsFle = FileSettingUtils.getSetting("60781", "ea87170ad94079aa190bc7c9b85d26fb");
+        String settingsFle = FileSettingUtils.getSetting(accountId, sdkKey);
 
         // EventDispatcher(int eventQueueSize, int corePoolSize, int maxPoolSize, long closeTimeout, TimeUnit closeTimeoutUnit)
         EventDispatcher eventDispatcher = new EventDispatcher();
@@ -94,6 +94,50 @@ public class Example {
     }
 }
 ```
+
+**USER PROFILE SERVICE**
+
+```
+  String settingsFle = FileSettingUtils.getSetting(accountId, sdkKey);
+           System.out.println(settingsFle);
+            UserProfileService userProfileService= new UserProfileService() {
+                @Override
+                public Map<String, Object> lookup(String s, String s1) throws Exception {
+                // hardcode values in map
+                // one can get values from  db and populate map
+                
+                    String campaignId = "FIRST";
+                    String variationId = "Control";
+
+                    Map<String,Object> campaignKeyMap = new HashMap<>();
+                    Map<String, String> variationKeyMap = new HashMap<>();
+                    variationKeyMap.put(UserProfileService.variationKey, variationId);
+                    campaignKeyMap.put(campaignId,variationKeyMap);
+
+                    //set
+                    Map<String, Object> campaignStaticBucketMap = new HashMap<>();
+                    campaignStaticBucketMap.put(UserProfileService.userId, "Priya");
+                    campaignStaticBucketMap.put(UserProfileService.campaignKey, campaignKeyMap);
+
+                    return campaignStaticBucketMap;
+                }
+
+                @Override
+                public void save(Map<String, Object> map) throws Exception {
+                // save in db or some data store
+
+                }
+            };
+
+               
+            EventHandler eventHandler = EventDispatcher.builder().build);
+
+            VWO vwo = VWO.createInstance(settingsFle).withUserProfileService(userProfileService)
+                .withEventHandler(eventHandler)
+                .build();
+                
+```
+
 **LOGGER**
 
 JAVA SDK utilizes a logging facade, SL4J (https://www.slf4j.org/) as the logging api layer. If no binding is found on the class path,
