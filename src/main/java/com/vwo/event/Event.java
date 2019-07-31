@@ -68,7 +68,7 @@ public class Event {
 
         public Builder withUuid(Integer account_id, String uId) {
             UUID account_uuid = UUIDType5.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, this.account_id.toString());
-            UUID user_uuid = UUIDType5.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, this.uId);
+            UUID user_uuid = UUIDType5.nameUUIDFromNamespaceAndString(account_uuid, this.uId);
             this.u = user_uuid.toString().replace("-", "").toUpperCase();
             LOGGER.debug("Uuid generated for userId:{} and accountId:{} is {}",uId,account_id,u.toString());
             return this;
