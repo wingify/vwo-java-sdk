@@ -53,7 +53,7 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
 
     public EventDispatcher() {
         this.vwoHttpClient = VWOHttpClient.Builder.newInstance().build();
-        this.executorService = new ThreadPoolExecutor(2, 2,
+        this.executorService = new ThreadPoolExecutor(2, 200,
                 0L, TimeUnit.MILLISECONDS,
                 new ArrayBlockingQueue<Runnable>(10000));
 

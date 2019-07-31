@@ -65,6 +65,35 @@ import com.wingify.vwo.VWO;
 
 The VWO client class needs to be instantiated as an instance that exposes various API methods like activate, getVariation and track.
 
+** ASYN EVENT DISPATCHER **
+
+```java
+import com.vwo.event.EventDispatcher;
+import com.vwo.config.FileSettingUtils;
+
+
+public class Example {
+
+    private final VWO vwo;
+
+    public Example(VWO vwo) {
+        this.vwo = vwo;
+    }
+
+    public static void main(String[] args) {
+
+        String settingsFle = FileSettingUtils.getSetting("60781", "ea87170ad94079aa190bc7c9b85d26fb");
+
+        // EventDispatcher(int eventQueueSize, int corePoolSize, int maxPoolSize, long closeTimeout, TimeUnit closeTimeoutUnit)
+        EventDispatcher eventDispatcher = new EventDispatcher();
+
+        VWO vwo_instace = VWO.createInstance(settingsFle).withEventHandler(eventDispatcher).build();
+
+//            EventDispatcher eventDispatcher = new EventDispatcher(10000,2,200,
+//                    Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    }
+}
+```
 **LOGGER**
 
 JAVA SDK utilizes a logging facade, SL4J (https://www.slf4j.org/) as the logging api layer. If no binding is found on the class path,
@@ -120,6 +149,10 @@ If you have logback in your class path, to get console logs add following Append
 ```
 
 For more appenders ,refer https://logback.qos.ch/manual/appenders.html
+
+## Authors
+
+[sakshimahendruvk] (https://github.com/sakshimahendruvk)
 
 
 
