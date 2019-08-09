@@ -1,14 +1,12 @@
 package com.vwo.bucketing;
 
 import com.vwo.enums.LoggerMessagesEnum;
+import com.vwo.logger.LoggerManager;
 import com.vwo.models.Campaign;
 import com.vwo.models.Variation;
 import com.vwo.userprofile.UserProfileService;
 import com.vwo.userprofile.UserProfileUtils;
 import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +15,7 @@ public class BucketingService {
 
     private final Bucketer bucketer;
     private final UserProfileService userProfileService;
-    private static final Logger LOGGER = LoggerFactory.getLogger(BucketingService.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(BucketingService.class);
 
     public BucketingService(Bucketer bucketer, UserProfileService userProfileService) {
         this.bucketer = bucketer;

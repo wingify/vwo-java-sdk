@@ -11,6 +11,7 @@ import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.event.DispatchEvent;
 import com.vwo.event.EventDispatcher;
 import com.vwo.event.EventHandler;
+import com.vwo.logger.LoggerManager;
 import com.vwo.models.Goal;
 import com.vwo.models.Variation;
 import com.vwo.config.ConfigParseException;
@@ -19,9 +20,8 @@ import com.vwo.config.VWOConfig;
 import com.vwo.event.EventFactory;
 import com.vwo.bucketing.BucketingService;
 import com.vwo.models.Campaign;
+import com.vwo.logger.VWOLogger;
 import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.vwo.userprofile.UserProfileService;
 import org.springframework.lang.NonNull;
 
@@ -34,14 +34,16 @@ public class VWO implements AutoCloseable {
     final UserProfileService userProfileService;
     final EventHandler eventHandler;
     final BucketingService bucketingService;
+    final VWOLogger customLogger;
     private boolean developmentMode;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VWO.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(VWO.class);
 
     private VWO(@NonNull ProjectConfig projectConfig,
                 @NonNull UserProfileService userProfileService,
                 @NonNull EventHandler eventHandler,
                 @NonNull BucketingService bucketingService,
+                VWOLogger customLogger,
                 @NonNull boolean developmentMode) {
 
         this.projectConfig = projectConfig;
@@ -49,27 +51,30 @@ public class VWO implements AutoCloseable {
         this.eventHandler = eventHandler;
         this.bucketingService = bucketingService;
         this.developmentMode = developmentMode;
+        this.customLogger = customLogger;
     }
 
 
     public ProjectConfig getProjectConfig() {
-        return projectConfig;
+        return this.projectConfig;
     }
 
     public UserProfileService getUserProfileService() {
-        return userProfileService;
+        return this.userProfileService;
     }
 
     public EventHandler getEventHandler() {
-        return eventHandler;
+        return this.eventHandler;
     }
 
     public BucketingService getBucketingService() {
-        return bucketingService;
+        return this.bucketingService;
     }
 
+    public VWOLogger getCustomLogger() { return this.customLogger; }
+
     public boolean isDevelopmentMode() {
-        return developmentMode;
+        return this.developmentMode;
     }
 
     /**
@@ -333,6 +338,7 @@ public class VWO implements AutoCloseable {
         private BucketingService bucketingService;
         private String settingFile;
         private Bucketer bucketer;
+        private VWOLogger customLogger;
         private boolean developmentMode;
 
 
@@ -356,7 +362,15 @@ public class VWO implements AutoCloseable {
             return this;
         }
 
+        public Builder withCustomLogger(VWOLogger customLogger) {
+            this.customLogger = customLogger;
+            return this;
+        }
+
         public VWO build() {
+            // Init logger at start.
+            LoggerManager.init(this.customLogger);
+
             if (this.projectConfig == null && this.settingFile != null && !this.settingFile.isEmpty()) {
                 try {
                     this.projectConfig = VWOConfig.Builder.getInstance(this.settingFile).build();
@@ -377,7 +391,7 @@ public class VWO implements AutoCloseable {
             this.developmentMode = this.developmentMode || false;
 
             // process SettingsFile
-            VWO vwo_instance = new VWO(this.projectConfig, this.userProfileService, this.eventHandler, this.bucketingService, this.developmentMode);
+            VWO vwo_instance = new VWO(this.projectConfig, this.userProfileService, this.eventHandler, this.bucketingService, this.customLogger, this.developmentMode);
             if (vwo_instance != null) {
                 LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.SDK_INITIALIZED.value());
             }

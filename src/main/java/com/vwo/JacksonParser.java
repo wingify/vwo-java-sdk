@@ -2,15 +2,14 @@ package com.vwo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.config.ConfigParseException;
+import com.vwo.logger.LoggerManager;
 import com.vwo.models.SettingFileConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class JacksonParser implements Parser{
     private ObjectMapper objectMapper;
-    private static final Logger LOGGER = LoggerFactory.getLogger(JacksonParser.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(JacksonParser.class);
 
     public JacksonParser(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;

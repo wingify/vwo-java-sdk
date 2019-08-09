@@ -3,6 +3,7 @@ package com.vwo.event;
 
 import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.httpclient.VWOHttpClient;
+import com.vwo.logger.LoggerManager;
 import javafx.util.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -10,8 +11,6 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -27,7 +26,8 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
     public static final int DEFAULT_MAX_POOL_SIZE = 200;
     public static final int DEFAULT_EVENT_QUEUE = 10000;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventDispatcher.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(EventDispatcher.class);
+
     private static final EventResponseHandler EVENT_RESPONSE_HANDLER = new EventResponseHandler();
 
     private final VWOHttpClient vwoHttpClient;

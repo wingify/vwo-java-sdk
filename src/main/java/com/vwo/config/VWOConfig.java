@@ -3,11 +3,10 @@ package com.vwo.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.JacksonParser;
 import com.vwo.Parser;
+import com.vwo.logger.LoggerManager;
 import com.vwo.models.Variation;
 import com.vwo.models.Campaign;
 import com.vwo.models.SettingFileConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -15,7 +14,8 @@ public class VWOConfig implements ProjectConfig {
 
     private SettingFileConfig settingFileConfig;
     private final double MAX_TRAFFIC_VALUE = 10000;
-    private static final Logger LOGGER = LoggerFactory.getLogger(VWOConfig.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(VWOConfig.class);
+
 
     public VWOConfig(SettingFileConfig settingFileConfig) {
         this.settingFileConfig = settingFileConfig;

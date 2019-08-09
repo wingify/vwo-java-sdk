@@ -65,7 +65,7 @@ import com.wingify.vwo.VWO;
 
 The VWO client class needs to be instantiated as an instance that exposes various API methods like activate, getVariation and track.
 
-**ASYN EVENT DISPATCHER**
+**ASYNC EVENT DISPATCHER**
 
 ```java
 import com.vwo.event.EventDispatcher;

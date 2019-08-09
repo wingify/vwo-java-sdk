@@ -6,13 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.URIConstants;
 import com.vwo.config.ProjectConfig;
 import com.vwo.enums.LoggerMessagesEnum;
+import com.vwo.logger.LoggerManager;
 import com.vwo.models.Campaign;
 import com.vwo.models.Goal;
 import com.vwo.models.SettingFileConfig;
 import com.vwo.models.Variation;
 import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.Map;
@@ -24,7 +23,7 @@ public class EventFactory {
     public static final String GOAL_PATH= URIConstants.TRACK_GOAL.toString();
 
     private static final ObjectMapper objectMapper= new ObjectMapper();
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventFactory.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(EventFactory.class);
 
     public static DispatchEvent createImpressionLogEvent(ProjectConfig projectConfig, Campaign campaignTestKey, String userId, Variation variation){
         SettingFileConfig settingFileConfig = projectConfig.getSettingFileConfig();

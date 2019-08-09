@@ -4,8 +4,10 @@ package com.vwo;
 import com.vwo.event.EventDispatcher;
 import com.vwo.event.EventHandler;
 import com.vwo.config.FileSettingUtils;
+import com.vwo.logger.VWOLogger;
 import com.vwo.userprofile.UserProfileService;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -44,11 +46,41 @@ public class Example {
             }
         };
 
+        VWOLogger logger = new VWOLogger() {
+            @Override
+            public void trace(String var1, Object... var2) {
+                System.out.println("Custom Logger [Trace]: " + var1);
+            }
+
+            @Override
+            public void debug(String var1, Object... var2) {
+                System.out.println("Custom Logger [Debug]: " + var1);
+
+            }
+
+            @Override
+            public void info(String var1, Object... var2) {
+                System.out.println("Custom Logger [Info]: " + var1);
+
+            }
+
+            @Override
+            public void warn(String var1, Object... var2) {
+                System.out.println("Custom Logger [Warn]: " + var1);
+
+            }
+
+            @Override
+            public void error(String var1, Object... var2) {
+                System.out.println("Custom Logger [Error]: " + var1 + Arrays.toString(var2));
+            }
+        };
+
         VWO vwo_instance = VWO.createInstance(settings).build();
 
         vwo_instance.track("FIRST","PRIYA","CUSTOM");
 
-        VWO vwo = VWO.createInstance(settings).withUserProfileService(userProfileService).build();
+        VWO vwo = VWO.createInstance(settings).withUserProfileService(userProfileService).withCustomLogger(logger).build();
 
         LinkedList<String> linkedList = new LinkedList<>();
         linkedList.add("Ashley");
@@ -75,16 +107,16 @@ public class Example {
         linkedList.add("Varun");
         linkedList.add("Will");
         linkedList.add("Xin");
-        linkedList.add("You");
+        linkedList.add("Yatin");
         linkedList.add("Zeba");
 
 
         for(String name : linkedList) {
             String variation = vwo.getVariation("DEV_TEST_1", name);
             if(variation != null) {
-                System.out.println("User: " + name + " of campaign DEV_TEST_1 is part - true, got variation: " + variation);
+                System.out.println("User: '" + name + "' of campaign 'DEV_TEST_1' is part - true, got variation: " + variation);
             } else {
-                System.out.println("User: " + name + " of campaign DEV_TEST_1 is part - false, got variation: null");
+                System.out.println("User: '" + name + "' of campaign 'DEV_TEST_1' is part - false, got variation: null");
             }
         }
     }

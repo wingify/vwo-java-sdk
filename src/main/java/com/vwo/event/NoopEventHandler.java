@@ -1,11 +1,11 @@
 package com.vwo.event;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.vwo.logger.LoggerManager;
 
 public class NoopEventHandler implements EventHandler {
 
-    private  static final Logger LOGGER = LoggerFactory.getLogger(NoopEventHandler.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(NoopEventHandler.class);
+
 
     @Override
     public void dispatchEvent(DispatchEvent event) throws Exception {

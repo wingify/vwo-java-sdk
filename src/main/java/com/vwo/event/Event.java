@@ -2,8 +2,7 @@ package com.vwo.event;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.vwo.UUIDType5;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.vwo.logger.LoggerManager;
 
 import java.util.UUID;
 
@@ -19,7 +18,8 @@ public class Event {
     private long sId;
     private String ap;
     private String ed;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Event.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(Event.class);
+
 
     private Event(Builder builder) {
         this.account_id = builder.account_id;
@@ -70,7 +70,7 @@ public class Event {
             UUID account_uuid = UUIDType5.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, this.account_id.toString());
             UUID user_uuid = UUIDType5.nameUUIDFromNamespaceAndString(account_uuid, this.uId);
             this.u = user_uuid.toString().replace("-", "").toUpperCase();
-            LOGGER.debug("Uuid generated for userId:{} and accountId:{} is {}",uId,account_id,u.toString());
+            LOGGER.debug("Uuid generated for userId:{} and accountId:{} is {}", uId, account_id, u.toString());
             return this;
         }
 

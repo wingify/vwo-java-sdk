@@ -7,12 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.URIConstants;
 import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.httpclient.VWOHttpClient;
+import com.vwo.logger.LoggerManager;
 import javafx.util.Pair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +23,7 @@ import java.net.URISyntaxException;
  */
 public class FileSettingUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileSettingUtils.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(FileSettingUtils.class);
 
     /**
      *

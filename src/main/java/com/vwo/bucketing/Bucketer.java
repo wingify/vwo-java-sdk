@@ -1,15 +1,15 @@
 package com.vwo.bucketing;
 
 import com.vwo.enums.LoggerMessagesEnum;
+import com.vwo.logger.LoggerManager;
 import com.vwo.models.Variation;
 import com.vwo.models.Campaign;
 import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Bucketer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Bucketer.class);
+    private static final LoggerManager LOGGER = LoggerManager.getLogger(Bucketer.class);
+
     private static final int MAX_TRAFFIC_VALUE = 10000;
     private static final int MAX_PERCENT_TRAFFIC = 100;
     private static final int MURMUR_HASH_SEED = 1;
