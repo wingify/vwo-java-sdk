@@ -50,27 +50,27 @@ public class VWOHttpClient implements Closeable {
 
     public static class Builder {
         private CloseableHttpClient threadSafeHttpClient;
-        private int maxTotalConections=200;
-        private int maxPerRoute=20;
-        private int validateAfterInactivity=5000;
+        private int maxTotalConections = 200;
+        private int maxPerRoute = 20;
+        private int validateAfterInactivity = 5000;
 
         public Builder withThreadSafeHttpClient(CloseableHttpClient threadSafeHttpClient) {
-            this.threadSafeHttpClient=threadSafeHttpClient;
+            this.threadSafeHttpClient = threadSafeHttpClient;
             return this;
         }
 
         public Builder withMaxTotalConections(int maxTotalConections) {
-            this.maxTotalConections=maxTotalConections;
+            this.maxTotalConections = maxTotalConections;
             return this;
         }
 
         public Builder withMaxPerRoute(int maxPerRoute) {
-            this.maxPerRoute=maxPerRoute;
+            this.maxPerRoute = maxPerRoute;
             return this;
         }
 
         public Builder withValidateAfterInactivity(int validateAfterInactivity) {
-            this.validateAfterInactivity=validateAfterInactivity;
+            this.validateAfterInactivity = validateAfterInactivity;
             return this;
         }
 
@@ -78,8 +78,7 @@ public class VWOHttpClient implements Closeable {
             return new Builder();
         }
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public VWOHttpClient build() {
 
@@ -99,11 +98,11 @@ public class VWOHttpClient implements Closeable {
 //                e.printStackTrace();
 //            }
 
-            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager=null;
+            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = null;
 //            if(registry!=null) {
 //                poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
 //            }else{
-                poolingHttpClientConnectionManager= new PoolingHttpClientConnectionManager();
+                poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
  //           }
                 poolingHttpClientConnectionManager.setMaxTotal(maxTotalConections);
                 poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);

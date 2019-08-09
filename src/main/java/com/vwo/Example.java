@@ -10,56 +10,45 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-    public class Example {
+public class Example {
 
-        private final VWO  vwo;
+    private final VWO  vwo;
 
-        public Example(VWO vwo) {
-            this.vwo = vwo;
-        }
+    public Example(VWO vwo) {
+        this.vwo = vwo;
+    }
 
+    public static void main(String[] args) {
 
-        public static void main(String[] args) {
+        String settings = VWO.getSetting("","");
 
-           String settingsFle= FileSettingUtils.getSetting("","");
+        System.out.println(settings);
 
-           System.out.println(settingsFle);
+        UserProfileService userProfileService= new UserProfileService() {
+            @Override
+            public Map<String, String> lookup(String userId, String campaignKey) throws Exception {
+                String campaignId = "FIRST";
+                String variationId = "Control";
+                Map<String, String> campaignBucketMap = new HashMap<>();
 
-            UserProfileService userProfileService= new UserProfileService() {
-                @Override
-                public Map<String, Object> lookup(String s, String s1) throws Exception {
-                    String campaignId = "FIRST";
-                    String variationId = "Control";
+                campaignBucketMap.put(UserProfileService.userId, "Priya");
+                campaignBucketMap.put(UserProfileService.campaignKey, campaignId);
+                campaignBucketMap.put(UserProfileService.variationKey, variationId);
 
-                    Map<String,Object> campaignKeyMap = new HashMap<>();
-                    Map<String, String> variationKeyMap = new HashMap<>();
-                    variationKeyMap.put(UserProfileService.variationKey, variationId);
-                    campaignKeyMap.put(campaignId,variationKeyMap);
+                return campaignBucketMap;
+            }
 
-                    //set
-                    Map<String, Object> campaignStaticBucketMap = new HashMap<>();
-                    campaignStaticBucketMap.put(UserProfileService.userId, "Priya");
-                    campaignStaticBucketMap.put(UserProfileService.campaignKey, campaignKeyMap);
+            @Override
+            public void save(Map<String, String> map) throws Exception {
 
-                    return campaignStaticBucketMap;
-                }
+            }
+        };
 
-                @Override
-                public void save(Map<String, Object> map) throws Exception {
+        VWO vwo_instance = VWO.createInstance(settings).build();
 
-                }
-            };
+        vwo_instance.track("FIRST","PRIYA","CUSTOM");
 
-            VWO vwo_instance = VWO.createInstance(settingsFle).build();
-
-            vwo_instance.track("FIRST","PRIYA","CUSTOM");
-
-            EventHandler eventHandler = EventDispatcher.builder().build();
-        VWO vwo = VWO.createInstance(settingsFle).withUserProfileService(userProfileService)
-                .withEventHandler(eventHandler)
-                .build();
-
-        EventHandler eventHandler2 = EventDispatcher.builder().build();
+        VWO vwo = VWO.createInstance(settings).withUserProfileService(userProfileService).build();
 
         LinkedList<String> linkedList = new LinkedList<>();
         linkedList.add("Ashley");
@@ -90,14 +79,13 @@ import java.util.Map;
         linkedList.add("Zeba");
 
 
-        for(String name : linkedList){
-           String variation= vwo.getVariation("DEV_TEST_1",name);
-             if(variation!=null){
-            System.out.println("User:"+name+" of campaign DEV_TEST_1 is part - true, got variation:"+variation);
-        }else{
-                 System.out.println("User:"+name+" of campaign DEV_TEST_1 is part - false, got variation:null");
-             }
+        for(String name : linkedList) {
+            String variation = vwo.getVariation("DEV_TEST_1", name);
+            if(variation != null) {
+                System.out.println("User: " + name + " of campaign DEV_TEST_1 is part - true, got variation: " + variation);
+            } else {
+                System.out.println("User: " + name + " of campaign DEV_TEST_1 is part - false, got variation: null");
+            }
         }
-
     }
 }

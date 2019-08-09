@@ -4,11 +4,11 @@ import java.util.Map;
 
 public interface UserProfileService {
 
-    String userId = "user_id";
-    String campaignKey = "campaign_key";
-    String variationKey = "variation_key";
+    String userId = "userId";
+    String campaignKey = "campaign";
+    String variationKey = "variationName";
 
-    Map<String,Object> lookup(String userId,String campaignTestKey) throws Exception;
+    Map<String, String> lookup(String userId, String campaignTestKey) throws Exception;
 
-    void save(Map<String,Object> userProfile) throws Exception;
+    void save(Map<String, String> userProfile) throws Exception;
 }

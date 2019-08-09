@@ -1,7 +1,9 @@
 package com.vwo.bucketing;
 
+import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.models.Variation;
 import com.vwo.models.Campaign;
+import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,52 +14,39 @@ public class Bucketer {
     private static final int MAX_PERCENT_TRAFFIC = 100;
     private static final int MURMUR_HASH_SEED = 1;
 
-//       USER_HASH_BUCKET_VALUE: '({file}): userId:{userId} having hash:{hashValue} got bucketValue:{bucketValue}',
-//    VARIATION_HASH_BUCKET_VALUE:
-//            '({file}): userId:{userId} for campaign:{campaignTestKey} having percent traffic:{percentTraffic} got hash-value:{hashValue} and bucket value:{bucketValue}',
-//
-
-    public static long isUserInCampaign(Campaign campaign, String userId) {
-
-        String key = userId;
-        LOGGER.info("Is userId: {}  part of campaign {} ?",userId,campaign.getKey());
-        int murmurHash = Murmur3.hash32(key.getBytes(),0,key.length(),MURMUR_HASH_SEED);
+    public static long getUserHashForCampaign(Campaign campaign, String userId) {
+        int murmurHash = Murmur3.hash32(userId.getBytes(),0, userId.length() ,MURMUR_HASH_SEED);
         Long signed_murmurHash = (murmurHash & 0xFFFFFFFFL);
-        LOGGER.debug("userId:{} having hash:{}",userId,signed_murmurHash);
-        int bucketValueforUser = generateBucketValue(signed_murmurHash,MAX_PERCENT_TRAFFIC,1);
-        LOGGER.debug("campaign:{} having traffic allocation:{} assigned value:{} to userId:{}",
-                campaign.getKey(),campaign.getPercentTraffic(),bucketValueforUser,userId);
-        if (bucketValueforUser > campaign.getPercentTraffic()) {
-            LOGGER.debug("UserId:{} for campaign:{} did not become part of campaign",userId,campaign.getKey());
+        int bucketValueOfUser = Bucketer.getBucketValueForUser(signed_murmurHash, MAX_PERCENT_TRAFFIC,1);
+
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.EVALUATED_VARIATION_BUCKET.value(new Pair<>("bucketValue", String.valueOf(bucketValueOfUser)), new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey()), new Pair<>("traffic", String.valueOf(campaign.getPercentTraffic()))));
+        if (bucketValueOfUser > campaign.getPercentTraffic()) {
+            LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
             return -1;
         } else
             return signed_murmurHash;
     }
 
-    private static int generateBucketValue(long murmurHash, int maxTrafficValue,double multiplier) {
+    private static int getBucketValueForUser(long murmurHash, int maxTrafficValue, double multiplier) {
         double ratio = (double) murmurHash / Math.pow(2, 32);
-        int multipliedValue =(int) (ratio * maxTrafficValue * multiplier);
-        return multipliedValue+1;
+        int multipliedValue = (int) (ratio * maxTrafficValue * multiplier);
+        return multipliedValue + 1;
     }
 
-
-    public Variation getBucket(Campaign campaign, String userId) {
-
+    public Variation bucketUserToVariation(Campaign campaign, String userId) {
         if (!campaign.getStatus().equalsIgnoreCase("RUNNING")) {
-            LOGGER.error("Campaign is Inactive. Unable to process.");
+            LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_RUNNING.value());
             return null;
         }
-        long murmurHash = isUserInCampaign(campaign, userId);
+
+        long murmurHash = Bucketer.getUserHashForCampaign(campaign, userId);
+
         if (murmurHash != -1) {
-            double multiplier= MAX_TRAFFIC_VALUE / campaign.getPercentTraffic() / 100;
-            int bucketValueForVariation=generateBucketValue(murmurHash,MAX_TRAFFIC_VALUE,multiplier);
-            LOGGER.debug("userId:{} for campaign:{} having percent traffic:{} got hash-value:{} and bucket value:{}",
-                    userId,campaign.getKey(),campaign.getPercentTraffic(),bucketValueForVariation);
+            double multiplier = MAX_TRAFFIC_VALUE / campaign.getPercentTraffic() / 100;
+            int bucketValueForVariation = Bucketer.getBucketValueForUser(murmurHash, MAX_TRAFFIC_VALUE, multiplier);
+
             for (Variation variation : campaign.getVariations()) {
-                if (bucketValueForVariation >= variation.getStartRangeVariation() &&
-                        bucketValueForVariation <= variation.getEndRangeVariation()) {
-                    LOGGER.info("userId:{} for campaign:{} got variationName:{}",userId,
-                            campaign.getKey(),variation.getName());
+                if (bucketValueForVariation >= variation.getStartRangeVariation() && bucketValueForVariation <= variation.getEndRangeVariation()) {
                     return variation;
                 }
             }

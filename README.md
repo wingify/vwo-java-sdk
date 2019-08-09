@@ -29,7 +29,7 @@ Setting File is a pre-requisite for initiating the VWO CLIENT INSTANCE.
 
 ```
 
-  String settingsFle= FileSettingUtils.getSetting(accountId, sdkKey));
+  String settings = VWO.getSetting(accountId, sdkKey));
   
 ```
 
@@ -59,7 +59,7 @@ The mandatory parameter for instantiating the SDK is settingsFile.
 
 import com.wingify.vwo.VWO;
 
-  VWO vwo_instance = VWO.createInstance(settingsFle).build();
+  VWO vwo_instance = VWO.createInstance(settings).build();
   
 ```
 
@@ -82,15 +82,11 @@ public class Example {
 
     public static void main(String[] args) {
 
-        String settingsFle = FileSettingUtils.getSetting(accountId, sdkKey);
+        String settings = VWO.getSetting(accountId, sdkKey);
 
-        // EventDispatcher(int eventQueueSize, int corePoolSize, int maxPoolSize, long closeTimeout, TimeUnit closeTimeoutUnit)
-        EventDispatcher eventDispatcher = new EventDispatcher();
+        EventDispatcher eventDispatcher = EventDispatcher.builder().build();
 
-        VWO vwo_instace = VWO.createInstance(settingsFle).withEventHandler(eventDispatcher).build();
-
-//            EventDispatcher eventDispatcher = new EventDispatcher(10000,2,200,
-//                    Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        VWO vwo_instance = VWO.createInstance(settings).withEventHandler(eventDispatcher).build();
     }
 }
 ```
@@ -98,8 +94,8 @@ public class Example {
 **USER PROFILE SERVICE**
 
 ```
-  String settingsFle = FileSettingUtils.getSetting(accountId, sdkKey);
-           System.out.println(settingsFle);
+  String settings = VWO.getSetting(accountId, sdkKey);
+           System.out.println(settings);
             UserProfileService userProfileService= new UserProfileService() {
                 @Override
                 public Map<String, Object> lookup(String s, String s1) throws Exception {
@@ -129,13 +125,7 @@ public class Example {
                 }
             };
 
-               
-            EventHandler eventHandler = EventDispatcher.builder().build);
-
-            VWO vwo = VWO.createInstance(settingsFle).withUserProfileService(userProfileService)
-                .withEventHandler(eventHandler)
-                .build();
-                
+            VWO vwo = VWO.createInstance(settings).withUserProfileService(userProfileService).build();        
 ```
 
 **LOGGER**

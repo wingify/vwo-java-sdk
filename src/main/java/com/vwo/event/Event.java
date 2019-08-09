@@ -30,7 +30,7 @@ public class Event {
         this.random = builder.random;
         this.goal_id = builder.goal_id;
         this.sId = builder.sId;
-        this.ap= builder.ap;
+        this.ap = builder.ap;
         this.ed = builder.ed;
     }
 
@@ -101,7 +101,7 @@ public class Event {
         }
 
         public Builder withEd() {
-            this.ed = "{“p”:“server”}";
+            this.ed = "{'p': 'server'}";
             return this;
         }
 

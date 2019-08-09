@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.URIConstants;
-
+import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.httpclient.VWOHttpClient;
+import javafx.util.Pair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -27,27 +28,25 @@ public class FileSettingUtils {
 
     /**
      *
-     * @param accountID   VWO application account-id.
+     * @param accountID VWO application account-id.
      * @param sdkKey Unique sdk-key provided to you inside VWO Application under the Apps section of server-side A/B Testing
      * @return JSON representation String representing the current state of campaign settings
      */
     public static String getSetting(String accountID, String sdkKey) {
-
-        if(accountID!=null && !accountID.isEmpty() && sdkKey!=null && !sdkKey.isEmpty()){
-           LOGGER.debug("SDK key and account settings are valid.");
+        if (accountID == null || accountID.isEmpty() || sdkKey == null || sdkKey.isEmpty()) {
+            LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS.toString());
+            return null;
         }
+
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.FETCHING_ACCOUNT_SETTINGS.value(new Pair<>("accountID", accountID)));
 
         CloseableHttpResponse closeableHttpResponse = null;
         VWOHttpClient vwoHttpClient = VWOHttpClient.Builder.newInstance().build();
         InputStream content = null;
         JsonNode jsonNode = null;
 
-        String path = "https://" + URIConstants.BASE_URL.toString() + URIConstants.ACCOUNT_SETTINGS.toString()
-                + "?a=" + accountID + "&i=" + sdkKey + "&r=" + Math.random() + "&platform=server&api-version=2";
-
-        URI uri = null;
         try {
-            uri = new URIBuilder()
+            URI uri = new URIBuilder()
                     .setScheme("https")
                     .setHost(URIConstants.BASE_URL.toString())
                     .setPath(URIConstants.ACCOUNT_SETTINGS.toString())
@@ -59,7 +58,7 @@ public class FileSettingUtils {
                     .build();
 
             HttpGet httpRequest = new HttpGet(uri);
-            httpRequest.setHeader("Content-Type", "application/javascript");
+            httpRequest.setHeader("Content-Type", "application/json");
             httpRequest.setHeader("charset", "UTF-8");
 
             closeableHttpResponse = vwoHttpClient.execute(httpRequest);
@@ -82,7 +81,7 @@ public class FileSettingUtils {
                 content.close();
                 closeableHttpResponse.close();
             } catch (IOException e) {
-               LOGGER.error("ERROR in fetching Setting File",e);
+               LOGGER.error("ERROR in fetching Setting File", e);
             }
         }
 

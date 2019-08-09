@@ -1,7 +1,9 @@
 package com.vwo.event;
 
 
+import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.httpclient.VWOHttpClient;
+import javafx.util.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
@@ -51,17 +53,7 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
     }
 
 
-    public EventDispatcher() {
-        this.vwoHttpClient = VWOHttpClient.Builder.newInstance().build();
-        this.executorService = new ThreadPoolExecutor(2, 200,
-                0L, TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<Runnable>(10000));
-
-        this.closeTimeout = Long.MAX_VALUE;
-        this.closeTimeoutUnit = TimeUnit.MILLISECONDS;
-    }
-
-    public EventDispatcher(int eventQueueSize,
+    private EventDispatcher(int eventQueueSize,
                            int corePoolSize,
                            int maxPoolSize,
                            long closeTimeout,
@@ -82,13 +74,6 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
         this.closeTimeoutUnit = closeTimeoutUnit;
     }
 
-    public EventDispatcher(VWOHttpClient vwohttpClient, ExecutorService executorService) {
-        this.vwoHttpClient =vwohttpClient;
-        this.executorService = executorService;
-        this.closeTimeout = Long.MAX_VALUE;
-        this.closeTimeoutUnit = TimeUnit.MILLISECONDS;
-    }
-
     private int checkNotNull(String name, int input, int fallback) {
         if (input <= 0) {
             LOGGER.warn("Invalid value {} for {} . Setting to Default value {}", input, name, fallback);
@@ -103,7 +88,7 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
         try {
             executorService.execute(new HttpEventHandler(dispatchEvent));
         } catch (RejectedExecutionException e) {
-            LOGGER.error("Exception while executing dispatcher event",e);
+            LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.UNABLE_TO_DISPATCH_EVENT.value(), e);
         }
     }
 
@@ -113,7 +98,7 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
             if (!executorService.awaitTermination(timeout, unit)) {
                 int unprocessedCount = executorService.shutdownNow().size();
                 if (!executorService.awaitTermination(timeout, unit)) {
-                    LOGGER.error("Some problem while shutting down");
+                    LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CLOSE_EXECUTOR_SERVICE.value());
                 }
             }
         } catch (InterruptedException ie) {
@@ -123,7 +108,7 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
             try {
                 vwoHttpClient.close();
             } catch (IOException e) {
-                LOGGER.error("Execption while closing http event handler", e);
+                LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CLOSE_HTTP_CONNECTION.value(), e);
             }
         }
     }
@@ -143,13 +128,12 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
 
         @Override
         public void run() {
-                LOGGER.debug("Dispatching event to \n URL {} \n params {}",
-                        dispatchEvent.getHost().concat(dispatchEvent.getPath()), dispatchEvent.getRequestParams());
+                LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.EVENT_HTTP_EXECUTION.value(new Pair<>("url",dispatchEvent.getHost().concat(dispatchEvent.getPath())), new Pair<>("params", dispatchEvent.getRequestParams().toString())));
             try {
                 HttpRequestBase request;
                 if (dispatchEvent.getRequestMethod() == DispatchEvent.RequestMethod.GET) {
                     request = getRequest(dispatchEvent);
-                    vwoHttpClient.execute(request,EVENT_RESPONSE_HANDLER);
+                    vwoHttpClient.execute(request, EVENT_RESPONSE_HANDLER);
                 } else {
                   //TO DO
                 }
@@ -168,7 +152,7 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
                     .setPath(event.getPath());
 
             for (Map.Entry<String, Object> param : event.getRequestParams().entrySet()) {
-                if(param.getValue()!=null) {
+                if(param.getValue() != null) {
                     builder.addParameter(param.getKey(), param.getValue().toString());
                 }
             }
@@ -183,7 +167,7 @@ public class EventDispatcher implements EventHandler,AutoCloseable {
         public Void handleResponse(HttpResponse response) throws IOException {
             int status = response.getStatusLine().getStatusCode();
             if (status >= 200 && status < 300) {
-                LOGGER.trace("HttpResponse response {}",response.getEntity());
+                LOGGER.trace("HttpResponse response {}", response.getEntity());
                 return null;
             } else {
                 throw new ClientProtocolException("Unexpected response : " + status);

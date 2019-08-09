@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.URIConstants;
 import com.vwo.config.ProjectConfig;
+import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.models.Campaign;
 import com.vwo.models.Goal;
 import com.vwo.models.SettingFileConfig;
 import com.vwo.models.Variation;
+import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +19,7 @@ import java.util.Map;
 
 public class EventFactory {
 
-    public static final String VWO_HOST= URIConstants.BASE_URL.toString();
+    public static final String VWO_HOST = URIConstants.BASE_URL.toString();
     public static final String IMPRESSION_PATH = URIConstants.TRACK_USER.toString();
     public static final String GOAL_PATH= URIConstants.TRACK_GOAL.toString();
 
@@ -25,7 +27,7 @@ public class EventFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventFactory.class);
 
     public static DispatchEvent createImpressionLogEvent(ProjectConfig projectConfig, Campaign campaignTestKey, String userId, Variation variation){
-        SettingFileConfig settingFileConfig= projectConfig.getSettingFileConfig();
+        SettingFileConfig settingFileConfig = projectConfig.getSettingFileConfig();
         Event impressionEvent =
                 Event.Builder.getInstance()
                         .withaccount_id(settingFileConfig.getAccountId())
@@ -38,14 +40,15 @@ public class EventFactory {
                         .withsId(Instant.now().getEpochSecond())
                         .withVariation(variation.getId()).build();
 
-        LOGGER.debug("impression built for track-user - {}",impressionEvent.toString());
-        Map<String,Object> map = objectMapper.convertValue(impressionEvent,Map.class);
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new Pair<>("userId", userId), new Pair<>("impressionEvent", impressionEvent.toString())));
+
+        Map<String,Object> map = objectMapper.convertValue(impressionEvent, Map.class);
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        return new DispatchEvent(VWO_HOST,IMPRESSION_PATH,map, DispatchEvent.RequestMethod.GET,null);
+        return new DispatchEvent(VWO_HOST, IMPRESSION_PATH, map, DispatchEvent.RequestMethod.GET,null);
     }
 
     public static DispatchEvent createGoalLogEvent(ProjectConfig projectConfig, Campaign campaignTestKey, String userId, Goal goal, Variation variation){
-        SettingFileConfig settingFileConfig= projectConfig.getSettingFileConfig();
+        SettingFileConfig settingFileConfig = projectConfig.getSettingFileConfig();
         Event goalEvent =
                 Event.Builder.getInstance()
                         .withaccount_id(settingFileConfig.getAccountId())
@@ -58,10 +61,10 @@ public class EventFactory {
                         .withsId(Instant.now().getEpochSecond())
                         .withVariation(variation.getId()).build();
 
-        LOGGER.debug("impression built for track-goal - {}",goalEvent.toString());
-        Map<String,Object> map = objectMapper.convertValue(goalEvent,Map.class);
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new Pair<>("goal", goalEvent.toString()), new Pair<>("userId", userId)));
 
-        return new DispatchEvent(VWO_HOST,GOAL_PATH,map, DispatchEvent.RequestMethod.GET,null);
+        Map<String,Object> map = objectMapper.convertValue(goalEvent, Map.class);
+        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        return new DispatchEvent(VWO_HOST, GOAL_PATH, map, DispatchEvent.RequestMethod.GET,null);
     }
 }
