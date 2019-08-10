@@ -27,6 +27,12 @@
             <organization>WINGIFY</organization>
             <organizationUrl>https://wingify.com/</organizationUrl>
         </developer>
+        <developer>
+            <name>Punit Gupta</name>
+            <email>punit.gupta14@yahoo.com</email>
+            <organization>WINGIFY</organization>
+            <organizationUrl>https://wingify.com/</organizationUrl>
+        </developer>
     </developers>
 
     <scm>
@@ -140,11 +146,11 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.6.4</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.slf4j</groupId>-->
+<!--            <artifactId>slf4j-simple</artifactId>-->
+<!--            <version>1.6.4</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
