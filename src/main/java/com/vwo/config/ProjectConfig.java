@@ -5,7 +5,9 @@ import com.vwo.models.SettingFileConfig;
 
 public interface ProjectConfig {
 
-    SettingFileConfig processSettingsFile();
-    Campaign getCampaignTestKey(String campaignTestKey);
-    SettingFileConfig getSettingFileConfig();
+  SettingFileConfig processSettingsFile();
+
+  Campaign getCampaignTestKey(String campaignTestKey);
+
+  SettingFileConfig getSettingFileConfig();
 }

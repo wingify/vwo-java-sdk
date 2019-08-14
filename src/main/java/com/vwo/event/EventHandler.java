@@ -2,5 +2,5 @@ package com.vwo.event;
 
 public interface EventHandler {
 
-    void dispatchEvent(DispatchEvent event) throws Exception;
+  void dispatchEvent(DispatchEvent event) throws Exception;
 }
