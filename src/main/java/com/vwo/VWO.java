@@ -6,6 +6,7 @@ import com.vwo.config.ConfigParseException;
 import com.vwo.config.FileSettingUtils;
 import com.vwo.config.ProjectConfig;
 import com.vwo.config.VWOConfig;
+import com.vwo.enums.GoalEnum;
 import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.event.DispatchEvent;
 import com.vwo.event.EventDispatcher;
@@ -19,8 +20,6 @@ import com.vwo.models.Variation;
 import com.vwo.userprofile.UserProfileService;
 
 import java.io.Closeable;
-import java.util.Collections;
-import java.util.Map;
 import javafx.util.Pair;
 
 /**
@@ -99,7 +98,7 @@ public class VWO implements AutoCloseable {
    * sends an impression event to the VWO server for generating reports
    *
    * @param campaignTestKey - Campaign name
-   * @param userId - User ID
+   * @param userId          - User ID
    * @return String name of the variation in which the user is bucketed, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignTestKey, String userId) {
@@ -125,11 +124,11 @@ public class VWO implements AutoCloseable {
       return null;
     }
 
-    return this.activateCampaign(campaign, userId, Collections.<String, String>emptyMap());
+    return this.activateCampaign(campaign, userId);
   }
 
-  private String activateCampaign(Campaign campaign, String userId, Map<String, ?> userProfileMap) {
-    String variation = this.getCampaignVariation(campaign, userId, userProfileMap);
+  private String activateCampaign(Campaign campaign, String userId) {
+    String variation = this.getCampaignVariation(campaign, userId);
 
     if (variation != null) {
       LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new Pair<>("userId", userId), new Pair<>("variation", variation)));
@@ -176,10 +175,10 @@ public class VWO implements AutoCloseable {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
     }
 
-    return this.getCampaignVariation(campaign, userId, Collections.<String, String>emptyMap());
+    return this.getCampaignVariation(campaign, userId);
   }
 
-  private String getCampaignVariation(Campaign campaign, String userId, Map<String, ?> userProfileMap) {
+  private String getCampaignVariation(Campaign campaign, String userId) {
     Variation variation = this.bucketingService.getVariation(campaign, userId);
     return variation != null ? variation.getName() : null;
   }
@@ -193,19 +192,19 @@ public class VWO implements AutoCloseable {
    * @param campaignTestKey key provided at the time of server-side campaign creation.
    * @param userId          unique id associated with the user for identification
    * @param goalIdentifier  key provided at the time of creating the goal in the server-side
+   * @param revenueValue    revenue generated on triggering the goal
    * @return
    */
+  public boolean track(String campaignTestKey, String userId, String goalIdentifier, Float revenueValue) {
+    return this.trackGoal(campaignTestKey, userId, goalIdentifier, revenueValue);
+  }
+
   public boolean track(String campaignTestKey, String userId, String goalIdentifier) {
-    if (campaignTestKey == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
-      return false;
-    }
-    if (userId == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
-      return false;
-    }
-    if (this.projectConfig == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value());
+    return this.trackGoal(campaignTestKey, userId, goalIdentifier, null);
+  }
+
+  private boolean trackGoal(String campaignTestKey, String userId, String goalIdentifier, Float revenueValue) {
+    if (!this.isTrackParamsValid(campaignTestKey, userId, goalIdentifier)) {
       return false;
     }
 
@@ -215,11 +214,8 @@ public class VWO implements AutoCloseable {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
       return false;
     }
-    return this.trackGoal(campaign, userId, goalIdentifier, Collections.<String, String>emptyMap());
-  }
 
-  private boolean trackGoal(Campaign campaign, String userId, String goalIdentifier, Map<String, ?> userProfileMap) {
-    String variation = this.getCampaignVariation(campaign, userId, userProfileMap);
+    String variation = this.getCampaignVariation(campaign, userId);
 
     if (variation != null) {
       Goal goal = this.getGoalId(campaign, goalIdentifier);
@@ -227,10 +223,17 @@ public class VWO implements AutoCloseable {
       if (goal == null) {
         LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
         return false;
+      } else if (goal.getType() == GoalEnum.GOAL_TYPES.REVENUE.value() && revenueValue == null) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(
+                new Pair<>("goalIdentifier", goalIdentifier),
+                new Pair<>("campaignTestKey", campaign.getKey()),
+                new Pair<>("userId", userId)
+        ));
+        return false;
       }
 
       if (!isDevelopmentMode()) {
-        this.sendConversionCall(this.projectConfig, campaign, userId, goal, CampaignUtils.getVariationObjectFromCampaign(campaign, variation));
+        this.sendConversionCall(this.projectConfig, campaign, userId, goal, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), revenueValue);
       }
 
       return true;
@@ -239,6 +242,27 @@ public class VWO implements AutoCloseable {
     }
 
     return false;
+  }
+
+  private boolean isTrackParamsValid(String campaignTestKey, String userId, String goalIdentifier) {
+    if (campaignTestKey == null) {
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
+      return false;
+    }
+    if (userId == null) {
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
+      return false;
+    }
+    if (goalIdentifier == null) {
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_IDENTIFIER.value());
+      return false;
+    }
+    if (this.projectConfig == null) {
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value());
+      return false;
+    }
+
+    return true;
   }
 
   private Goal getGoalId(Campaign campaign, String goalIdentifier) {
@@ -259,8 +283,8 @@ public class VWO implements AutoCloseable {
     }
   }
 
-  private void sendConversionCall(ProjectConfig projectConfig, Campaign campaign, String userId, Goal goal, Variation variation) {
-    DispatchEvent dispatchEvent = EventFactory.createGoalLogEvent(projectConfig, campaign, userId, goal, variation);
+  private void sendConversionCall(ProjectConfig projectConfig, Campaign campaign, String userId, Goal goal, Variation variation, Float revenueValue) {
+    DispatchEvent dispatchEvent = EventFactory.createGoalLogEvent(projectConfig, campaign, userId, goal, variation, revenueValue);
     try {
       eventHandler.dispatchEvent(dispatchEvent);
     } catch (Exception e) {

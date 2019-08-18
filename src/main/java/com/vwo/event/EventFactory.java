@@ -47,7 +47,7 @@ public class EventFactory {
     return new DispatchEvent(VWO_HOST, IMPRESSION_PATH, map, DispatchEvent.RequestMethod.GET, null);
   }
 
-  public static DispatchEvent createGoalLogEvent(ProjectConfig projectConfig, Campaign campaignTestKey, String userId, Goal goal, Variation variation) {
+  public static DispatchEvent createGoalLogEvent(ProjectConfig projectConfig, Campaign campaignTestKey, String userId, Goal goal, Variation variation, Float revenueValue) {
     SettingFileConfig settingFileConfig = projectConfig.getSettingFileConfig();
     Event goalEvent =
             Event.Builder.getInstance()
@@ -59,6 +59,7 @@ public class EventFactory {
                     .withUuid(settingFileConfig.getAccountId(), userId)
                     .withgoal_id(goal.getId())
                     .withsId(Instant.now().getEpochSecond())
+                    .withRevenue(revenueValue)
                     .withVariation(variation.getId()).build();
 
     LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new Pair<>("goal", goalEvent.toString()), new Pair<>("userId", userId)));

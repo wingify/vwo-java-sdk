@@ -26,7 +26,7 @@ public class BucketingService {
    * Determines the variation of a user for a campaign.
    *
    * @param campaign - campaign instance
-   * @param userId - user id string
+   * @param userId   - user id string
    * @return
    */
   public Variation getVariation(Campaign campaign, String userId) {
@@ -92,8 +92,8 @@ public class BucketingService {
    * Fetch the variation info of a user for a campaign from user defined user profile service.
    *
    * @param userProfileMap - User profile service hash map
-   * @param userId - user ID
-   * @param campaign - campaign instance
+   * @param userId         - user ID
+   * @param campaign       - campaign instance
    * @return
    */
   private Variation getStoredVariation(Map<String, String> userProfileMap, String userId, Campaign campaign) {
@@ -117,8 +117,8 @@ public class BucketingService {
   /**
    * Save variation info if user profile service is provided the the user.
    *
-   * @param userId - user id
-   * @param campaign - campaign instance
+   * @param userId    - user id
+   * @param campaign  - campaign instance
    * @param variation - variation instance
    */
   private void saveVariation(String userId, Campaign campaign, Variation variation) {

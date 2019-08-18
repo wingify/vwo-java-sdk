@@ -15,6 +15,7 @@ public class Event {
   private Integer combination;
   private Double random;
   private Integer goal_id;
+  private Float revenue;
   private long sId;
   private String ap;
   private String ed;
@@ -29,6 +30,7 @@ public class Event {
     this.combination = builder.combination;
     this.random = builder.random;
     this.goal_id = builder.goal_id;
+    this.revenue = builder.revenue;
     this.sId = builder.sId;
     this.ap = builder.ap;
     this.ed = builder.ed;
@@ -43,6 +45,7 @@ public class Event {
     private Integer combination;
     private Double random;
     private Integer goal_id;
+    private Float revenue;
     private long sId;
     private final UUID CONSTANT_NAMESPACE = UUIDType5.nameUUIDFromNamespaceAndString(UUIDType5.NAMESPACE_URL, "https://vwo.com");
     private String ap;
@@ -95,6 +98,11 @@ public class Event {
       return this;
     }
 
+    public Builder withRevenue(Float revenue) {
+      this.revenue = revenue;
+      return this;
+    }
+
     public Builder withAp() {
       this.ap = "server";
       return this;
@@ -116,17 +124,26 @@ public class Event {
 
   @Override
   public String toString() {
-    return "Event{"
-            + "account_id=" + account_id
-            + ", experiment_id=" + experiment_id
-            + ", uId='" + uId + '\''
-            + ", u='" + u + '\''
-            + ", combination=" + combination
-            + ", random=" + random
-            + ", goal_id='" + goal_id + '\''
-            + ", sId=" + sId
-            + ", ap='" + ap + '\''
-            + ", ed='" + ed + '\''
-            + '}';
+    String event = "Event{"
+            + "account_id=" + this.account_id
+            + ", experiment_id=" + this.experiment_id
+            + ", uId='" + this.uId + '\''
+            + ", u='" + this.u + '\''
+            + ", combination=" + this.combination
+            + ", random=" + this.random
+            + ", sId=" + this.sId
+            + ", ap='" + this.ap + '\'';
+
+    if (this.goal_id != null) {
+      event += ", goal_id='" + this.goal_id + '\'';
+
+      if (this.revenue != null) {
+        event += ", r='" + this.revenue + '\'';
+      }
+    } else {
+      event += ", ed='" + this.ed + '\'';
+    }
+
+    return event + '}';
   }
 }

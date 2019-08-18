@@ -41,9 +41,7 @@ public class FileSettingUtils {
 
     LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.FETCHING_ACCOUNT_SETTINGS.value(new Pair<>("accountID", accountID)));
 
-    CloseableHttpResponse closeableHttpResponse = null;
     VWOHttpClient vwoHttpClient = VWOHttpClient.Builder.newInstance().build();
-    InputStream content = null;
     JsonNode jsonNode = null;
 
     try {
@@ -62,12 +60,13 @@ public class FileSettingUtils {
       httpRequest.setHeader("Content-Type", "application/json");
       httpRequest.setHeader("charset", "UTF-8");
 
-      closeableHttpResponse = vwoHttpClient.execute(httpRequest);
-
-      if (closeableHttpResponse != null) {
-        content = closeableHttpResponse.getEntity().getContent();
-        ObjectMapper objectMapper = new ObjectMapper();
-        jsonNode = objectMapper.readValue(content, JsonNode.class);
+      try (CloseableHttpResponse closeableHttpResponse = vwoHttpClient.execute(httpRequest)) {
+        if (closeableHttpResponse != null) {
+          try (InputStream content = closeableHttpResponse.getEntity().getContent()) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readValue(content, JsonNode.class);
+          }
+        }
       }
     } catch (URISyntaxException e) {
       LOGGER.error("Please check URI builder:", e);
@@ -77,13 +76,6 @@ public class FileSettingUtils {
       LOGGER.error("Something went wrong:", e);
     } catch (IOException e) {
       LOGGER.error("Something went wrong:", e);
-    } finally {
-      try {
-        content.close();
-        closeableHttpResponse.close();
-      } catch (IOException e) {
-        LOGGER.error("ERROR in fetching Setting File", e);
-      }
     }
 
     return String.valueOf(jsonNode);

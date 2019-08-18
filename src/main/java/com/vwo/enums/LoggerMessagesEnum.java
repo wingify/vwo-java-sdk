@@ -80,6 +80,8 @@ public class LoggerMessagesEnum {
     MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS("AccountId and sdkKey are required for fetching account settings. Aborting!"),
     MISSING_CAMPAIGN_KEY("The campaignTestKey is required to get variation or track goal. Cannot proceed further."),
     MISSING_USER_ID("The userId is required to get variation or track goal. Cannot proceed further."),
+    MISSING_GOAL_IDENTIFIER("The goal identifier is required to track a goal. Cannot proceed further."),
+    MISSING_GOAL_REVENUE("Revenue value should be passed for revenue goal '{{goalIdentifier}}' for campaign '{{campaignTestKey}}' and userId '{{userId}}'."),
     MISSING_PROJECT_CONFIG("Not a valid VWO Instance. Cannot proceed further."),
     CAMPAIGN_NOT_FOUND("Unable to find the campaign. Please verify the Campaign Test Key."),
     CAMPAIGN_NOT_RUNNING("Campaign {{campaignTestKey}} is not RUNNING. Please verify from VWO App."),
