@@ -104,11 +104,11 @@ public class VWO implements AutoCloseable {
   public String activate(String campaignTestKey, String userId) {
     LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_ACTIVATE.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaignTestKey)));
 
-    if (campaignTestKey == null) {
+    if (campaignTestKey == null || campaignTestKey.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
       return null;
     }
-    if (userId == null) {
+    if (userId == null || userId.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
       return null;
     }
@@ -157,11 +157,11 @@ public class VWO implements AutoCloseable {
   public String getVariation(String campaignTestKey, String userId) {
     LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaignTestKey)));
 
-    if (campaignTestKey == null) {
+    if (campaignTestKey == null || campaignTestKey.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
       return null;
     }
-    if (userId == null) {
+    if (userId == null || userId.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
       return null;
     }
@@ -173,6 +173,7 @@ public class VWO implements AutoCloseable {
 
     if (campaign == null) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+      return null;
     }
 
     return this.getCampaignVariation(campaign, userId);
@@ -245,15 +246,15 @@ public class VWO implements AutoCloseable {
   }
 
   private boolean isTrackParamsValid(String campaignTestKey, String userId, String goalIdentifier) {
-    if (campaignTestKey == null) {
+    if (campaignTestKey == null || campaignTestKey.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
       return false;
     }
-    if (userId == null) {
+    if (userId == null || userId.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
       return false;
     }
-    if (goalIdentifier == null) {
+    if (goalIdentifier == null || goalIdentifier.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_IDENTIFIER.value());
       return false;
     }
@@ -438,6 +439,4 @@ public class VWO implements AutoCloseable {
       LOGGER.warn(LoggerMessagesEnum.WARNING_MESSAGES.CLOSE_GENERIC_CONNECTION.value(), obj);
     }
   }
-
-
 }
