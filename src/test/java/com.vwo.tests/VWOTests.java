@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.vwo.VWO;
 import com.vwo.event.EventHandler;
+import com.vwo.logger.LoggerManager;
 import com.vwo.logger.VWOLogger;
 import com.vwo.tests.data.Settings;
 import com.vwo.userprofile.UserProfileService;
@@ -11,10 +12,12 @@ import org.junit.jupiter.api.Test;
 
 
 public class VWOTests {
+  private static final LoggerManager LOGGER = LoggerManager.getLogger(VWOTests.class);
+
 
   @Test
   public void hasRequiredModules() throws NoSuchMethodException {
-    System.out.println("Should export required modules and APIs");
+    LOGGER.info("Should export required modules and APIs");
 
     Class[] createInstanceArg = new Class[1];
     createInstanceArg[0] = String.class;
@@ -62,12 +65,12 @@ public class VWOTests {
 
   @Test
   public void settingFileTests() {
-    System.out.println("Should not process settingsFile if settingsFile is not provided or corrupted");
+    LOGGER.info("Should not process settingsFile if settingsFile is not provided or corrupted");
 
     VWO vwoInstance = VWO.createInstance("").build();
     assertTrue(vwoInstance.getProjectConfig() == null);
 
-    System.out.println("Should process settingsFile if it is provided and is valid");
+    LOGGER.info("Should process settingsFile if it is provided and is valid");
 
     vwoInstance = VWO.createInstance(Settings.settings1).build();
     assertTrue(vwoInstance.getProjectConfig() != null);
