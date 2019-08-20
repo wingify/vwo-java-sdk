@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-mvn test
+mvn test -Pdev
