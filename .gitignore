@@ -27,4 +27,4 @@ classes
 .venv
 
 target/*
-!target/*dependencies.jar
+!target/vwo-java-sdk-1.0.jar

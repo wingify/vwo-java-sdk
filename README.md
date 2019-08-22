@@ -4,7 +4,7 @@ This open source library allows you to A/B Test your Website at server-side.
 
 **QUICK SETUP**
 
-Install dependencies using 'mvn install -Pdev'
+Install dependencies using 'mvn install'
 
 **Language Support**
 The Java SDK supports JDK8 and later.
