@@ -42,6 +42,4 @@ public class DispatchEvent {
     GET,
     POST
   }
-
-
 }

@@ -135,16 +135,13 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
 
     @Override
     public void run() {
-      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.EVENT_HTTP_EXECUTION.value(
-              new Pair<>("url", dispatchEvent.getHost().concat(dispatchEvent.getPath())),
-              new Pair<>("params", dispatchEvent.getRequestParams().toString())
-      ));
-
       try {
         HttpRequestBase request;
         if (dispatchEvent.getRequestMethod() == DispatchEvent.RequestMethod.GET) {
           request = getRequest(dispatchEvent);
           vwoHttpClient.execute(request, EVENT_RESPONSE_HANDLER);
+
+          LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.EVENT_HTTP_EXECUTION.value(new Pair<>("url", request.getURI().toString())));
         } else {
           //TO DO
         }

@@ -28,7 +28,7 @@ public class LoggerMessagesEnum {
     SAVED_IN_USER_PROFILE_SERVICE("Successfully saved variation '{{variation}}' of user {{userId}} in UserProfileService."),
     TRACK_USER_IMPRESSION_CREATED("Impression event built for track-user '{{userId}}' - '{{impressionEvent}}'."),
     TRACK_GOAL_IMPRESSION_CREATED("Impression event built for track-goal of user '{{userId}}' -  '{{goalEvent}}'."),
-    EVENT_HTTP_EXECUTION("Dispatching event to \n URL: '{{url}}' \n params: '{{params}}'."),
+    EVENT_HTTP_EXECUTION("Dispatching event to \n URL: '{{url}}'."),
     SETTINGS_FILE_PROCESSED("Settings file processed successfully."),
     SDK_INITIALIZED("SDK properly initialized."),
     HTTP_RESPONSE("Got Http response {{response}}.");
@@ -52,7 +52,7 @@ public class LoggerMessagesEnum {
     INITIATING_GET_VARIATION("Initiating getVariation of user '{{userId}}' for campaign '{{campaignTestKey}}'."),
     GOT_VARIATION_FOR_USER("User '{{userId}}' of campaign '{{campaignTestKey}}' got variation '{{variation}}'."),
     USER_NOT_PART_OF_CAMPAIGN("User '{{userId}}' did not become part of campaign '{{campaignTestKey}}'"),
-    TRACK_API_VARIATION_NOT_FOUND("Variation not found for campaign '{{campaignTestKey}}' and userId '{{userId}'.");
+    TRACK_API_VARIATION_NOT_FOUND("Variation not found for campaign '{{campaignTestKey}}' and userId '{{userId}}'.");
 
     private final String msg;
 
@@ -96,7 +96,7 @@ public class LoggerMessagesEnum {
     UNABLE_TO_DISPATCH_EVENT("Exception while executing dispatcher event."),
     CLOSE_HTTP_CONNECTION("Exception while closing http event handler."),
     CLOSE_EXECUTOR_SERVICE("Some problem while shutting down executor."),
-    TRACK_API_GOAL_NOT_FOUND("Goal not found for campaign '{{campaignTestKey}}' and userId '{{userId}}'."),
+    TRACK_API_GOAL_NOT_FOUND("Goal '{{goalIdentifier}}' not found for campaign '{{campaignTestKey}}' and userId '{{userId}}'."),
     EVENT_DISPATCHER_EXCEPTION("Exception in Event Dispatcher."),
     URI_PARSER_EXCEPTION("URI Parsing Exception.");
 

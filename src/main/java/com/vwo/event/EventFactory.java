@@ -47,7 +47,7 @@ public class EventFactory {
     return new DispatchEvent(VWO_HOST, IMPRESSION_PATH, map, DispatchEvent.RequestMethod.GET, null);
   }
 
-  public static DispatchEvent createGoalLogEvent(ProjectConfig projectConfig, Campaign campaignTestKey, String userId, Goal goal, Variation variation, Float revenueValue) {
+  public static DispatchEvent createGoalLogEvent(ProjectConfig projectConfig, Campaign campaignTestKey, String userId, Goal goal, Variation variation, Object revenueValue) {
     SettingFileConfig settingFileConfig = projectConfig.getSettingFileConfig();
     Event goalEvent =
             Event.Builder.getInstance()

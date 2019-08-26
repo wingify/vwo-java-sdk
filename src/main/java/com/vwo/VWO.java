@@ -196,7 +196,7 @@ public class VWO implements AutoCloseable {
    * @param revenueValue    revenue generated on triggering the goal
    * @return
    */
-  public boolean track(String campaignTestKey, String userId, String goalIdentifier, Float revenueValue) {
+  public boolean track(String campaignTestKey, String userId, String goalIdentifier, Object revenueValue) {
     return this.trackGoal(campaignTestKey, userId, goalIdentifier, revenueValue);
   }
 
@@ -204,7 +204,7 @@ public class VWO implements AutoCloseable {
     return this.trackGoal(campaignTestKey, userId, goalIdentifier, null);
   }
 
-  private boolean trackGoal(String campaignTestKey, String userId, String goalIdentifier, Float revenueValue) {
+  private boolean trackGoal(String campaignTestKey, String userId, String goalIdentifier, Object revenueValue) {
     if (!this.isTrackParamsValid(campaignTestKey, userId, goalIdentifier)) {
       return false;
     }
@@ -222,7 +222,11 @@ public class VWO implements AutoCloseable {
       Goal goal = this.getGoalId(campaign, goalIdentifier);
 
       if (goal == null) {
-        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(
+                new Pair<>("goalIdentifier", goalIdentifier),
+                new Pair<>("userId", userId),
+                new Pair<>("campaignTestKey", campaign.getKey())
+        ));
         return false;
       } else if (goal.getType() == GoalEnum.GOAL_TYPES.REVENUE.value() && revenueValue == null) {
         LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(
@@ -284,7 +288,7 @@ public class VWO implements AutoCloseable {
     }
   }
 
-  private void sendConversionCall(ProjectConfig projectConfig, Campaign campaign, String userId, Goal goal, Variation variation, Float revenueValue) {
+  private void sendConversionCall(ProjectConfig projectConfig, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
     DispatchEvent dispatchEvent = EventFactory.createGoalLogEvent(projectConfig, campaign, userId, goal, variation, revenueValue);
     try {
       eventHandler.dispatchEvent(dispatchEvent);

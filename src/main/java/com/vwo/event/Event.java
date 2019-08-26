@@ -16,7 +16,7 @@ public class Event {
   private Integer combination;
   private Double random;
   private Integer goal_id;
-  private Float revenue;
+  private Object r;
   private long sId;
   private String ap;
   private String ed;
@@ -31,7 +31,7 @@ public class Event {
     this.combination = builder.combination;
     this.random = builder.random;
     this.goal_id = builder.goal_id;
-    this.revenue = builder.revenue;
+    this.r = builder.r;
     this.sId = builder.sId;
     this.ap = builder.ap;
     this.ed = builder.ed;
@@ -46,7 +46,7 @@ public class Event {
     private Integer combination;
     private Double random;
     private Integer goal_id;
-    private Float revenue;
+    private Object r;
     private long sId;
     private final UUID CONSTANT_NAMESPACE = UUIDType5.nameUUIDFromNamespaceAndString(UUIDType5.NAMESPACE_URL, "https://vwo.com");
     private String ap;
@@ -103,8 +103,8 @@ public class Event {
       return this;
     }
 
-    public Builder withRevenue(Float revenue) {
-      this.revenue = revenue;
+    public Builder withRevenue(Object r) {
+      this.r = r;
       return this;
     }
 
@@ -142,8 +142,8 @@ public class Event {
     if (this.goal_id != null) {
       event += ", goal_id='" + this.goal_id + '\'';
 
-      if (this.revenue != null) {
-        event += ", r='" + this.revenue + '\'';
+      if (this.r != null) {
+        event += ", r='" + this.r + '\'';
       }
     } else {
       event += ", ed='" + this.ed + '\'';
