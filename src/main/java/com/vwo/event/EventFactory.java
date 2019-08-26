@@ -62,7 +62,7 @@ public class EventFactory {
                     .withRevenue(revenueValue)
                     .withVariation(variation.getId()).build();
 
-    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new Pair<>("goal", goalEvent.toString()), new Pair<>("userId", userId)));
+    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new Pair<>("goalEvent", goalEvent.toString()), new Pair<>("userId", userId)));
 
     Map<String, Object> map = objectMapper.convertValue(goalEvent, Map.class);
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
