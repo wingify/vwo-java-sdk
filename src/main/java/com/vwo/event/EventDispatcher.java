@@ -150,9 +150,9 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
         }
 
       } catch (IOException e) {
-        LOGGER.error("Exception in Event Dispatcher", e);
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.EVENT_DISPATCHER_EXCEPTION.value(), e);
       } catch (URISyntaxException e) {
-        LOGGER.error("URI Parsing Exception ", e);
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.URI_PARSER_EXCEPTION.value(), e);
       }
     }
 
@@ -178,7 +178,7 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
     public Void handleResponse(HttpResponse response) throws IOException {
       int status = response.getStatusLine().getStatusCode();
       if (status >= 200 && status < 300) {
-        LOGGER.trace("HttpResponse response {}", response.getEntity());
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.HTTP_RESPONSE.value(new Pair<>("response", response.getStatusLine().toString())));
         return null;
       } else {
         throw new ClientProtocolException("Unexpected response : " + status);
@@ -201,7 +201,7 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
 
     public Builder withEventQueueSize(int eventQueueSize) {
       if (eventQueueSize <= 0) {
-        LOGGER.debug("Should be greater than 0. Setting to default : {}", this.eventQueueSize);
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.INVALID_EVENT_QUEUE_SIZE.value(new Pair<>("eventQueueSize", String.valueOf(this.eventQueueSize))));
         return this;
       }
       this.eventQueueSize = eventQueueSize;
@@ -210,7 +210,7 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
 
     public Builder withCorePoolSize(int corePoolSize) {
       if (corePoolSize <= 0) {
-        LOGGER.debug("Should be greater than 0. Setting to default : {}", this.corePoolSize);
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.INVALID_EVENT_POOL_SIZE.value(new Pair<>("corePoolSize", String.valueOf(this.corePoolSize))));
         return this;
       }
 

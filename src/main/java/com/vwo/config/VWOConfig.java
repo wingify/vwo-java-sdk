@@ -3,12 +3,13 @@ package com.vwo.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.JacksonParser;
 import com.vwo.Parser;
+import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.logger.LoggerManager;
 import com.vwo.models.Campaign;
 import com.vwo.models.SettingFileConfig;
 import com.vwo.models.Variation;
-
 import java.util.List;
+import javafx.util.Pair;
 
 public class VWOConfig implements ProjectConfig {
 
@@ -37,7 +38,6 @@ public class VWOConfig implements ProjectConfig {
     List<Variation> variationList = campaign.getVariations();
     for (Variation singleVariation : variationList) {
       Double stepFactor = getVariationBucketRange(singleVariation.getWeight());
-      System.out.println(stepFactor + " step factor");
       if (stepFactor != null && stepFactor != -1) {
         singleVariation.setStartRangeVariation((int) campaign.getCurrentAllocationVariation() + 1);
         campaign.setCurrentAllocationVariation(Math.ceil(campaign.getCurrentAllocationVariation() + stepFactor));
@@ -46,16 +46,19 @@ public class VWOConfig implements ProjectConfig {
         singleVariation.setStartRangeVariation(-1);
         singleVariation.setEndRangeVariation(-1);
       }
-      LOGGER.info("Campaign:{} having variations:{} with weight:{} got range as: ( {} - {} )",
-              campaign.getKey(), singleVariation.getName(), singleVariation.getWeight(),
-              singleVariation.getStartRangeVariation(), singleVariation.getEndRangeVariation());
+      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.VARIATION_ALLOCATED_SUCCESSFULLY.value(
+              new Pair<>("campaignTestKey", campaign.getKey()),
+              new Pair<>("variation", singleVariation.getName()),
+              new Pair<>("weight", String.valueOf(singleVariation.getWeight())),
+              new Pair<>("startRange", String.valueOf(singleVariation.getStartRangeVariation())),
+              new Pair<>("endRange", String.valueOf(singleVariation.getEndRangeVariation()))
+      ));
     }
     return campaign;
   }
 
   public Double getVariationBucketRange(double variationWeight) {
     double startRange = variationWeight * 100;
-    System.out.println(startRange + " start range");
     if (startRange == 0) {
       startRange = -1;
     }
@@ -66,7 +69,7 @@ public class VWOConfig implements ProjectConfig {
   public Campaign getCampaignTestKey(String campaignTestKey) {
     for (Campaign campaign : settingFileConfig.getCampaigns()) {
       if (campaign.getKey().equalsIgnoreCase(campaignTestKey)) {
-        LOGGER.trace("CampaignTestKey Found :: ", campaignTestKey);
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.CAMPAIGN_KEY_FOUND.value(new Pair<>("campaignTestKey", campaignTestKey)));
         return campaign;
       }
     }

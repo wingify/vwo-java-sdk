@@ -15,6 +15,10 @@ public class LoggerMessagesEnum {
 
   public enum DEBUG_MESSAGES {
     FETCHING_ACCOUNT_SETTINGS("Fetching  account settings for ID: {{accountID}}."),
+    CAMPAIGN_KEY_FOUND("CampaignTestKey found: '{{campaignTestKey}}'."),
+    UUID_GENERATED("Uuid generated for userId '{{userId}}' and accountId '{{accountId}}' is '{{uuid}}'."),
+    INVALID_EVENT_QUEUE_SIZE("Event queue size should be greater than 0. Setting to default: {{eventQueueSize}}"),
+    INVALID_EVENT_POOL_SIZE("Event pool size should be greater than 0. Setting to default: {{corePoolSize}}"),
     ACTIVATING_CAMPAIGN("Activating user '{{userId}}'  for variation '{{variation}}'."),
     GOT_STORED_VARIATION("Got stored variation '{{variationName}}' of campaign '{{campaignTestKey}}' for userId '{{userId}}' from UserProfileService."),
     NO_STORED_VARIATION("No stored variation for UserId '{{userId}}' for Campaign '{{campaignTestKey}}' found in UserProfileService."),
@@ -24,9 +28,10 @@ public class LoggerMessagesEnum {
     SAVED_IN_USER_PROFILE_SERVICE("Successfully saved variation '{{variation}}' of user {{userId}} in UserProfileService."),
     TRACK_USER_IMPRESSION_CREATED("Impression event built for track-user '{{userId}}' - '{{impressionEvent}}'."),
     TRACK_GOAL_IMPRESSION_CREATED("Impression event built for track-goal of user '{{userId}}' -  '{{goalEvent}}'."),
-    EVENT_HTTP_EXECUTION("Dispatching event to \n URL '{{url}}' \n params '{{params}}'."),
+    EVENT_HTTP_EXECUTION("Dispatching event to \n URL: '{{url}}' \n params: '{{params}}'."),
     SETTINGS_FILE_PROCESSED("Settings file processed successfully."),
-    SDK_INITIALIZED("SDK properly initialized.");
+    SDK_INITIALIZED("SDK properly initialized."),
+    HTTP_RESPONSE("Got Http response {{response}}.");
 
     private final String msg;
 
@@ -41,6 +46,7 @@ public class LoggerMessagesEnum {
 
   public enum INFO_MESSAGES {
     NO_VARIATION_ALLOCATED("UserId '{{userId}' of campaign {{campaignTestKey}} did not get any variation."),
+    VARIATION_ALLOCATED_SUCCESSFULLY("Campaign '{{campaignTestKey}}' having variation '{{variation}}' with weight '{{weight}}' got range as: ({{startRange}} to {{endRange}})"),
     NO_DATA_USER_PROFILE_SERVICE("Unable to fetch data from UserProfileService."),
     INITIATING_ACTIVATE("Initiating activation of user '{{userId}}' for campaign '{{campaignTestKey}}'."),
     INITIATING_GET_VARIATION("Initiating getVariation of user '{{userId}}' for campaign '{{campaignTestKey}}'."),
@@ -83,13 +89,16 @@ public class LoggerMessagesEnum {
     MISSING_GOAL_IDENTIFIER("The goal identifier is required to track a goal. Cannot proceed further."),
     MISSING_GOAL_REVENUE("Revenue value should be passed for revenue goal '{{goalIdentifier}}' for campaign '{{campaignTestKey}}' and userId '{{userId}}'."),
     MISSING_PROJECT_CONFIG("Not a valid VWO Instance. Cannot proceed further."),
+    ACCOUNT_SETTINGS_NOT_FOUND("Request failed for fetching account settings. Got Status Code: '{{statusCode}}' and message: '{{message}}'."),
     CAMPAIGN_NOT_FOUND("Unable to find the campaign. Please verify the Campaign Test Key."),
     CAMPAIGN_NOT_RUNNING("Campaign {{campaignTestKey}} is not RUNNING. Please verify from VWO App."),
     SAVE_USER_PROFILE_SERVICE_FAILED("Saving data into UserProfileService failed for user '{{userId}}'."),
     UNABLE_TO_DISPATCH_EVENT("Exception while executing dispatcher event."),
     CLOSE_HTTP_CONNECTION("Exception while closing http event handler."),
     CLOSE_EXECUTOR_SERVICE("Some problem while shutting down executor."),
-    TRACK_API_GOAL_NOT_FOUND("Goal not found for campaign '{{campaignTestKey}}' and userId '{{userId}}'.");
+    TRACK_API_GOAL_NOT_FOUND("Goal not found for campaign '{{campaignTestKey}}' and userId '{{userId}}'."),
+    EVENT_DISPATCHER_EXCEPTION("Exception in Event Dispatcher."),
+    URI_PARSER_EXCEPTION("URI Parsing Exception.");
 
 
     private final String msg;

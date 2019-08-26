@@ -2,9 +2,10 @@ package com.vwo.event;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.vwo.UUIDType5;
+import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.logger.LoggerManager;
-
 import java.util.UUID;
+import javafx.util.Pair;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class Event {
@@ -73,7 +74,11 @@ public class Event {
       UUID accountUuid = UUIDType5.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, this.account_id.toString());
       UUID userUuid = UUIDType5.nameUUIDFromNamespaceAndString(accountUuid, this.uId);
       this.u = userUuid.toString().replace("-", "").toUpperCase();
-      LOGGER.debug("Uuid generated for userId:{} and accountId:{} is {}", uId, account_id, u);
+      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.UUID_GENERATED.value(
+              new Pair<>("userId", uId),
+              new Pair<>("accountId", String.valueOf(account_id)),
+              new Pair<>("uuid", u)
+      ));
       return this;
     }
 

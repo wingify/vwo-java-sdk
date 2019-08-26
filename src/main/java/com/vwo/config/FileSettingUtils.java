@@ -65,6 +65,14 @@ public class FileSettingUtils {
           try (InputStream content = closeableHttpResponse.getEntity().getContent()) {
             ObjectMapper objectMapper = new ObjectMapper();
             jsonNode = objectMapper.readValue(content, JsonNode.class);
+
+            int statusCode = closeableHttpResponse.getStatusLine().getStatusCode();
+            if (statusCode != 200) {
+              LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.ACCOUNT_SETTINGS_NOT_FOUND.value(
+                      new Pair<>("statusCode", String.valueOf(statusCode)),
+                      new Pair<>("message", String.valueOf(jsonNode))
+              ));
+            }
           }
         }
       }

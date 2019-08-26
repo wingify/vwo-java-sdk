@@ -105,11 +105,11 @@ If you have logback in your class path, to get console logs add following Append
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>DEBUG</level>
         </filter>
-    </appender>
+  </appender>
 
-    <Logger name="com.wingify.vwo" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </Logger>
+  <Logger name="com.wingify.vwo" additivity="false">
+      <appender-ref ref="STDOUT"/>
+  </Logger>
 
 ```
 
