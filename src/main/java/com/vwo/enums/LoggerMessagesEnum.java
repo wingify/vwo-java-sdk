@@ -88,7 +88,7 @@ public class LoggerMessagesEnum {
     MISSING_USER_ID("The userId is required to get variation or track goal. Cannot proceed further."),
     MISSING_GOAL_IDENTIFIER("The goal identifier is required to track a goal. Cannot proceed further."),
     MISSING_GOAL_REVENUE("Revenue value should be passed for revenue goal '{{goalIdentifier}}' for campaign '{{campaignTestKey}}' and userId '{{userId}}'."),
-    MISSING_PROJECT_CONFIG("Not a valid VWO Instance. Cannot proceed further."),
+    MISSING_PROJECT_CONFIG("No campaigns found or settings file is corrupted for campaign '{{campaignTestKey}}' and userId '{{userId}}'."),
     ACCOUNT_SETTINGS_NOT_FOUND("Request failed for fetching account settings. Got Status Code: '{{statusCode}}' and message: '{{message}}'."),
     CAMPAIGN_NOT_FOUND("Unable to find the campaign. Please verify the Campaign Test Key."),
     CAMPAIGN_NOT_RUNNING("Campaign {{campaignTestKey}} is not RUNNING. Please verify from VWO App."),

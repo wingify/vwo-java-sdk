@@ -104,27 +104,35 @@ public class VWO implements AutoCloseable {
   public String activate(String campaignTestKey, String userId) {
     LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_ACTIVATE.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaignTestKey)));
 
-    if (campaignTestKey == null || campaignTestKey.isEmpty()) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
-      return null;
-    }
-    if (userId == null || userId.isEmpty()) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
-      return null;
-    }
-    if (this.projectConfig == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value());
-      return null;
-    }
+    try {
+      if (campaignTestKey == null || campaignTestKey.isEmpty()) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
+        return null;
+      }
+      if (userId == null || userId.isEmpty()) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
+        return null;
+      }
+      if (this.projectConfig == null) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(
+                new Pair<>("campaignTestKey", campaignTestKey),
+                new Pair<>("userId", userId)
+        ));
+        return null;
+      }
 
-    Campaign campaign = this.projectConfig.getCampaignTestKey(campaignTestKey);
+      Campaign campaign = this.projectConfig.getCampaignTestKey(campaignTestKey);
 
-    if (campaign == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+      if (campaign == null) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        return null;
+      }
+
+      return this.activateCampaign(campaign, userId);
+    } catch (Exception e) {
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
-
-    return this.activateCampaign(campaign, userId);
   }
 
   private String activateCampaign(Campaign campaign, String userId) {
@@ -134,9 +142,7 @@ public class VWO implements AutoCloseable {
       LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new Pair<>("userId", userId), new Pair<>("variation", variation)));
 
       // Send Impression Call for Stats
-      if (!this.isDevelopmentMode()) {
-        this.sendImpressionCall(this.projectConfig, campaign, userId, CampaignUtils.getVariationObjectFromCampaign(campaign, variation));
-      }
+      this.sendImpressionCall(this.projectConfig, campaign, userId, CampaignUtils.getVariationObjectFromCampaign(campaign, variation));
     } else {
       LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.NO_VARIATION_ALLOCATED.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
     }
@@ -157,26 +163,34 @@ public class VWO implements AutoCloseable {
   public String getVariation(String campaignTestKey, String userId) {
     LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaignTestKey)));
 
-    if (campaignTestKey == null || campaignTestKey.isEmpty()) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
-      return null;
-    }
-    if (userId == null || userId.isEmpty()) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
-      return null;
-    }
-    if (this.projectConfig == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value());
-      return null;
-    }
-    Campaign campaign = this.projectConfig.getCampaignTestKey(campaignTestKey);
+    try {
+      if (campaignTestKey == null || campaignTestKey.isEmpty()) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
+        return null;
+      }
+      if (userId == null || userId.isEmpty()) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_USER_ID.value());
+        return null;
+      }
+      if (this.projectConfig == null) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(
+                new Pair<>("campaignTestKey", campaignTestKey),
+                new Pair<>("userId", userId)
+        ));
+        return null;
+      }
+      Campaign campaign = this.projectConfig.getCampaignTestKey(campaignTestKey);
 
-    if (campaign == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+      if (campaign == null) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        return null;
+      }
+
+      return this.getCampaignVariation(campaign, userId);
+    } catch (Exception e) {
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
-
-    return this.getCampaignVariation(campaign, userId);
   }
 
   private String getCampaignVariation(Campaign campaign, String userId) {
@@ -205,48 +219,51 @@ public class VWO implements AutoCloseable {
   }
 
   private boolean trackGoal(String campaignTestKey, String userId, String goalIdentifier, Object revenueValue) {
-    if (!this.isTrackParamsValid(campaignTestKey, userId, goalIdentifier)) {
-      return false;
-    }
-
-    Campaign campaign = this.projectConfig.getCampaignTestKey(campaignTestKey);
-
-    if (campaign == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
-      return false;
-    }
-
-    String variation = this.getCampaignVariation(campaign, userId);
-
-    if (variation != null) {
-      Goal goal = this.getGoalId(campaign, goalIdentifier);
-
-      if (goal == null) {
-        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(
-                new Pair<>("goalIdentifier", goalIdentifier),
-                new Pair<>("userId", userId),
-                new Pair<>("campaignTestKey", campaign.getKey())
-        ));
-        return false;
-      } else if (goal.getType() == GoalEnum.GOAL_TYPES.REVENUE.value() && revenueValue == null) {
-        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(
-                new Pair<>("goalIdentifier", goalIdentifier),
-                new Pair<>("campaignTestKey", campaign.getKey()),
-                new Pair<>("userId", userId)
-        ));
+    try {
+      if (!this.isTrackParamsValid(campaignTestKey, userId, goalIdentifier)) {
         return false;
       }
 
-      if (!isDevelopmentMode()) {
+      Campaign campaign = this.projectConfig.getCampaignTestKey(campaignTestKey);
+
+      if (campaign == null) {
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        return false;
+      }
+
+      String variation = this.getCampaignVariation(campaign, userId);
+
+      if (variation != null) {
+        Goal goal = this.getGoalId(campaign, goalIdentifier);
+
+        if (goal == null) {
+          LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(
+                  new Pair<>("goalIdentifier", goalIdentifier),
+                  new Pair<>("userId", userId),
+                  new Pair<>("campaignTestKey", campaign.getKey())
+          ));
+          return false;
+        } else if (goal.getType() == GoalEnum.GOAL_TYPES.REVENUE.value() && revenueValue == null) {
+          LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(
+                  new Pair<>("goalIdentifier", goalIdentifier),
+                  new Pair<>("campaignTestKey", campaign.getKey()),
+                  new Pair<>("userId", userId)
+          ));
+          return false;
+        }
+
         this.sendConversionCall(this.projectConfig, campaign, userId, goal, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), revenueValue);
+
+        return true;
+      } else {
+        LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.TRACK_API_VARIATION_NOT_FOUND.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
       }
 
-      return true;
-    } else {
-      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.TRACK_API_VARIATION_NOT_FOUND.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
+      return false;
+    } catch (Exception e) {
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      return false;
     }
-
-    return false;
   }
 
   private boolean isTrackParamsValid(String campaignTestKey, String userId, String goalIdentifier) {
@@ -263,7 +280,10 @@ public class VWO implements AutoCloseable {
       return false;
     }
     if (this.projectConfig == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value());
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(
+              new Pair<>("campaignTestKey", campaignTestKey),
+              new Pair<>("userId", userId)
+      ));
       return false;
     }
 
@@ -282,7 +302,9 @@ public class VWO implements AutoCloseable {
   private void sendImpressionCall(ProjectConfig projectConfig, Campaign campaign, String userId, Variation variation) {
     DispatchEvent dispatchEvent = EventFactory.createImpressionLogEvent(projectConfig, campaign, userId, variation);
     try {
-      eventHandler.dispatchEvent(dispatchEvent);
+      if (!this.isDevelopmentMode()) {
+        eventHandler.dispatchEvent(dispatchEvent);
+      }
     } catch (Exception e) {
       LOGGER.error("Unexpected exception in event dispacther");
     }
@@ -291,7 +313,9 @@ public class VWO implements AutoCloseable {
   private void sendConversionCall(ProjectConfig projectConfig, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
     DispatchEvent dispatchEvent = EventFactory.createGoalLogEvent(projectConfig, campaign, userId, goal, variation, revenueValue);
     try {
-      eventHandler.dispatchEvent(dispatchEvent);
+      if (!this.isDevelopmentMode()) {
+        eventHandler.dispatchEvent(dispatchEvent);
+      }
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.UNABLE_TO_DISPATCH_EVENT.value());
     }
@@ -356,12 +380,11 @@ public class VWO implements AutoCloseable {
       if (this.projectConfig == null && this.settingFile != null && !this.settingFile.isEmpty()) {
         try {
           this.projectConfig = VWOConfig.Builder.getInstance(this.settingFile).build();
+          this.projectConfig.processSettingsFile();
+          LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.SETTINGS_FILE_PROCESSED.value());
         } catch (ConfigParseException e) {
           LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
         }
-
-        this.projectConfig.processSettingsFile();
-        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.SETTINGS_FILE_PROCESSED.value());
       }
 
       if (this.eventHandler == null) {

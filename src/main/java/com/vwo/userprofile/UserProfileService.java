@@ -5,7 +5,7 @@ import java.util.Map;
 public interface UserProfileService {
 
   String userId = "userId";
-  String campaignKey = "campaign";
+  String campaignKey = "campaignTestKey";
   String variationKey = "variationName";
 
   Map<String, String> lookup(String userId, String campaignTestKey) throws Exception;
