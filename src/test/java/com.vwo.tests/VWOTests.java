@@ -27,7 +27,7 @@ public class VWOTests {
     getSettingsArg[1] = String.class;
 
     assertTrue(VWO.class.getMethod("createInstance", createInstanceArg) != null);
-    assertTrue(VWO.class.getMethod("getSetting", getSettingsArg) != null);
+    assertTrue(VWO.class.getMethod("getSettingsFile", getSettingsArg) != null);
 
     Class vwoClass = VWO.createInstance("").getClass();
 

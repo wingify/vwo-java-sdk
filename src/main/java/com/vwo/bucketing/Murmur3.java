@@ -65,6 +65,10 @@ public class Murmur3 {
 
   /**
    * Murmur3 32-bit variant.
+   *
+   * @param l0 - Bytes
+   * @param seed - Seed value
+   * @return - Hash 32 value
    */
   public static int hash32(long l0, int seed) {
     int hash = seed;
@@ -78,6 +82,11 @@ public class Murmur3 {
 
   /**
    * Murmur3 32-bit variant.
+   *
+   * @param l0 - Bytes
+   * @param l1 - Bytes
+   * @param seed - Seed value
+   * @return - Hash 32 value
    */
   public static int hash32(long l0, long l1, int seed) {
     int hash = seed;
@@ -199,6 +208,12 @@ public class Murmur3 {
     return hash64(data, 0, data.length, DEFAULT_SEED);
   }
 
+  /**
+   * Murmur3 64-bit variant. This is essentially MSB 8 bytes of Murmur3 128-bit variant.
+   *
+   * @param data - input long data
+   * @return - hashcode
+   */
   public static long hash64(long data) {
     long hash = DEFAULT_SEED;
     long k = Long.reverseBytes(data);
@@ -215,6 +230,12 @@ public class Murmur3 {
     return hash;
   }
 
+  /**
+   * Murmur3 64-bit variant. This is essentially MSB 8 bytes of Murmur3 128-bit variant.
+   *
+   * @param data - input int data
+   * @return - hashcode
+   */
   public static long hash64(int data) {
     long k1 = Integer.reverseBytes(data) & (-1L >>> 32);
     int length = Integer.BYTES;
@@ -229,6 +250,12 @@ public class Murmur3 {
     return hash;
   }
 
+  /**
+   * Murmur3 64-bit variant. This is essentially MSB 8 bytes of Murmur3 128-bit variant.
+   *
+   * @param data - input short data
+   * @return - hashcode
+   */
   public static long hash64(short data) {
     long hash = DEFAULT_SEED;
     long k1 = 0;
@@ -245,6 +272,14 @@ public class Murmur3 {
     return hash;
   }
 
+  /**
+   * Murmur3 64-bit variant. This is essentially MSB 8 bytes of Murmur3 128-bit variant.
+   *
+   * @param data   - input byte array
+   * @param offset - offset value
+   * @param length - length of array
+   * @return - hashcode
+   */
   public static long hash64(byte[] data, int offset, int length) {
     return hash64(data, offset, length, DEFAULT_SEED);
   }

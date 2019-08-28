@@ -94,7 +94,7 @@ public class BucketingService {
    * @param userProfileMap - User profile service hash map
    * @param userId         - user ID
    * @param campaign       - campaign instance
-   * @return
+   * @return               - stored variation name
    */
   private Variation getStoredVariation(Map<String, String> userProfileMap, String userId, Campaign campaign) {
 

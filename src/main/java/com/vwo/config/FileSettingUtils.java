@@ -33,7 +33,7 @@ public class FileSettingUtils {
    * @param sdkKey    Unique sdk-key provided to you inside VWO Application under the Apps section of server-side A/B Testing
    * @return JSON representation String representing the current state of campaign settings
    */
-  public static String getSetting(String accountID, String sdkKey) {
+  public static String getSettingsFile(String accountID, String sdkKey) {
     if (accountID == null || accountID.isEmpty() || sdkKey == null || sdkKey.isEmpty()) {
       LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS.toString());
       return null;

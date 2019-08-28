@@ -22,7 +22,7 @@ GET SETTING FILE
 Each VWO SDK client corresponds to the settingsFIle representing the current state of the campaign settings, that is, a list of server-side running campaign settings.
 Setting File is a pre-requisite for initiating the VWO CLIENT INSTANCE.
 
-  String settings = VWO.getSetting(accountId, sdkKey));
+  String settings = VWO.getSettingsFile(accountId, sdkKey));
 
 description
 VWO SDK is a helper for running your server-side A/B tests. It requires a certain set of settings for it's working. These settings are related to your server-side campaigns you create or update in the VWO application.

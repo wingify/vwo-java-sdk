@@ -1,4 +1,8 @@
-**VWO JAVA SDK**
+VWO JAVA SDK
+======================
+
+[![Build Status](http://img.shields.io/travis/wingify/vwo-java-sdk/master.svg?style=flat)](http://travis-ci.org/wingify/vwo-java-sdk)
+[![Coverage Status](https://coveralls.io/repos/github/wingify/vwo-java-sdk/badge.svg?branch=master)](https://coveralls.io/github/wingify/vwo-java-sdk?branch=master)
 
 This open source library allows you to A/B Test your Website at server-side.
 
@@ -30,7 +34,7 @@ Setting File is a pre-requisite for initiating the VWO CLIENT INSTANCE.
 
 ```
 
-  String settings = VWO.getSetting(accountId, sdkKey));
+  String settings = VWO.getSettingsFile(accountId, sdkKey));
   
 ```
 
@@ -83,7 +87,7 @@ public class Example {
 
     public static void main(String[] args) {
 
-        String settings = VWO.getSetting(accountId, sdkKey);
+        String settings = VWO.getSettingsFile(accountId, sdkKey);
 
         EventDispatcher eventDispatcher = EventDispatcher.builder().build();
 
@@ -95,7 +99,7 @@ public class Example {
 **USER PROFILE SERVICE**
 
 ```
-  String settings = VWO.getSetting(accountId, sdkKey);
+  String settings = VWO.getSettingsFile(accountId, sdkKey);
            System.out.println(settings);
             UserProfileService userProfileService= new UserProfileService() {
                 @Override
@@ -188,6 +192,8 @@ For more appenders ,refer https://logback.qos.ch/manual/appenders.html
 ## Authors
 
 [sakshimahendruvk] (https://github.com/sakshimahendruvk)
+
+[pntgupta] (https://github.com/pntgupta)
 
 
 

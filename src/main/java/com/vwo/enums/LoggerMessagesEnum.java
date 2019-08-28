@@ -45,7 +45,7 @@ public class LoggerMessagesEnum {
   }
 
   public enum INFO_MESSAGES {
-    NO_VARIATION_ALLOCATED("UserId '{{userId}' of campaign {{campaignTestKey}} did not get any variation."),
+    NO_VARIATION_ALLOCATED("UserId '{{userId}}' of campaign {{campaignTestKey}} did not get any variation."),
     VARIATION_ALLOCATED_SUCCESSFULLY("Campaign '{{campaignTestKey}}' having variation '{{variation}}' with weight '{{weight}}' got range as: ({{startRange}} to {{endRange}})"),
     NO_DATA_USER_PROFILE_SERVICE("Unable to fetch data from UserProfileService."),
     INITIATING_ACTIVATE("Initiating activation of user '{{userId}}' for campaign '{{campaignTestKey}}'."),

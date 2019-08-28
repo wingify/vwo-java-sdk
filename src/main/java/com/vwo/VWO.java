@@ -83,8 +83,8 @@ public class VWO implements AutoCloseable {
    * @param sdkKey    Unique sdk-key provided to you inside VWO Application under the Apps section of server-side A/B Testing
    * @return JSON representation String representing the current state of campaign settings
    */
-  public static String getSetting(String accountID, String sdkKey) {
-    return FileSettingUtils.getSetting(accountID, sdkKey);
+  public static String getSettingsFile(String accountID, String sdkKey) {
+    return FileSettingUtils.getSettingsFile(accountID, sdkKey);
   }
 
   public void setDevelopmentMode(boolean developmentMode) {
@@ -158,7 +158,7 @@ public class VWO implements AutoCloseable {
    *
    * @param campaignTestKey key provided at the time of server-side campaign creation
    * @param userId          unique id associated with the user for identification
-   * @return
+   * @return                Variation name
    */
   public String getVariation(String campaignTestKey, String userId) {
     LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaignTestKey)));
@@ -208,7 +208,7 @@ public class VWO implements AutoCloseable {
    * @param userId          unique id associated with the user for identification
    * @param goalIdentifier  key provided at the time of creating the goal in the server-side
    * @param revenueValue    revenue generated on triggering the goal
-   * @return
+   * @return                Boolean value whether user is tracked or not.
    */
   public boolean track(String campaignTestKey, String userId, String goalIdentifier, Object revenueValue) {
     return this.trackGoal(campaignTestKey, userId, goalIdentifier, revenueValue);
