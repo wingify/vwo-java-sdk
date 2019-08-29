@@ -64,7 +64,7 @@ public class TrackTests {
   }
 
   @Test
-  public void setting2Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting2TestsWithoutRevenue() throws IOException, NoSuchFieldException, IllegalAccessException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:50-50");
 
     SettingFileConfig settingsFile = new ObjectMapper().readValue(Settings.settings2, SettingFileConfig.class);
@@ -77,6 +77,24 @@ public class TrackTests {
 
     for (int i = 0; i < userVariation.size(); i++) {
       boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier);
+      assertEquals(isTracked, false);
+    }
+  }
+
+  @Test
+  public void setting2Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+    LOGGER.info("Should test against a campaign settings: traffic:100 and split:50-50");
+
+    SettingFileConfig settingsFile = new ObjectMapper().readValue(Settings.settings2, SettingFileConfig.class);
+    VWO vwoInstance = VWO.createInstance(Settings.settings2).build();
+
+    String campaignKey = settingsFile.getCampaigns().get(0).getKey();
+    String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
+    ArrayList<UserVariations.Variation> userVariation = (ArrayList<UserVariations.Variation>) UserVariations.class.getField("DEV_TEST_2").get(UserVariations.class);
+
+
+    for (int i = 0; i < userVariation.size(); i++) {
+      boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier, 123);
 
       if (userVariation.get(i).getVariation() != null) {
         assertEquals(isTracked, true);
@@ -173,5 +191,4 @@ public class TrackTests {
       }
     }
   }
-
 }

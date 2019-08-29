@@ -1,9 +1,12 @@
 package com.vwo.event;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.UUIDType5;
 import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.logger.LoggerManager;
+
+import java.util.Map;
 import java.util.UUID;
 import javafx.util.Pair;
 
@@ -20,6 +23,8 @@ public class Event {
   private long sId;
   private String ap;
   private String ed;
+  private String sdk;
+  private String sdk_v;
   private static final LoggerManager LOGGER = LoggerManager.getLogger(Event.class);
 
 
@@ -35,6 +40,8 @@ public class Event {
     this.sId = builder.sId;
     this.ap = builder.ap;
     this.ed = builder.ed;
+    this.sdk = builder.sdk;
+    this.sdk_v = builder.sdk_v;
   }
 
 
@@ -51,6 +58,8 @@ public class Event {
     private final UUID CONSTANT_NAMESPACE = UUIDType5.nameUUIDFromNamespaceAndString(UUIDType5.NAMESPACE_URL, "https://vwo.com");
     private String ap;
     private String ed;
+    private String sdk;
+    private String sdk_v;
 
     private Builder() {
     }
@@ -98,7 +107,7 @@ public class Event {
       return this;
     }
 
-    public Builder withgoal_id(Integer goal_id) {
+    public Builder withGoalId(Integer goal_id) {
       this.goal_id = goal_id;
       return this;
     }
@@ -114,7 +123,17 @@ public class Event {
     }
 
     public Builder withEd() {
-      this.ed = "{'p': 'server'}";
+      this.ed = "{\"p\":\"server\"}";
+      return this;
+    }
+
+    public Builder withsdk() {
+      this.sdk = "java";
+      return this;
+    }
+
+    public Builder withsdkVersion() {
+      this.sdk_v = "1.0.0";
       return this;
     }
 
@@ -127,6 +146,16 @@ public class Event {
     }
   }
 
+  public Map<String, Object> convertToMap() {
+    Map<String, Object> map = new ObjectMapper().convertValue(this, Map.class);
+
+    // Rename 'sdk_v' as 'sdk-v'
+    map.put("sdk-v", map.get("sdk_v"));
+    map.remove("sdk_v");
+
+    return map;
+  }
+
   @Override
   public String toString() {
     String event = "Event{"
@@ -137,7 +166,9 @@ public class Event {
             + ", combination=" + this.combination
             + ", random=" + this.random
             + ", sId=" + this.sId
-            + ", ap='" + this.ap + '\'';
+            + ", ap='" + this.ap + '\''
+            + ", sdk=" + this.sdk
+            + ", sdk-v=" + this.sdk_v;
 
     if (this.goal_id != null) {
       event += ", goal_id='" + this.goal_id + '\'';

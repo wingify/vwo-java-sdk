@@ -8,6 +8,7 @@ import com.vwo.config.ProjectConfig;
 import com.vwo.config.VWOConfig;
 import com.vwo.enums.GoalEnum;
 import com.vwo.enums.LoggerMessagesEnum;
+import com.vwo.enums.VWOEnums;
 import com.vwo.event.DispatchEvent;
 import com.vwo.event.EventDispatcher;
 import com.vwo.event.EventFactory;
@@ -34,6 +35,8 @@ public class VWO implements AutoCloseable {
   final VWOLogger customLogger;
   private boolean developmentMode;
 
+  public static final class Enums extends VWOEnums {}
+
   private static final LoggerManager LOGGER = LoggerManager.getLogger(VWO.class);
 
   private VWO(ProjectConfig projectConfig,
@@ -51,6 +54,16 @@ public class VWO implements AutoCloseable {
     this.customLogger = customLogger;
   }
 
+  /**
+   * Fetch the account settings.
+   *
+   * @param accountID VWO application account-id.
+   * @param sdkKey    Unique sdk-key provided to you inside VWO Application under the Apps section of server-side A/B Testing
+   * @return JSON representation String representing the current state of campaign settings
+   */
+  public static String getSettingsFile(String accountID, String sdkKey) {
+    return FileSettingUtils.getSettingsFile(accountID, sdkKey);
+  }
 
   public ProjectConfig getProjectConfig() {
     return this.projectConfig;
@@ -74,17 +87,6 @@ public class VWO implements AutoCloseable {
 
   public boolean isDevelopmentMode() {
     return this.developmentMode;
-  }
-
-  /**
-   * Fetch the account settings.
-   *
-   * @param accountID VWO application account-id.
-   * @param sdkKey    Unique sdk-key provided to you inside VWO Application under the Apps section of server-side A/B Testing
-   * @return JSON representation String representing the current state of campaign settings
-   */
-  public static String getSettingsFile(String accountID, String sdkKey) {
-    return FileSettingUtils.getSettingsFile(accountID, sdkKey);
   }
 
   public void setDevelopmentMode(boolean developmentMode) {
@@ -243,7 +245,7 @@ public class VWO implements AutoCloseable {
                   new Pair<>("campaignTestKey", campaign.getKey())
           ));
           return false;
-        } else if (goal.getType() == GoalEnum.GOAL_TYPES.REVENUE.value() && revenueValue == null) {
+        } else if (goal.getType().equals(GoalEnum.GOAL_TYPES.REVENUE.value()) && revenueValue == null) {
           LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(
                   new Pair<>("goalIdentifier", goalIdentifier),
                   new Pair<>("campaignTestKey", campaign.getKey()),
@@ -306,7 +308,7 @@ public class VWO implements AutoCloseable {
         eventHandler.dispatchEvent(dispatchEvent);
       }
     } catch (Exception e) {
-      LOGGER.error("Unexpected exception in event dispacther");
+      LOGGER.error("Unexpected exception in event dispatcher");
     }
   }
 

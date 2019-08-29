@@ -137,7 +137,7 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
     public void run() {
       try {
         HttpRequestBase request;
-        if (dispatchEvent.getRequestMethod() == DispatchEvent.RequestMethod.GET) {
+        if (dispatchEvent.getRequestMethod().equals(DispatchEvent.RequestMethod.GET)) {
           request = getRequest(dispatchEvent);
           vwoHttpClient.execute(request, EVENT_RESPONSE_HANDLER);
 

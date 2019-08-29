@@ -38,11 +38,14 @@ public class EventFactory {
                     .withuId(userId)
                     .withUuid(settingFileConfig.getAccountId(), userId)
                     .withsId(Instant.now().getEpochSecond())
-                    .withVariation(variation.getId()).build();
+                    .withVariation(variation.getId())
+                    .withsdk()
+                    .withsdkVersion()
+                    .build();
 
     LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new Pair<>("userId", userId), new Pair<>("impressionEvent", impressionEvent.toString())));
 
-    Map<String, Object> map = objectMapper.convertValue(impressionEvent, Map.class);
+    Map<String, Object> map = impressionEvent.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     return new DispatchEvent(VWO_HOST, IMPRESSION_PATH, map, DispatchEvent.RequestMethod.GET, null);
   }
@@ -57,14 +60,17 @@ public class EventFactory {
                     .withuId(userId)
                     .withAp()
                     .withUuid(settingFileConfig.getAccountId(), userId)
-                    .withgoal_id(goal.getId())
+                    .withGoalId(goal.getId())
                     .withsId(Instant.now().getEpochSecond())
                     .withRevenue(revenueValue)
-                    .withVariation(variation.getId()).build();
+                    .withVariation(variation.getId())
+                    .withsdk()
+                    .withsdkVersion()
+                    .build();
 
     LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new Pair<>("goalEvent", goalEvent.toString()), new Pair<>("userId", userId)));
 
-    Map<String, Object> map = objectMapper.convertValue(goalEvent, Map.class);
+    Map<String, Object> map = goalEvent.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     return new DispatchEvent(VWO_HOST, GOAL_PATH, map, DispatchEvent.RequestMethod.GET, null);
   }
