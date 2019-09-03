@@ -133,7 +133,7 @@ public class Event {
     }
 
     public Builder withsdkVersion() {
-      this.sdk_v = "1.0.1";
+      this.sdk_v = "1.0.0";
       return this;
     }
 
