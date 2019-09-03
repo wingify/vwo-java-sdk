@@ -16,6 +16,7 @@ let util = require('util');
 
 
 let MAX_LENGTH = 100;
+let IGNORED_TEXT = '[maven-release-plugin]';
 let PATTERN = /^(?:fixup!\s*)?(\w*)(\(([\w\$\.\:\*/-]*)\))?\: (.*)$/;
 let IGNORED = /^WIP\:/;
 let TYPES = {
@@ -44,7 +45,7 @@ let error = function() {
 let validateMessage = function(message) {
   let isValid = true;
 
-  if (IGNORED.test(message)) {
+  if (IGNORED.test(message) || message.includes(IGNORED_TEXT)) {
     console.log('Commit message validation ignored.');
     return true;
   }

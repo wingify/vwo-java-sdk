@@ -27,3 +27,6 @@ classes
 .venv
 
 target/*
+
+pom.xml.releaseBackup
+release.properties
