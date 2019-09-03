@@ -84,39 +84,39 @@ public class Example {
 
 **USER PROFILE SERVICE**
 
-```
-    String settingsFile = VWO.getSettingsFile(accountId, sdkKey);
+```java
+String settingsFile = VWO.getSettingsFile(accountId, sdkKey);
 
-    UserProfileService userProfileService = new UserProfileService() {
-        @Override
-        public Map<String, Object> lookup(String s, String s1) throws Exception {
-        // hardcode values in map
-        // one can get values from  db and populate map
+UserProfileService userProfileService = new UserProfileService() {
+    @Override
+    public Map<String, Object> lookup(String s, String s1) throws Exception {
+    // hardcode values in map
+    // one can get values from  db and populate map
 
-            String campaignId = "FIRST";
-            String variationId = "Control";
+        String campaignId = "FIRST";
+        String variationId = "Control";
 
-            Map<String,Object> campaignKeyMap = new HashMap<>();
-            Map<String, String> variationKeyMap = new HashMap<>();
-            variationKeyMap.put(UserProfileService.variationKey, variationId);
-            campaignKeyMap.put(campaignId,variationKeyMap);
+        Map<String,Object> campaignKeyMap = new HashMap<>();
+        Map<String, String> variationKeyMap = new HashMap<>();
+        variationKeyMap.put(UserProfileService.variationKey, variationId);
+        campaignKeyMap.put(campaignId,variationKeyMap);
 
-            //set
-            Map<String, Object> campaignStaticBucketMap = new HashMap<>();
-            campaignStaticBucketMap.put(UserProfileService.userId, "Priya");
-            campaignStaticBucketMap.put(UserProfileService.campaignKey, campaignKeyMap);
+        //set
+        Map<String, Object> campaignStaticBucketMap = new HashMap<>();
+        campaignStaticBucketMap.put(UserProfileService.userId, "Priya");
+        campaignStaticBucketMap.put(UserProfileService.campaignKey, campaignKeyMap);
 
-            return campaignStaticBucketMap;
-        }
+        return campaignStaticBucketMap;
+    }
 
-        @Override
-        public void save(Map<String, Object> map) throws Exception {
-        // save in db or some data store
+    @Override
+    public void save(Map<String, Object> map) throws Exception {
+    // save in db or some data store
 
-        }
-    };
+    }
+};
 
-    VWO vwo = VWO.createInstance(settings).withUserProfileService(userProfileService).build();
+VWO vwo = VWO.createInstance(settings).withUserProfileService(userProfileService).build();
 ```
 
 **LOGGER**
@@ -131,8 +131,8 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 You can get the SDK to log by providing a concrete implementation for SLF4J.
 ```
 
-What it means is that at runtime, the logging "implementation" (or the logger binding) is missing , so slf4jsimply use a "NOP" implmentation, which does nothing.
-If you need to output JAVA SDK logs , there are different approaches for the same.
+What it means is that at runtime, the logging `implementation` (or the logger binding) is missing , so slf4jsimply use a "NOP" implmentation, which does nothing.
+If you need to output JAVA SDK logs, there are different approaches for the same.
 
 SIMPLE IMPLEMENTATION
 If there are no implementation in your project , you may provide a simple implementation that does not require any configuration at all.
@@ -145,11 +145,13 @@ Add following code to you pom.xml,
     <version>1.6.4</version>
 </dependency>
 ```
+
 Now you see logging output on STDOUT with INFO level. This simple logger will default show any INFO level message or higher.
 In order to see DEBUG messages, you would need to pass -Dorg.slf4j.simpleLogger.defaultLogLevel=debug or simplelogger.properties file on the classpath
 See http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html for details
 
 CONCRETE IMPLEMENTATION
+
 sl4j supports various logging framework. Refer here ->https://www.slf4j.org/manual.html
 
 We have provided our example with Logback
@@ -205,13 +207,13 @@ public static VWOLogger getCustomLogger() {
 }
 ```
 
-For more appenders ,refer https://logback.qos.ch/manual/appenders.html
+For more appenders, refer [this](https://logback.qos.ch/manual/appenders.html).
 
 ## Authors
 
-* Core Maintainer - [pntgupta](https://github.com/pntgupta)
-* Contributor - [sakshimahendruvk](https://github.com/sakshimahendruvk)
-* Repo health maintaineR - [softvar](https://github.com/softvar)
+* Core Contributir & Maintainer - [pntgupta](https://github.com/pntgupta)
+* Main Contributor - [sakshimahendruvk](https://github.com/sakshimahendruvk)
+* Repo health maintainer - [softvar](https://github.com/softvar)
 
 ## Contributing
 
