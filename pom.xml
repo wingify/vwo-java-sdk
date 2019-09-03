@@ -21,9 +21,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/wingify/vwo-java-sdk</url>
-        <connection>scm:git:https://github.com/wingify/vwo-java-sdk.git</connection>
-        <developerConnection>scm:git:https://github.com/wingify/vwo-java-sdk.git</developerConnection>
+        <url>scm:git@github.com:wingify/vwo-java-sdk.git</url>
+        <connection>scm:git:git@github.com:wingify/vwo-java-sdk.git</connection>
+        <developerConnection>scm:git:git@github.com:wingify/vwo-java-sdk.git</developerConnection>
     </scm>
 
     <developers>
