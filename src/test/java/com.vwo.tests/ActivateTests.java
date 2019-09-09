@@ -33,89 +33,58 @@ public class ActivateTests {
   }
 
   @Test
-  public void setting1Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting1Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:50 and split:50-50");
 
-    SettingFileConfig settingsFile1 = new ObjectMapper().readValue(Settings.settings1, SettingFileConfig.class);
-    String campaignKey = settingsFile1.getCampaigns().get(0).getKey();
-    ArrayList<UserVariations.Variation> userVariation = (ArrayList<UserVariations.Variation>) UserVariations.class.getField("DEV_TEST_1").get(UserVariations.class);
-
-    for (int i = 0; i < userVariation.size(); i++) {
-      String variationName = vwoInstance.activate(campaignKey, TestUtils.getUsers()[i]);
-      assertEquals(variationName, userVariation.get(i).getVariation());
-    }
-
-
+    validateActivateMethod(Settings.settings1, UserVariations.DEV_TEST_1);
   }
 
   @Test
-  public void setting2Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting2Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:50-50");
 
-    SettingFileConfig settingsFile2 = new ObjectMapper().readValue(Settings.settings2, SettingFileConfig.class);
-    String campaignKey = settingsFile2.getCampaigns().get(0).getKey();
-    ArrayList<UserVariations.Variation> userVariation = (ArrayList<UserVariations.Variation>) UserVariations.class.getField("DEV_TEST_2").get(UserVariations.class);
-    VWO vwoInstance = VWO.createInstance(Settings.settings2).build();
-
-    for (int i = 0; i < userVariation.size(); i++) {
-      String variationName = vwoInstance.activate(campaignKey, TestUtils.getUsers()[i]);
-      assertEquals(variationName, userVariation.get(i).getVariation());
-    }
+    validateActivateMethod(Settings.settings2, UserVariations.DEV_TEST_2);
   }
 
   @Test
-  public void setting3Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting3Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:20-80");
 
-    SettingFileConfig settingsFile3 = new ObjectMapper().readValue(Settings.settings3, SettingFileConfig.class);
-    String campaignKey = settingsFile3.getCampaigns().get(0).getKey();
-    ArrayList<UserVariations.Variation> userVariation = (ArrayList<UserVariations.Variation>) UserVariations.class.getField("DEV_TEST_3").get(UserVariations.class);
-    VWO vwoInstance = VWO.createInstance(Settings.settings3).build();
-
-    for (int i = 0; i < userVariation.size(); i++) {
-      String variationName = vwoInstance.activate(campaignKey, TestUtils.getUsers()[i]);
-      assertEquals(variationName, userVariation.get(i).getVariation());
-    }
+    validateActivateMethod(Settings.settings3, UserVariations.DEV_TEST_3);
   }
 
   @Test
-  public void setting4Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting4Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:20 and split:10-90");
 
-    SettingFileConfig settingsFile4 = new ObjectMapper().readValue(Settings.settings4, SettingFileConfig.class);
-    String campaignKey = settingsFile4.getCampaigns().get(0).getKey();
-    ArrayList<UserVariations.Variation> userVariation = (ArrayList<UserVariations.Variation>) UserVariations.class.getField("DEV_TEST_4").get(UserVariations.class);
-    VWO vwoInstance = VWO.createInstance(Settings.settings4).build();
-
-    for (int i = 0; i < userVariation.size(); i++) {
-      String variationName = vwoInstance.activate(campaignKey, TestUtils.getUsers()[i]);
-      assertEquals(variationName, userVariation.get(i).getVariation());
-    }
+    validateActivateMethod(Settings.settings4, UserVariations.DEV_TEST_4);
   }
 
   @Test
-  public void setting5Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting5Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:0-100");
 
-    SettingFileConfig settingsFile5 = new ObjectMapper().readValue(Settings.settings5, SettingFileConfig.class);
-    String campaignKey = settingsFile5.getCampaigns().get(0).getKey();
-    ArrayList<UserVariations.Variation> userVariation = (ArrayList<UserVariations.Variation>) UserVariations.class.getField("DEV_TEST_5").get(UserVariations.class);
-    VWO vwoInstance = VWO.createInstance(Settings.settings5).build();
-
-    for (int i = 0; i < userVariation.size(); i++) {
-      String variationName = vwoInstance.activate(campaignKey, TestUtils.getUsers()[i]);
-      assertEquals(variationName, userVariation.get(i).getVariation());
-    }
+    validateActivateMethod(Settings.settings5, UserVariations.DEV_TEST_5);
   }
 
   @Test
-  public void setting6Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting6Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:33.3333:33.3333:33.3333");
 
-    SettingFileConfig settingsFile6 = new ObjectMapper().readValue(Settings.settings6, SettingFileConfig.class);
-    String campaignKey = settingsFile6.getCampaigns().get(0).getKey();
-    ArrayList<UserVariations.Variation> userVariation = (ArrayList<UserVariations.Variation>) UserVariations.class.getField("DEV_TEST_6").get(UserVariations.class);
-    VWO vwoInstance = VWO.createInstance(Settings.settings6).build();
+    validateActivateMethod(Settings.settings6, UserVariations.DEV_TEST_6);
+  }
+
+  @Test
+  public void settingWith10VariationsTests() throws IOException {
+    LOGGER.info("Should test against a campaign settings: traffic:75 with 10 variations of eqial weight");
+
+    validateActivateMethod(Settings.settingsWith10Variations, UserVariations.TEN_Variations);
+  }
+
+  private static void validateActivateMethod(String settingsFile, ArrayList<UserVariations.Variation> userVariation) throws IOException {
+    SettingFileConfig settingsConfig = new ObjectMapper().readValue(settingsFile, SettingFileConfig.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    VWO vwoInstance = VWO.createInstance(settingsFile).build();
 
     for (int i = 0; i < userVariation.size(); i++) {
       String variationName = vwoInstance.activate(campaignKey, TestUtils.getUsers()[i]);
