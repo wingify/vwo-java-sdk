@@ -9,6 +9,7 @@ public class UserVariations {
   public static ArrayList<Variation> DEV_TEST_4 = new ArrayList<>();
   public static ArrayList<Variation> DEV_TEST_5 = new ArrayList<>();
   public static ArrayList<Variation> DEV_TEST_6 = new ArrayList<>();
+  public static ArrayList<Variation> TEN_Variations = new ArrayList<>();
 
   static {
     DEV_TEST_1.add(getVariation("Ashley", "Variation-1"));
@@ -182,6 +183,35 @@ public class UserVariations {
     DEV_TEST_6.add(getVariation("Xin", "Variation-1"));
     DEV_TEST_6.add(getVariation("You", "Variation-1"));
     DEV_TEST_6.add(getVariation("Zeba", "Variation-1"));
+  }
+
+  static {
+    TEN_Variations.add(getVariation("Ashley", "Variation-6"));
+    TEN_Variations.add(getVariation("Bill", "Variation-3"));
+    TEN_Variations.add(getVariation("Chris", null));
+    TEN_Variations.add(getVariation("Dominic", null));
+    TEN_Variations.add(getVariation("Emma", "Variation-5"));
+    TEN_Variations.add(getVariation("Faizan", "Variation-5"));
+    TEN_Variations.add(getVariation("Gimmy", null));
+    TEN_Variations.add(getVariation("Harry", "Variation-3"));
+    TEN_Variations.add(getVariation("Ian", "Variation-6"));
+    TEN_Variations.add(getVariation("John", "Control"));
+    TEN_Variations.add(getVariation("King", null));
+    TEN_Variations.add(getVariation("Lisa", "Control"));
+    TEN_Variations.add(getVariation("Mona", "Variation-3"));
+    TEN_Variations.add(getVariation("Nina", "Variation-9"));
+    TEN_Variations.add(getVariation("Olivia", "Variation-4"));
+    TEN_Variations.add(getVariation("Pete", "Variation-8"));
+    TEN_Variations.add(getVariation("Queen", "Variation-7"));
+    TEN_Variations.add(getVariation("Robert", "Variation-3"));
+    TEN_Variations.add(getVariation("Sarah", "Control"));
+    TEN_Variations.add(getVariation("Tierra", "Variation-9"));
+    TEN_Variations.add(getVariation("Una", "Variation-2"));
+    TEN_Variations.add(getVariation("Varun", "Variation-6"));
+    TEN_Variations.add(getVariation("Will", null));
+    TEN_Variations.add(getVariation("Xin", "Variation-5"));
+    TEN_Variations.add(getVariation("You", "Variation-7"));
+    TEN_Variations.add(getVariation("Zeba", "Variation-4"));
   }
 
   public static class Variation {

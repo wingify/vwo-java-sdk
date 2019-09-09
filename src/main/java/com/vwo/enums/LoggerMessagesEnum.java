@@ -23,7 +23,10 @@ public class LoggerMessagesEnum {
     GOT_STORED_VARIATION("Got stored variation '{{variationName}}' of campaign '{{campaignTestKey}}' for userId '{{userId}}' from UserProfileService."),
     NO_STORED_VARIATION("No stored variation for UserId '{{userId}}' for Campaign '{{campaignTestKey}}' found in UserProfileService."),
     NO_USER_PROFILE_DEFINED("UserProfileService is not defined. Skipping it!"),
-    EVALUATED_VARIATION_BUCKET("Evaluated bucket value {{bucketValue}} of user {{userId}} for campaign {{campaignTestKey}} having traffic allocation {{traffic}}."),
+    VARIATION_HASH_BUCKET_VALUE(
+"Evaluated bucket value '{{bucketValue}}' of user {{userId}} for campaign '{{campaignTestKey}}' having hash value '{{hashValue}}' and traffic allocation '{{traffic}}'."
+    ),
+    USER_HASH_BUCKET_VALUE("User '{{userId}}' having hash '{{hashValue}}' got bucket value '{{bucketValue}}'"),
     USER_NOT_PART_OF_CAMPAIGN("User '{{userId}}' did not become part of campaign '{{campaignTestKey}}'."),
     SAVED_IN_USER_PROFILE_SERVICE("Successfully saved variation '{{variation}}' of user {{userId}} in UserProfileService."),
     TRACK_USER_IMPRESSION_CREATED("Impression event built for track-user '{{userId}}' - '{{impressionEvent}}'."),
