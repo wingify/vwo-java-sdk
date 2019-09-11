@@ -8,6 +8,7 @@ import com.vwo.logger.LoggerManager;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -15,8 +16,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import javafx.util.Pair;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -141,7 +140,11 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
           request = getRequest(dispatchEvent);
           vwoHttpClient.execute(request, EVENT_RESPONSE_HANDLER);
 
-          LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.EVENT_HTTP_EXECUTION.value(new Pair<>("url", request.getURI().toString())));
+          LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.EVENT_HTTP_EXECUTION.value(new HashMap<String, String>() {
+            {
+              put("url", request.getURI().toString());
+            }
+          }));
         } else {
           //TO DO
         }
@@ -175,7 +178,11 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
     public Void handleResponse(HttpResponse response) throws IOException {
       int status = response.getStatusLine().getStatusCode();
       if (status >= 200 && status < 300) {
-        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.HTTP_RESPONSE.value(new Pair<>("response", response.getStatusLine().toString())));
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.HTTP_RESPONSE.value(new HashMap<String, String>() {
+          {
+            put("response", response.getStatusLine().toString());
+          }
+        }));
         return null;
       } else {
         throw new ClientProtocolException("Unexpected response : " + status);
@@ -198,7 +205,11 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
 
     public Builder withEventQueueSize(int eventQueueSize) {
       if (eventQueueSize <= 0) {
-        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.INVALID_EVENT_QUEUE_SIZE.value(new Pair<>("eventQueueSize", String.valueOf(this.eventQueueSize))));
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.INVALID_EVENT_QUEUE_SIZE.value(new HashMap<String, String>() {
+          {
+            put("eventQueueSize", String.valueOf(eventQueueSize));
+          }
+        }));
         return this;
       }
       this.eventQueueSize = eventQueueSize;
@@ -207,7 +218,11 @@ public class EventDispatcher implements EventHandler, AutoCloseable {
 
     public Builder withCorePoolSize(int corePoolSize) {
       if (corePoolSize <= 0) {
-        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.INVALID_EVENT_POOL_SIZE.value(new Pair<>("corePoolSize", String.valueOf(this.corePoolSize))));
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.INVALID_EVENT_POOL_SIZE.value(new HashMap<String, String>() {
+          {
+            put("corePoolSize",String.valueOf(corePoolSize));
+          }
+        }));
         return this;
       }
 

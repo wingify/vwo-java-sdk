@@ -21,7 +21,7 @@ import com.vwo.models.Variation;
 import com.vwo.userprofile.UserProfileService;
 
 import java.io.Closeable;
-import javafx.util.Pair;
+import java.util.HashMap;
 
 /**
  * The VWO client class needs to be instantiated as an instance that exposes various API methods like activate, getVariation and track.
@@ -104,7 +104,12 @@ public class VWO implements AutoCloseable {
    * @return String name of the variation in which the user is bucketed, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignTestKey, String userId) {
-    LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_ACTIVATE.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaignTestKey)));
+    LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_ACTIVATE.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+        put("campaignTestKey", campaignTestKey);
+      }
+    }));
 
     try {
       if (campaignTestKey == null || campaignTestKey.isEmpty()) {
@@ -116,10 +121,12 @@ public class VWO implements AutoCloseable {
         return null;
       }
       if (this.projectConfig == null) {
-        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(
-                new Pair<>("campaignTestKey", campaignTestKey),
-                new Pair<>("userId", userId)
-        ));
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("campaignTestKey", campaignTestKey);
+          }
+        }));
         return null;
       }
 
@@ -141,12 +148,22 @@ public class VWO implements AutoCloseable {
     String variation = this.getCampaignVariation(campaign, userId);
 
     if (variation != null) {
-      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new Pair<>("userId", userId), new Pair<>("variation", variation)));
+      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("variation", variation);
+        }
+      }));
 
       // Send Impression Call for Stats
       this.sendImpressionCall(this.projectConfig, campaign, userId, CampaignUtils.getVariationObjectFromCampaign(campaign, variation));
     } else {
-      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.NO_VARIATION_ALLOCATED.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
+      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.NO_VARIATION_ALLOCATED.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignTestKey", campaign.getKey());
+        }
+      }));
     }
     return variation;
   }
@@ -163,7 +180,12 @@ public class VWO implements AutoCloseable {
    * @return                Variation name
    */
   public String getVariation(String campaignTestKey, String userId) {
-    LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaignTestKey)));
+    LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+        put("campaignTestKey", campaignTestKey);
+      }
+    }));
 
     try {
       if (campaignTestKey == null || campaignTestKey.isEmpty()) {
@@ -175,10 +197,12 @@ public class VWO implements AutoCloseable {
         return null;
       }
       if (this.projectConfig == null) {
-        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(
-                new Pair<>("campaignTestKey", campaignTestKey),
-                new Pair<>("userId", userId)
-        ));
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("campaignTestKey", campaignTestKey);
+          }
+        }));
         return null;
       }
       Campaign campaign = this.projectConfig.getCampaignTestKey(campaignTestKey);
@@ -239,18 +263,22 @@ public class VWO implements AutoCloseable {
         Goal goal = this.getGoalId(campaign, goalIdentifier);
 
         if (goal == null) {
-          LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(
-                  new Pair<>("goalIdentifier", goalIdentifier),
-                  new Pair<>("userId", userId),
-                  new Pair<>("campaignTestKey", campaign.getKey())
-          ));
+          LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(new HashMap<String, String>() {
+            {
+              put("goalIdentifier", goalIdentifier);
+              put("userId", userId);
+              put("campaignTestKey", campaign.getKey());
+            }
+          }));
           return false;
         } else if (goal.getType().equals(GoalEnum.GOAL_TYPES.REVENUE.value()) && revenueValue == null) {
-          LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(
-                  new Pair<>("goalIdentifier", goalIdentifier),
-                  new Pair<>("campaignTestKey", campaign.getKey()),
-                  new Pair<>("userId", userId)
-          ));
+          LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(new HashMap<String, String>() {
+            {
+              put("goalIdentifier", goalIdentifier);
+              put("userId", userId);
+              put("campaignTestKey", campaign.getKey());
+            }
+          }));
           return false;
         }
 
@@ -258,7 +286,12 @@ public class VWO implements AutoCloseable {
 
         return true;
       } else {
-        LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.TRACK_API_VARIATION_NOT_FOUND.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
+        LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.TRACK_API_VARIATION_NOT_FOUND.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("campaignTestKey", campaign.getKey());
+          }
+        }));
       }
 
       return false;
@@ -282,10 +315,12 @@ public class VWO implements AutoCloseable {
       return false;
     }
     if (this.projectConfig == null) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(
-              new Pair<>("campaignTestKey", campaignTestKey),
-              new Pair<>("userId", userId)
-      ));
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_PROJECT_CONFIG.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignTestKey", campaignTestKey);
+        }
+      }));
       return false;
     }
 
@@ -467,5 +502,9 @@ public class VWO implements AutoCloseable {
     } catch (Exception e) {
       LOGGER.warn(LoggerMessagesEnum.WARNING_MESSAGES.CLOSE_GENERIC_CONNECTION.value(), obj);
     }
+  }
+
+  public static void main(String[] args) {
+    VWO.createInstance("");
   }
 }

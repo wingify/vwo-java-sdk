@@ -8,8 +8,9 @@ import com.vwo.logger.LoggerManager;
 import com.vwo.models.Campaign;
 import com.vwo.models.SettingFileConfig;
 import com.vwo.models.Variation;
+
+import java.util.HashMap;
 import java.util.List;
-import javafx.util.Pair;
 
 public class VWOConfig implements ProjectConfig {
 
@@ -46,13 +47,15 @@ public class VWOConfig implements ProjectConfig {
         singleVariation.setStartRangeVariation(-1);
         singleVariation.setEndRangeVariation(-1);
       }
-      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.VARIATION_ALLOCATED_SUCCESSFULLY.value(
-              new Pair<>("campaignTestKey", campaign.getKey()),
-              new Pair<>("variation", singleVariation.getName()),
-              new Pair<>("weight", String.valueOf(singleVariation.getWeight())),
-              new Pair<>("startRange", String.valueOf(singleVariation.getStartRangeVariation())),
-              new Pair<>("endRange", String.valueOf(singleVariation.getEndRangeVariation()))
-      ));
+      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.VARIATION_ALLOCATED_SUCCESSFULLY.value(new HashMap<String, String>() {
+        {
+          put("campaignTestKey", campaign.getKey());
+          put("variation", singleVariation.getName());
+          put("weight", String.valueOf(singleVariation.getWeight()));
+          put("startRange", String.valueOf(singleVariation.getStartRangeVariation()));
+          put("endRange", String.valueOf(singleVariation.getEndRangeVariation()));
+        }
+      }));
     }
     return campaign;
   }
@@ -69,7 +72,11 @@ public class VWOConfig implements ProjectConfig {
   public Campaign getCampaignTestKey(String campaignTestKey) {
     for (Campaign campaign : settingFileConfig.getCampaigns()) {
       if (campaign.getKey().equalsIgnoreCase(campaignTestKey)) {
-        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.CAMPAIGN_KEY_FOUND.value(new Pair<>("campaignTestKey", campaignTestKey)));
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.CAMPAIGN_KEY_FOUND.value(new HashMap<String, String>() {
+          {
+            put("campaignTestKey", campaignTestKey);
+          }
+        }));
         return campaign;
       }
     }

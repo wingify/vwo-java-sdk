@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import javafx.util.Pair;
+import java.util.HashMap;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -39,7 +39,11 @@ public class FileSettingUtils {
       return null;
     }
 
-    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.FETCHING_ACCOUNT_SETTINGS.value(new Pair<>("accountID", accountID)));
+    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.FETCHING_ACCOUNT_SETTINGS.value(new HashMap<String, String>() {
+      {
+        put("accountID", accountID);
+      }
+    }));
 
     VWOHttpClient vwoHttpClient = VWOHttpClient.Builder.newInstance().build();
     JsonNode jsonNode = null;
@@ -68,10 +72,13 @@ public class FileSettingUtils {
 
             int statusCode = closeableHttpResponse.getStatusLine().getStatusCode();
             if (statusCode != 200) {
-              LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.ACCOUNT_SETTINGS_NOT_FOUND.value(
-                      new Pair<>("statusCode", String.valueOf(statusCode)),
-                      new Pair<>("message", String.valueOf(jsonNode))
-              ));
+              String stringifiedJsonNode = String.valueOf(jsonNode);
+              LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.ACCOUNT_SETTINGS_NOT_FOUND.value(new HashMap<String, String>() {
+                {
+                  put("statusCode", String.valueOf(statusCode));
+                  put("message", stringifiedJsonNode);
+                }
+              }));
             }
           }
         }

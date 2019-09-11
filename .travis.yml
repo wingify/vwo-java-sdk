@@ -1,9 +1,9 @@
 language: java
 dist: trusty
 jdk:
-#  - openjdk8
+  - openjdk8
   - oraclejdk8
-#  - openjdk9
+  - openjdk9
   - oraclejdk9
   - openjdk11
   - oraclejdk11

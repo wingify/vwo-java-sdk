@@ -6,9 +6,9 @@ import com.vwo.UUIDType5;
 import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.logger.LoggerManager;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javafx.util.Pair;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class Event {
@@ -83,11 +83,13 @@ public class Event {
       UUID accountUuid = UUIDType5.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, this.account_id.toString());
       UUID userUuid = UUIDType5.nameUUIDFromNamespaceAndString(accountUuid, this.uId);
       this.u = userUuid.toString().replace("-", "").toUpperCase();
-      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.UUID_GENERATED.value(
-              new Pair<>("userId", uId),
-              new Pair<>("accountId", String.valueOf(account_id)),
-              new Pair<>("uuid", u)
-      ));
+      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.UUID_GENERATED.value(new HashMap<String, String>() {
+        {
+          put("userId", uId);
+          put("accountId", String.valueOf(account_id));
+          put("uuid", u);
+        }
+      }));
       return this;
     }
 

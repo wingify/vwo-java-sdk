@@ -4,7 +4,8 @@ import com.vwo.enums.LoggerMessagesEnum;
 import com.vwo.logger.LoggerManager;
 import com.vwo.models.Campaign;
 import com.vwo.models.Variation;
-import javafx.util.Pair;
+
+import java.util.HashMap;
 
 public class Bucketer {
 
@@ -19,14 +20,21 @@ public class Bucketer {
     Long signedMurmurHash = (murmurHash & 0xFFFFFFFFL);
     int bucketValueOfUser = Bucketer.getBucketValueForUser(signedMurmurHash, MAX_PERCENT_TRAFFIC, 1);
 
-    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.USER_HASH_BUCKET_VALUE.value(
-        new Pair<>("bucketValue", String.valueOf(bucketValueOfUser)),
-        new Pair<>("userId", userId),
-        new Pair<>("hashValue", String.valueOf(signedMurmurHash))
-    ));
+    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.USER_HASH_BUCKET_VALUE.value(new HashMap<String, String>() {
+      {
+        put("bucketValue", String.valueOf(bucketValueOfUser));
+        put("userId", userId);
+        put("hashValue", String.valueOf(murmurHash));
+      }
+    }));
 
     if (bucketValueOfUser > campaign.getPercentTraffic()) {
-      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
+      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
+        {
+          put("campaignTestKey", campaign.getKey());
+          put("userId", userId);
+        }
+      }));
       return -1;
     } else {
       return signedMurmurHash;
@@ -51,13 +59,15 @@ public class Bucketer {
       double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaign.getPercentTraffic() / 100;
       int bucketValueForVariation = Bucketer.getBucketValueForUser(murmurHash, MAX_TRAFFIC_VALUE, multiplier);
 
-      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.VARIATION_HASH_BUCKET_VALUE.value(
-          new Pair<>("bucketValue", String.valueOf(bucketValueForVariation)),
-          new Pair<>("userId", userId),
-          new Pair<>("campaignTestKey", campaign.getKey()),
-          new Pair<>("traffic", String.valueOf(campaign.getPercentTraffic())),
-          new Pair<>("hashValue", String.valueOf(murmurHash))
-      ));
+      LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.VARIATION_HASH_BUCKET_VALUE.value(new HashMap<String, String>() {
+        {
+          put("campaignTestKey", campaign.getKey());
+          put("bucketValue", String.valueOf(bucketValueForVariation));
+          put("userId", userId);
+          put("traffic", String.valueOf(campaign.getPercentTraffic()));
+          put("hashValue", String.valueOf(murmurHash));
+        }
+      }));
 
       for (Variation variation : campaign.getVariations()) {
         if (bucketValueForVariation >= variation.getStartRangeVariation() && bucketValueForVariation <= variation.getEndRangeVariation()) {
