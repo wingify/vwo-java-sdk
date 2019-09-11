@@ -9,7 +9,7 @@ This open source library allows you to A/B Test your Website at server-side.
 
 The Java SDK supports:
 
-* Open JDK 8, 11, 12
+* Open JDK 8, 9, 11, 12
 * Oracle JDK 8, 9, 11, 12
 
 ## SDK INSTALLATION
