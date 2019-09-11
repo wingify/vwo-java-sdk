@@ -1,14 +1,16 @@
 package com.vwo.enums;
 
-import javafx.util.Pair;
+import java.util.Map;
 
 public class LoggerMessagesEnum {
 
-  public static String getComputedMsg(String msg, Pair<String, String>... pairs) {
-    for (Pair<String, String> pair : pairs) {
-      String key = pair.getKey();
-      String value = pair.getValue();
-      msg = msg.replaceAll("\\{\\{" + key + "}}", value); // USe format %s
+  public static String getComputedMsg(String msg, Map<String, String>... maps) {
+    for (Map<String, String> map: maps) {
+      for (Map.Entry<String, String> pair : map.entrySet()) {
+        String key = pair.getKey();
+        String value = pair.getValue();
+        msg = msg.replaceAll("\\{\\{" + key + "}}", value);
+      }
     }
     return msg;
   }
@@ -42,8 +44,8 @@ public class LoggerMessagesEnum {
       this.msg = msg;
     }
 
-    public String value(Pair<String, String>... pairs) {
-      return LoggerMessagesEnum.getComputedMsg(this.msg, pairs);
+    public String value(Map<String, String>... maps) {
+      return LoggerMessagesEnum.getComputedMsg(this.msg, maps);
     }
   }
 
@@ -63,8 +65,8 @@ public class LoggerMessagesEnum {
       this.msg = msg;
     }
 
-    public String value(Pair<String, String>... pairs) {
-      return LoggerMessagesEnum.getComputedMsg(this.msg, pairs);
+    public String value(Map<String, String>... maps) {
+      return LoggerMessagesEnum.getComputedMsg(this.msg, maps);
     }
   }
 
@@ -79,8 +81,8 @@ public class LoggerMessagesEnum {
       this.msg = msg;
     }
 
-    public String value(Pair<String, String>... pairs) {
-      return LoggerMessagesEnum.getComputedMsg(this.msg, pairs);
+    public String value(Map<String, String>... maps) {
+      return LoggerMessagesEnum.getComputedMsg(this.msg, maps);
     }
   }
 
@@ -110,8 +112,8 @@ public class LoggerMessagesEnum {
       this.msg = msg;
     }
 
-    public String value(Pair<String, String>... pairs) {
-      return LoggerMessagesEnum.getComputedMsg(this.msg, pairs);
+    public String value(Map<String, String>... maps) {
+      return LoggerMessagesEnum.getComputedMsg(this.msg, maps);
     }
   }
 

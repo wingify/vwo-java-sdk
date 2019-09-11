@@ -14,8 +14,8 @@ import com.vwo.models.SettingFileConfig;
 import com.vwo.models.Variation;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
-import javafx.util.Pair;
 
 public class EventFactory {
 
@@ -43,7 +43,12 @@ public class EventFactory {
                     .withsdkVersion()
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new Pair<>("userId", userId), new Pair<>("impressionEvent", impressionEvent.toString())));
+    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+        put("impressionEvent", impressionEvent.toString());
+      }
+    }));
 
     Map<String, Object> map = impressionEvent.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -68,7 +73,12 @@ public class EventFactory {
                     .withsdkVersion()
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new Pair<>("goalEvent", goalEvent.toString()), new Pair<>("userId", userId)));
+    LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+        put("goalEvent", goalEvent.toString());
+      }
+    }));
 
     Map<String, Object> map = goalEvent.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);

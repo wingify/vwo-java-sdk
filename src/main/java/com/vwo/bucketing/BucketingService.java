@@ -9,7 +9,6 @@ import com.vwo.userprofile.UserProfileUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import javafx.util.Pair;
 
 public class BucketingService {
 
@@ -31,7 +30,12 @@ public class BucketingService {
    */
   public Variation getVariation(Campaign campaign, String userId) {
     if (!campaign.getStatus().equalsIgnoreCase("RUNNING")) {
-      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_RUNNING.value(new Pair<>("campaignTestKey", campaign.getKey())));
+      LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.CAMPAIGN_NOT_RUNNING.value(new HashMap<String, String>() {
+        {
+          put("campaignTestKey", campaign.getKey());
+        }
+      }));
+
       return null;
     }
 
@@ -48,17 +52,29 @@ public class BucketingService {
           variation = getStoredVariation(userProfileMap, userId, campaign);
 
           if (variation != null) {
-            LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.GOT_STORED_VARIATION.value(
-                    new Pair<>("variationName", variation.getName()),
-                    new Pair<>("campaignTestKey", campaign.getKey()),
-                    new Pair<>("userId", userId)
-            ));
+            String variationName = variation.getName();
+            LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.GOT_STORED_VARIATION.value(new HashMap<String, String>() {
+              {
+                put("variationName", variationName);
+                put("campaignTestKey", campaign.getKey());
+                put("userId", userId);
+              }
+            }));
             return variation;
           } else {
-            LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new Pair<>("campaignTestKey", campaign.getKey()), new Pair<>("userId", userId)));
+            LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
+              {
+                put("campaignTestKey", campaign.getKey());
+                put("userId", userId);
+              }
+            }));
           }
         } else {
-          LOGGER.warn(LoggerMessagesEnum.WARNING_MESSAGES.INVALID_USER_PROFILE_MAP.value(new Pair<>("map", userProfileMap.toString())));
+          LOGGER.warn(LoggerMessagesEnum.WARNING_MESSAGES.INVALID_USER_PROFILE_MAP.value(new HashMap<String, String>() {
+            {
+              put("map", userProfileMap.toString());
+            }
+          }));
         }
       } catch (Exception e) {
         LOGGER.warn(LoggerMessagesEnum.WARNING_MESSAGES.NO_DATA_IN_USER_PROFILE.value());
@@ -72,17 +88,30 @@ public class BucketingService {
 
     // Save variation in user profile service if defined by the customer.
     if (variation != null) {
+      String variationName = variation.getName();
       if (this.userProfileService != null) {
         saveVariation(userId, campaign, variation);
-        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.SAVED_IN_USER_PROFILE_SERVICE.value(new Pair<>("userId", userId), new Pair<>("variation", variation.getName())));
+        LOGGER.debug(LoggerMessagesEnum.DEBUG_MESSAGES.SAVED_IN_USER_PROFILE_SERVICE.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("variation", variationName);
+          }
+        }));
       }
-      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.GOT_VARIATION_FOR_USER.value(
-              new Pair<>("userId", userId),
-              new Pair<>("campaignTestKey", campaign.getKey()),
-              new Pair<>("variation", variation.getName())
-      ));
+      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.GOT_VARIATION_FOR_USER.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignTestKey", campaign.getKey());
+          put("variation", variationName);
+        }
+      }));
     } else {
-      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new Pair<>("userId", userId), new Pair<>("campaignTestKey", campaign.getKey())));
+      LOGGER.info(LoggerMessagesEnum.INFO_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignTestKey", campaign.getKey());
+        }
+      }));
     }
 
     return variation;
@@ -136,7 +165,12 @@ public class BucketingService {
       try {
         this.userProfileService.save(campaignBucketMap);
       } catch (Exception e) {
-        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.SAVE_USER_PROFILE_SERVICE_FAILED.value(new Pair<>("userId", userId)), e.getStackTrace());
+        LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.SAVE_USER_PROFILE_SERVICE_FAILED.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("campaignTestKey", campaign.getKey());
+          }
+        }), e.getStackTrace());
       }
     }
   }
