@@ -271,7 +271,7 @@ public class VWO implements AutoCloseable {
             }
           }));
           return false;
-        } else if (goal.getType().equals(GoalEnum.GOAL_TYPES.REVENUE.value()) && revenueValue == null) {
+        } else if (goal.getType().equalsIgnoreCase(GoalEnum.GOAL_TYPES.REVENUE.value()) && revenueValue == null) {
           LOGGER.error(LoggerMessagesEnum.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(new HashMap<String, String>() {
             {
               put("goalIdentifier", goalIdentifier);
@@ -280,6 +280,8 @@ public class VWO implements AutoCloseable {
             }
           }));
           return false;
+        } else if (goal.getType().equalsIgnoreCase(GoalEnum.GOAL_TYPES.CUSTOM.value())) {
+          revenueValue = null;
         }
 
         this.sendConversionCall(this.projectConfig, campaign, userId, goal, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), revenueValue);
