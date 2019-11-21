@@ -1,3 +1,19 @@
+/*
+Copyright 2019 Wingify Software Pvt. Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package com.vwo;
 
 import java.nio.charset.Charset;
@@ -6,6 +22,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.UUID;
 
+/*
+  Took reference from StackOverflow (https://stackoverflow.com/) to:
+  Construct the type 5 UUIDs.
+  Author - Kiskae (https://stackoverflow.com/users/1452094/kiskae)
+  Source - https://stackoverflow.com/questions/40230276/how-to-make-a-type-5-uuid-in-java
+ */
 public class UUIDType5 {
   private static final Charset UTF8 = Charset.forName("UTF-8");
   public static final UUID NAMESPACE_DNS = UUID.fromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8");

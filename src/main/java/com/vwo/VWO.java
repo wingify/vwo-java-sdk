@@ -1,3 +1,19 @@
+/*
+Copyright 2019 Wingify Software Pvt. Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ */
+
 package com.vwo;
 
 import com.vwo.bucketing.Bucketer;
@@ -23,6 +39,11 @@ import com.vwo.userprofile.UserProfileService;
 import java.io.Closeable;
 import java.util.HashMap;
 
+/*
+ This file VWO.java has references from "Optimizely Java SDK, version 3.2.0", Copyright 2017-2019, Optimizely,
+ under Apache 2.0 License.
+ Source - https://github.com/optimizely/java-sdk/blob/master/core-api/src/main/java/com/optimizely/ab/Optimizely.java
+*/
 /**
  * The VWO client class needs to be instantiated as an instance that exposes various API methods like activate, getVariation and track.
  */
@@ -495,6 +516,11 @@ public class VWO implements AutoCloseable {
   }
 
 
+  /*
+   The function tryClose has references from "Optimizely Java SDK, version 3.2.0", Copyright 2017-2019, Optimizely,
+   under Apache 2.0 License.
+   Source - https://github.com/optimizely/java-sdk/blob/master/core-api/src/main/java/com/optimizely/ab/internal/SafetyUtils.java
+  */
   public void tryClose(Object obj) {
     if (!(obj instanceof AutoCloseable)) {
       return;
@@ -504,9 +530,5 @@ public class VWO implements AutoCloseable {
     } catch (Exception e) {
       LOGGER.warn(LoggerMessagesEnum.WARNING_MESSAGES.CLOSE_GENERIC_CONNECTION.value(), obj);
     }
-  }
-
-  public static void main(String[] args) {
-    VWO.createInstance("");
   }
 }

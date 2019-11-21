@@ -17,9 +17,7 @@ public class Murmur3 {
    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    * See the License for the specific language governing permissions and
    * limitations under the License.
-   */
-
-  /**
+   *
    * Murmur3 is successor to Murmur2 fast non-crytographic hash algorithms.
    * <p>
    * Murmur3 32 and 128 bit variants.
