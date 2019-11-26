@@ -18,10 +18,9 @@ package com.vwo.tests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
-import com.vwo.logger.LoggerManager;
-import com.vwo.models.SettingFileConfig;
-import com.vwo.tests.data.Settings;
-import com.vwo.tests.data.UserVariations;
+import com.vwo.models.Settings;
+import com.vwo.logger.Logger;
+import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 
@@ -29,83 +28,101 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class GetVariationTests {
-  private static VWO vwoInstance = VWO.createInstance(Settings.settings1).build();
+  private static VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
   private static String userId = TestUtils.getRandomUser();
-  private static final LoggerManager LOGGER = LoggerManager.getLogger(GetVariationTests.class);
+  private static final Logger LOGGER = Logger.getLogger(GetVariationTests.class);
 
 
   @Test
   public void validationTests() throws IOException {
-    LOGGER.info("Should return null if no campaignTestKey is passed");
-    assertEquals(vwoInstance.getVariation("", userId), null);
+    LOGGER.info("Should return null if no campaignKey is passed");
+    assertEquals(vwoInstance.getVariationName("", userId), null);
 
     LOGGER.info("Should return null if no userId is passed");
-    SettingFileConfig settingFileConfig = new ObjectMapper().readValue(Settings.settings1, SettingFileConfig.class);
-    assertEquals(vwoInstance.getVariation(settingFileConfig.getCampaigns().get(0).getKey(), ""), null);
+    Settings settings = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50, Settings.class);
+    assertEquals(vwoInstance.getVariationName(settings.getCampaigns().get(0).getKey(), ""), null);
 
-    LOGGER.info("Should return null if campaignTestKey is not found in settingsFile");
-    assertEquals(vwoInstance.getVariation("NO_SUCH_CAMPAIGN_KEY", userId), null);
+    LOGGER.info("Should return null if campaignKey is not found in settingsFile");
+    assertEquals(vwoInstance.getVariationName("NO_SUCH_CAMPAIGN_KEY", userId), null);
   }
 
   @Test
-  public void setting1Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting1Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:50 and split:50-50");
 
-    getVariationTest(Settings.settings1, UserVariations.DEV_TEST_1);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50, UserExpectations.DEV_TEST_1);
   }
 
   @Test
-  public void setting2Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void featureRolloutCampaignTypeTests() throws IOException {
+    LOGGER.info("Should return null for feature rollout type campaigns");
+
+    Settings settingsFile = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100, Settings.class);
+    String campaignKey = settingsFile.getCampaigns().get(0).getKey();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100).build();
+
+    assertNull(vwoInstance.getVariationName(campaignKey, TestUtils.getRandomUser()));
+  }
+
+  @Test
+  public void setting2Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:50-50");
 
-    getVariationTest(Settings.settings2, UserVariations.DEV_TEST_2);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_50_50, UserExpectations.DEV_TEST_2);
   }
 
   @Test
-  public void setting3Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting3Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:20-80");
 
-    getVariationTest(Settings.settings3, UserVariations.DEV_TEST_3);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_20_80, UserExpectations.DEV_TEST_3);
   }
 
   @Test
-  public void setting4Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting4Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:20 and split:10-90");
 
-    getVariationTest(Settings.settings4, UserVariations.DEV_TEST_4);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_20_WEIGHT_10_90, UserExpectations.DEV_TEST_4);
   }
 
   @Test
-  public void setting5Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting5Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:0-100");
 
-    getVariationTest(Settings.settings5, UserVariations.DEV_TEST_5);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_0_100, UserExpectations.DEV_TEST_5);
   }
 
   @Test
-  public void setting6Tests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void setting6Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:33.3333:33.3333:33.3333");
 
-    getVariationTest(Settings.settings6, UserVariations.DEV_TEST_6);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.DEV_TEST_6);
   }
 
   @Test
-  public void settingWith10VariationsTests() throws IOException, NoSuchFieldException, IllegalAccessException {
+  public void settingWith10VariationsTests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:75 with 10 variations of eqial weight");
 
-    getVariationTest(Settings.settingsWith10Variations, UserVariations.TEN_Variations);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_75_VARIATIONS_10, UserExpectations.AB_TRAFFIC_75_VARIATIONS_10);
   }
 
-  public void getVariationTest(String settingsFile, ArrayList<UserVariations.Variation> userVariation) throws IOException {
-    SettingFileConfig settingsConfig = new ObjectMapper().readValue(settingsFile, SettingFileConfig.class);
+  @Test
+  public void notRunningCampaignTests() throws IOException {
+    LOGGER.info("Should get null variation for non running campaign");
+
+    getVariationTest(com.vwo.tests.data.Settings.AB_NOT_RUNNING_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_0_WEIGHT_10_20_30_40);
+  }
+
+  private void getVariationTest(String settingsFile, ArrayList<UserExpectations.Variation> userVariation) throws IOException {
+    Settings settingsConfig = new ObjectMapper().readValue(settingsFile, Settings.class);
     String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
-    VWO vwoInstance = VWO.createInstance(settingsFile).build();
+    VWO vwoInstance = VWO.launch(settingsFile).build();
 
     for (int i = 0; i < userVariation.size(); i++) {
-      String variationName = vwoInstance.getVariation(campaignKey, TestUtils.getUsers()[i]);
+      String variationName = vwoInstance.getVariationName(campaignKey, TestUtils.getUsers()[i]);
       assertEquals(variationName, userVariation.get(i).getVariation());
     }
   }
