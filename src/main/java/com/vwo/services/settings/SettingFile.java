@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.services.settings;
 
-import com.vwo.VWO;
+import com.vwo.models.Campaign;
+import com.vwo.models.Settings;
 
-public abstract class VWOLogger {
-  public static String level;
+public interface SettingFile {
 
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
-  }
+  Settings processSettingsFile();
 
-  public VWOLogger(String level) {
-    this.level = level;
-  }
+  Campaign getCampaign(String campaignKey);
 
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
+  Settings getSettings();
 }

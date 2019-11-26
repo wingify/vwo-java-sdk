@@ -24,53 +24,67 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-        "identifier",
-        "id",
-        "type"
+        "sdkKey",
+        "campaigns",
+        "accountId",
+        "version"
 })
-public class Goal {
+public class Settings {
 
-  @JsonProperty("identifier")
-  private String identifier;
-  @JsonProperty("id")
-  private Integer id;
-  @JsonProperty("type")
-  private String type;
+  @JsonProperty("sdkKey")
+  private String sdkKey;
+  @JsonProperty("campaigns")
+  private List<Campaign> campaigns = null;
+  @JsonProperty("accountId")
+  private Integer accountId;
+  @JsonProperty("version")
+  private Integer version;
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-  @JsonProperty("identifier")
-  public String getIdentifier() {
-    return identifier;
+  @JsonProperty("sdkKey")
+  public String getSdkKey() {
+    return sdkKey;
   }
 
-  @JsonProperty("identifier")
-  public void setIdentifier(String identifier) {
-    this.identifier = identifier;
+  @JsonProperty("sdkKey")
+  public void setSdkKey(String sdkKey) {
+    this.sdkKey = sdkKey;
   }
 
-  @JsonProperty("id")
-  public Integer getId() {
-    return id;
+  @JsonProperty("campaigns")
+  public List<Campaign> getCampaigns() {
+    return campaigns;
   }
 
-  @JsonProperty("id")
-  public void setId(Integer id) {
-    this.id = id;
+  @JsonProperty("campaigns")
+  public void setCampaigns(List<Campaign> campaigns) {
+    this.campaigns = campaigns;
   }
 
-  @JsonProperty("type")
-  public String getType() {
-    return type;
+  @JsonProperty("accountId")
+  public Integer getAccountId() {
+    return accountId;
   }
 
-  @JsonProperty("type")
-  public void setType(String type) {
-    this.type = type;
+  @JsonProperty("accountId")
+  public void setAccountId(Integer accountId) {
+    this.accountId = accountId;
+  }
+
+  @JsonProperty("version")
+  public Integer getVersion() {
+    return version;
+  }
+
+  @JsonProperty("version")
+  public void setVersion(Integer version) {
+    this.version = version;
   }
 
   @JsonAnyGetter

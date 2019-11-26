@@ -35,7 +35,8 @@ import java.util.Map;
         "percentTraffic",
         "key",
         "status",
-        "type"
+        "type",
+        "variables"
 })
 public class Campaign {
 
@@ -53,6 +54,9 @@ public class Campaign {
   private String status;
   @JsonProperty("type")
   private String type;
+  @JsonProperty("variables")
+  private List<Variable> variables;
+
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -127,6 +131,16 @@ public class Campaign {
   @JsonProperty("type")
   public void setType(String type) {
     this.type = type;
+  }
+
+  @JsonProperty("variables")
+  public List<Variable> getVariables() {
+    return variables;
+  }
+
+  @JsonProperty("variables")
+  public void setVariables(List<Variable> variables) {
+    this.variables = variables;
   }
 
   @JsonAnyGetter

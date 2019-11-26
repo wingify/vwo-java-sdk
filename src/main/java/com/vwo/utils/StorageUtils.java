@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.utils;
 
-import com.vwo.VWO;
+import com.vwo.services.storage.Storage;
 
-public abstract class VWOLogger {
-  public static String level;
+import java.util.Map;
 
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
+public class StorageUtils {
+
+  public static boolean isValidUserStorageMap(Map<String, String> map) {
+    return map.containsKey(Storage.User.userId)
+            && map.containsKey(Storage.User.campaignKey)
+            && map.containsKey(Storage.User.variationKey);
   }
 
-  public VWOLogger(String level) {
-    this.level = level;
-  }
-
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
 }

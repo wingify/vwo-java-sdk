@@ -14,28 +14,39 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.enums;
 
-import com.vwo.VWO;
+public class CampaignEnums {
 
-public abstract class VWOLogger {
-  public static String level;
+  public enum STATUS {
+    RUNNING("RUNNING"),
+    PAUSED("PAUSED");
 
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
+    private final String status;
+
+    STATUS(String status) {
+      this.status = status;
+    }
+
+    public String value() {
+      return this.status;
+    }
   }
 
-  public VWOLogger(String level) {
-    this.level = level;
+
+  public enum CAMPAIGN_TYPES {
+    VISUAL_AB("VISUAL_AB"),
+    FEATURE_TEST("FEATURE_TEST"),
+    FEATURE_ROLLOUT("FEATURE_ROLLOUT");
+
+    private final String type;
+
+    CAMPAIGN_TYPES(String type) {
+      this.type = type;
+    }
+
+    public String value() {
+      return this.type;
+    }
   }
-
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
 }

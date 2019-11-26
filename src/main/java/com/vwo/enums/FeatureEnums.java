@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.enums;
 
-import com.vwo.VWO;
+public class FeatureEnums {
 
-public abstract class VWOLogger {
-  public static String level;
+  public enum FEATURE_VARIABLE_TYPES {
+    STRING("string"),
+    INTEGER("integer"),
+    DOUBLE("double"),
+    BOOLEAN("boolean");
 
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
+    private final String variableType;
+
+    FEATURE_VARIABLE_TYPES(String variableType) {
+      this.variableType = variableType;
+    }
+
+    public String value() {
+      return this.variableType;
+    }
   }
-
-  public VWOLogger(String level) {
-    this.level = level;
-  }
-
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
 }
+
+
+

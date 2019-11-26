@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -31,7 +32,8 @@ import java.util.Map;
         "id",
         "name",
         "changes",
-        "weight"
+        "weight",
+        "isFeatureEnabled"
 })
 public class Variation {
 
@@ -43,6 +45,12 @@ public class Variation {
   private Changes changes;
   @JsonProperty("weight")
   private double weight;
+  @JsonProperty("isFeatureEnabled")
+  private boolean isFeatureEnabled;
+  @JsonProperty("variables")
+  private List<Variable> variables;
+
+
   private Integer startRangeVariation;
   private Integer endRangeVariation;
 
@@ -87,6 +95,26 @@ public class Variation {
   @JsonProperty("weight")
   public void setWeight(double weight) {
     this.weight = weight;
+  }
+
+  @JsonProperty("isFeatureEnabled")
+  public boolean getIsFeatureEnabled() {
+    return isFeatureEnabled;
+  }
+
+  @JsonProperty("isFeatureEnabled")
+  public void setIsFeatureEnabled(boolean isFeatureEnabled) {
+    this.isFeatureEnabled = isFeatureEnabled;
+  }
+
+  @JsonProperty("variables")
+  public List<Variable> getVariables() {
+    return variables;
+  }
+
+  @JsonProperty("variables")
+  public void setVariables(List<Variable> variables) {
+    this.variables = variables;
   }
 
   public Integer getStartRangeVariation() {
