@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.utils;
 
-import com.vwo.VWO;
+import com.vwo.models.Campaign;
+import com.vwo.models.Variation;
 
-public abstract class VWOLogger {
-  public static String level;
+public class CampaignUtils {
 
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
+  public static Variation getVariationObjectFromCampaign(Campaign campaign, String variationName) {
+    if (variationName != null) {
+      for (Variation variation : campaign.getVariations()) {
+        if (variation.getName().equalsIgnoreCase(variationName)) {
+          return variation;
+        }
+      }
+    }
+    return null;
   }
-
-  public VWOLogger(String level) {
-    this.level = level;
-  }
-
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
 }

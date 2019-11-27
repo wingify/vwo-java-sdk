@@ -14,28 +14,15 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.enums;
 
-import com.vwo.VWO;
+public class HTTPEnums {
 
-public abstract class VWOLogger {
-  public static String level;
-
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
+  public enum Verbs {
+    GET,
+    PUT,
+    POST,
+    PATCH,
+    DELETE
   }
-
-  public VWOLogger(String level) {
-    this.level = level;
-  }
-
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
 }

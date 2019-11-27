@@ -16,42 +16,28 @@
 
 package com.vwo.models;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-        "identifier",
         "id",
-        "type"
+        "key",
+        "type",
+        "value"
 })
-public class Goal {
+public class Variable {
 
-  @JsonProperty("identifier")
-  private String identifier;
   @JsonProperty("id")
   private Integer id;
+  @JsonProperty("key")
+  private String key;
   @JsonProperty("type")
   private String type;
-  @JsonIgnore
-  private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+  @JsonProperty("value")
+  private Object value;
 
-  @JsonProperty("identifier")
-  public String getIdentifier() {
-    return identifier;
-  }
-
-  @JsonProperty("identifier")
-  public void setIdentifier(String identifier) {
-    this.identifier = identifier;
-  }
 
   @JsonProperty("id")
   public Integer getId() {
@@ -61,6 +47,16 @@ public class Goal {
   @JsonProperty("id")
   public void setId(Integer id) {
     this.id = id;
+  }
+
+  @JsonProperty("key")
+  public String getKey() {
+    return key;
+  }
+
+  @JsonProperty("key")
+  public void setKey(String key) {
+    this.key = key;
   }
 
   @JsonProperty("type")
@@ -73,14 +69,17 @@ public class Goal {
     this.type = type;
   }
 
-  @JsonAnyGetter
-  public Map<String, Object> getAdditionalProperties() {
-    return this.additionalProperties;
+  @JsonProperty("value")
+  public Object getValue() {
+    return value;
   }
 
-  @JsonAnySetter
-  public void setAdditionalProperty(String name, Object value) {
-    this.additionalProperties.put(name, value);
+  @JsonProperty("value")
+  public void setValue(Object value) {
+    this.value = value;
   }
 
+  public boolean equals(Variable v) {
+    return this.getId().equals(v.getId()) && this.getValue().equals(v.getValue()) && this.getType().equals(v.getType()) && this.getKey().equals(v.getKey());
+  }
 }

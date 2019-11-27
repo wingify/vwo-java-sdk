@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.enums;
 
-import com.vwo.VWO;
+public enum UriEnums {
 
-public abstract class VWOLogger {
-  public static String level;
+  BASE_URL("dev.visualwebsiteoptimizer.com"),
+  ACCOUNT_SETTINGS("/server-side/settings"),
+  TRACK_USER("/server-side/track-user"),
+  TRACK_GOAL("/server-side/track-goal");
 
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
+  private final String uri;
+
+  UriEnums(String uri) {
+    this.uri = uri;
   }
 
-  public VWOLogger(String level) {
-    this.level = level;
+  @Override
+  public String toString() {
+    return this.uri;
   }
-
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
 }
