@@ -31,6 +31,7 @@ import com.vwo.models.Goal;
 import com.vwo.models.Variation;
 import com.vwo.utils.UUIDUtils;
 
+import java.net.URLEncoder;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,22 +42,46 @@ public class HttpRequestBuilder {
   public static final String VWO_HOST = UriEnums.BASE_URL.toString();
   public static final String IMPRESSION_PATH = UriEnums.TRACK_USER.toString();
   public static final String GOAL_PATH = UriEnums.TRACK_GOAL.toString();
+  public static final String ACCOUNT_SETTINGS = UriEnums.ACCOUNT_SETTINGS.toString();
+  public static final String PUSH = UriEnums.PUSH.toString();
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final Logger LOGGER = Logger.getLogger(HttpRequestBuilder.class);
+
+  public static HttpParams getSettingParams(String accountID, String sdkKey) {
+    BuildQueryParams requestParams =
+            BuildQueryParams.Builder.getInstance()
+                    .withSettingsAccountId(accountID)
+                    .withR(Math.random())
+                    .withSdkKey(sdkKey)
+                    .withsdk()
+                    .withsdkVersion()
+                    .withPlatform()
+                    .build();
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GET_SETTINGS_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("requestParams", requestParams.toString());
+      }
+    }));
+
+    Map<String, Object> map = requestParams.convertToMap();
+    objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+    return new HttpParams(VWO_HOST, ACCOUNT_SETTINGS, map, HTTPEnums.Verbs.GET);
+  }
 
   public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId, Variation variation) {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams =
             BuildQueryParams.Builder.getInstance()
-                    .withaccount_id(settings.getAccountId())
-                    .withexperiment_id(campaign.getId())
+                    .withAccountId(settings.getAccountId())
+                    .withCampaignId(campaign.getId())
                     .withRandom(Math.random())
                     .withAp()
                     .withEd()
                     .withuId(userId)
                     .withUuid(settings.getAccountId(), userId)
-                    .withsId(Instant.now().getEpochSecond())
+                    .withSid(Instant.now().getEpochSecond())
                     .withVariation(variation.getId())
                     .withsdk()
                     .withsdkVersion()
@@ -78,14 +103,14 @@ public class HttpRequestBuilder {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams =
             BuildQueryParams.Builder.getInstance()
-                    .withaccount_id(settings.getAccountId())
-                    .withexperiment_id(campaign.getId())
+                    .withAccountId(settings.getAccountId())
+                    .withCampaignId(campaign.getId())
                     .withRandom(Math.random())
                     .withuId(userId)
                     .withAp()
                     .withUuid(settings.getAccountId(), userId)
                     .withGoalId(goal.getId())
-                    .withsId(Instant.now().getEpochSecond())
+                    .withSid(Instant.now().getEpochSecond())
                     .withRevenue(revenueValue)
                     .withVariation(variation.getId())
                     .withsdk()
@@ -104,8 +129,38 @@ public class HttpRequestBuilder {
     return new HttpParams(VWO_HOST, GOAL_PATH, map, HTTPEnums.Verbs.GET);
   }
 
+  public static HttpParams getPostCustomDimensionParams(SettingFile settingFile, String tagKey, String tagValue, String userId) {
+    Settings settings = settingFile.getSettings();
+    BuildQueryParams requestParams =
+            BuildQueryParams.Builder.getInstance()
+                    .withAccountId(settings.getAccountId())
+                    .withuId(userId)
+                    .withUuid(settings.getAccountId(), userId)
+                    .withTags(tagKey, tagValue)
+                    .withSid(Instant.now().getEpochSecond())
+                    .withRandom(Math.random())
+                    .withAp()
+                    .withsdk()
+                    .withsdkVersion()
+                    .build();
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.POST_SEGMENTATION_REQUEST_CREATED.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+        put("requestParams", requestParams.toString());
+      }
+    }));
+
+    Map<String, Object> map = requestParams.convertToMap();
+    objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+    return new HttpParams(VWO_HOST, PUSH, map, HTTPEnums.Verbs.GET);
+  }
+
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   private static class BuildQueryParams {
+    private String a;
+    private String i;
+    private String platform;
     private Integer account_id;
     private Integer experiment_id;
     private String uId;
@@ -114,17 +169,21 @@ public class HttpRequestBuilder {
     private Double random;
     private Integer goal_id;
     private Object r;
-    private long sId;
+    private Long sId;
     private String ap;
     private String ed;
     private String sdk;
     private String sdk_v;
+    private String tags;
     private static final Logger LOGGER = Logger.getLogger(BuildQueryParams.class);
 
 
     private BuildQueryParams(Builder builder) {
+      this.a = builder.a;
+      this.i = builder.i;
+      this.platform = builder.platform;
       this.account_id = builder.account_id;
-      this.experiment_id = builder.experiment_id;
+      this.experiment_id = builder.campaignId;
       this.uId = builder.uId;
       this.u = builder.u;
       this.combination = builder.combination;
@@ -136,40 +195,69 @@ public class HttpRequestBuilder {
       this.ed = builder.ed;
       this.sdk = builder.sdk;
       this.sdk_v = builder.sdk_v;
+      this.tags = builder.tags;
     }
 
 
     public static class Builder {
+      private String a;
+      private String i;
+      private String platform;
       private Integer account_id;
-      private Integer experiment_id;
+      private Integer campaignId;
       private String uId;
       private String u;
       private Integer combination;
       private Double random;
       private Integer goal_id;
       private Object r;
-      private long sId;
+      private Long sId;
       private final UUID CONSTANT_NAMESPACE = UUIDUtils.nameUUIDFromNamespaceAndString(UUIDUtils.NAMESPACE_URL, "https://vwo.com");
       private String ap;
       private String ed;
       private String sdk;
       private String sdk_v;
+      private String tags;
 
       private Builder() {
       }
 
-      public Builder withaccount_id(Integer account_id) {
+      // Used just for get settings
+      public Builder withSettingsAccountId(String account_id) {
+        this.a = account_id;
+        return this;
+      }
+
+      // Used just for get settings
+      public Builder withSdkKey(String sdkKey) {
+        this.i = sdkKey;
+        return this;
+      }
+
+      // Used just for get settings. Same as 'random' but required as 'r' on dacdn.
+      public Builder withR(Double random) {
+        this.r = random;
+        return this;
+      }
+
+      // Used just for get settings. Same as 'ed' but required as 'platform' on dacdn.
+      public Builder withPlatform() {
+        this.platform = "server";
+        return this;
+      }
+
+      public Builder withAccountId(Integer account_id) {
         this.account_id = account_id;
         return this;
       }
 
-      public Builder withexperiment_id(Integer experiment_id) {
-        this.experiment_id = experiment_id;
+      public Builder withCampaignId(Integer campaignId) {
+        this.campaignId = campaignId;
         return this;
       }
 
       public Builder withuId(String uId) {
-        this.uId = uId;
+        this.uId = URLEncoder.encode(uId);
         return this;
       }
 
@@ -198,7 +286,7 @@ public class HttpRequestBuilder {
         return this;
       }
 
-      public Builder withsId(long sId) {
+      public Builder withSid(Long sId) {
         this.sId = sId;
         return this;
       }
@@ -210,6 +298,11 @@ public class HttpRequestBuilder {
 
       public Builder withRevenue(Object r) {
         this.r = r;
+        return this;
+      }
+
+      public Builder withTags(String tagKey, String tagValue) {
+        this.tags = "{\"u\":{\"" + tagKey + "\":\"" + tagValue + "\"}}";
         return this;
       }
 
@@ -255,16 +348,20 @@ public class HttpRequestBuilder {
     @Override
     public String toString() {
       String request = "Event{"
-              + "account_id=" + this.account_id
-              + ", experiment_id=" + this.experiment_id
-              + ", uId='" + this.uId + '\''
-              + ", u='" + this.u + '\''
-              + ", combination=" + this.combination
-              + ", random=" + this.random
-              + ", sId=" + this.sId
-              + ", ap='" + this.ap + '\''
+              + this.a != null ? "a=" + this.a : ""
+              + this.i != null ? "i=" + this.i : ""
+              + this.platform != null ? "platform=" + this.platform : ""
+              + this.account_id != null ? "account_id=" + this.account_id : ""
+              + this.experiment_id != null ? ", experiment_id=" + this.experiment_id : ""
+              + this.uId != null ? ", uId='" + this.uId + '\'' : ""
+              + this.u != null ? ", u='" + this.u + '\'' : ""
+              + this.combination != null ? ", combination=" + this.combination : ""
+              + this.random != null ? ", random=" + this.random : ""
+              + this.sId != null ? ", sId=" + this.sId : ""
+              + this.ap != null ? ", ap='" + this.ap + '\'' : ""
               + ", sdk=" + this.sdk
-              + ", sdk-v=" + this.sdk_v;
+              + ", sdk-v=" + this.sdk_v
+              + this.tags != null ? ", tags=" + this.tags : "";
 
       if (this.goal_id != null) {
         request += ", goal_id='" + this.goal_id + '\'';
@@ -272,7 +369,7 @@ public class HttpRequestBuilder {
         if (this.r != null) {
           request += ", r='" + this.r + '\'';
         }
-      } else {
+      } else if (this.ed != null) {
         request += ", ed='" + this.ed + '\'';
       }
 

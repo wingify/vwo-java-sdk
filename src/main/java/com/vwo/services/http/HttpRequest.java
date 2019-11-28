@@ -18,14 +18,14 @@ package com.vwo.services.http;
 
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.utils.HttpUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.Map;
 
 public class HttpRequest implements Runnable {
   private static final Logger LOGGER = Logger.getLogger(HttpRequest.class);
@@ -47,19 +47,8 @@ public class HttpRequest implements Runnable {
   }
 
   private void getRequest(HttpParams httpParams) throws IOException, URISyntaxException {
-    URIBuilder requestBuilder = new URIBuilder();
-    requestBuilder.setScheme("https")
-            .setHost(httpParams.getDomain())
-            .setPath(httpParams.getUrl());
-
-    // Remove null values from request params
-    for (Map.Entry<String, Object> query : httpParams.getQueryParams().entrySet()) {
-      if (query.getValue() != null) {
-        requestBuilder.addParameter(query.getKey(), query.getValue().toString());
-      }
-    }
-
-    HttpRequestBase request = new HttpGet(requestBuilder.build());
+    URI httpUri = HttpUtils.getHttpUri(httpParams);
+    HttpRequestBase request = new HttpGet(httpUri);
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
       {

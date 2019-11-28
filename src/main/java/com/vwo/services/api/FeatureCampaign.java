@@ -29,6 +29,7 @@ import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FeatureCampaign {
   private static final Logger LOGGER = Logger.getLogger(TrackCampaign.class);
@@ -48,13 +49,20 @@ public class FeatureCampaign {
       String userId,
       SettingFile settingFile,
       VariationDecider variationDecider,
-      boolean isDevelopmentMode
+      boolean isDevelopmentMode,
+      Map<String, ?> CustomVariables
   ) {
     try {
-      if (!ValidationUtils.isValidParams(new HashMap<String, Object>() {
+      if (!ValidationUtils.isValidParams(
+          new HashMap<String, Object>() {
             {
               put("campaignKey", campaignKey);
               put("userId", userId);
+            }
+          },
+          new HashMap<String, Object>() {
+            {
+              put("api", "isFeatureEnabled");
             }
           }
       )) {
@@ -71,7 +79,11 @@ public class FeatureCampaign {
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+          {
+            put("campaignKey",campaignKey);
+          }
+        }));
         return false;
       } else if (
           !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())
@@ -90,8 +102,8 @@ public class FeatureCampaign {
       }
 
       String variation = campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
-          ? ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode)
-          : CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider);
+          ? ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables)
+          : CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
 
       if (variation == null) {
         return false;
@@ -122,15 +134,30 @@ public class FeatureCampaign {
    *
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
-  public static Object getFeatureVariable(String campaignKey, String userId, String variableKey, String variableType, SettingFile settingFile, VariationDecider variationDecider) {
+  public static Object getFeatureVariable(
+      String campaignKey,
+      String userId,
+      String variableKey,
+      String variableType,
+      SettingFile settingFile,
+      VariationDecider variationDecider,
+      Map<String, ?> CustomVariables
+  ) {
     try {
-      if (!ValidationUtils.isValidParams(new HashMap<String, Object>() {
-        {
-          put("campaignKey", campaignKey);
-          put("userId", userId);
-          put("variableKey", variableKey);
-        }
-      })) {
+      if (!ValidationUtils.isValidParams(
+          new HashMap<String, Object>() {
+            {
+              put("campaignKey", campaignKey);
+              put("userId", userId);
+              put("variableKey", variableKey);
+            }
+          },
+          new HashMap<String, Object>() {
+            {
+              put("api", "getFeatureVariableValue");
+            }
+          }
+      )) {
         return null;
       }
 
@@ -145,7 +172,11 @@ public class FeatureCampaign {
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+          {
+            put("campaignKey",campaignKey);
+          }
+        }));
         return null;
       } else if (
               !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())
@@ -162,7 +193,7 @@ public class FeatureCampaign {
         return null;
       }
 
-      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider);
+      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
 
       if (variation == null) {
         return null;
@@ -253,7 +284,11 @@ public class FeatureCampaign {
   //      Campaign campaign = settingFileConfig.getCampaign(campaignKey);
   //
   //      if (campaign == null) {
-  //        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+  //        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+  //          {
+  //            put("campaignKey",campaignKey);
+  //          }
+  //        }));
   //        return null;
   //      }
   //

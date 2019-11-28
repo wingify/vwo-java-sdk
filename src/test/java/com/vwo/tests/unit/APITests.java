@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.tests;
+package com.vwo.tests.unit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -22,12 +22,11 @@ import com.vwo.VWO;
 import com.vwo.logger.Logger;
 import com.vwo.logger.VWOLogger;
 import com.vwo.services.storage.Storage;
-import com.vwo.tests.data.Settings;
 import org.junit.jupiter.api.Test;
 
 
-public class VWOTests {
-  private static final Logger LOGGER = Logger.getLogger(VWOTests.class);
+public class APITests {
+  private static final Logger LOGGER = Logger.getLogger(APITests.class);
 
 
   @Test
@@ -72,18 +71,5 @@ public class VWOTests {
     trackArg[1] = String.class;
     trackArg[2] = String.class;
     assertTrue(vwoInstanceClass.getMethod("track", trackArg) != null);
-  }
-
-  @Test
-  public void settingFileTests() {
-    LOGGER.info("Should not process settingsFile if settingsFile is not provided or corrupted");
-
-    VWO vwoInstance = VWO.launch("").build();
-    assertTrue(vwoInstance.getSettingFile() == null);
-
-    LOGGER.info("Should process settingsFile if it is provided and is valid");
-
-    vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
-    assertTrue(vwoInstance.getSettingFile() != null);
   }
 }

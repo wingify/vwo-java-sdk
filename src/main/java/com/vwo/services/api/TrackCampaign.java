@@ -32,6 +32,7 @@ import com.vwo.utils.CampaignUtils;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class TrackCampaign {
   private static final Logger LOGGER = Logger.getLogger(TrackCampaign.class);
@@ -55,22 +56,27 @@ public class TrackCampaign {
       Object revenueValue,
       SettingFile settingFile,
       VariationDecider variationDecider,
-      boolean isDevelopmentMode
+      boolean isDevelopmentMode,
+      Map<String, ?> CustomVariables
   ) {
     try {
-      if (!TrackCampaign.isTrackParamsValid(campaignKey, userId, goalIdentifier, settingFile)) {
+      if (!TrackCampaign.isTrackParamsValid(campaignKey, userId, goalIdentifier)) {
         return false;
       }
 
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+          {
+            put("campaignKey",campaignKey);
+          }
+        }));
         return false;
       } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
           {
-            put("api","trackGoal");
+            put("api","track");
             put("userId",userId);
             put("campaignKey",campaignKey);
             put("campaignType",campaign.getType());
@@ -80,7 +86,7 @@ public class TrackCampaign {
         return false;
       }
 
-      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider);
+      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
 
       if (variation != null) {
         Goal goal = TrackCampaign.getGoalId(campaign, goalIdentifier);
@@ -134,13 +140,18 @@ public class TrackCampaign {
     }
   }
 
-  private static boolean isTrackParamsValid(String campaignKey, String userId, String goalIdentifier, SettingFile settingFile) {
+  private static boolean isTrackParamsValid(String campaignKey, String userId, String goalIdentifier) {
     return ValidationUtils.isValidParams(
         new HashMap<String, Object>() {
           {
             put("campaignKey", campaignKey);
             put("userId", userId);
             put("goalIdentifier", goalIdentifier);
+          }
+        },
+        new HashMap<String, Object>() {
+          {
+            put("api", "track");
           }
         }
     );

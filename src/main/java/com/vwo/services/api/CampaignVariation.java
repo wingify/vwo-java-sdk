@@ -26,6 +26,7 @@ import com.vwo.models.Variation;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class CampaignVariation {
   private static final Logger LOGGER = Logger.getLogger(CampaignVariation.class);
@@ -39,14 +40,7 @@ public class CampaignVariation {
    * @param variationDecider   Variation decider service
    * @return Variation name
    */
-  public static String getVariationName(String campaignKey, String userId, SettingFile settingFile, VariationDecider variationDecider) {
-    LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new HashMap<String, String>() {
-      {
-        put("userId", userId);
-        put("campaignKey", campaignKey);
-      }
-    }));
-
+  public static String getVariationName(String campaignKey, String userId, SettingFile settingFile, VariationDecider variationDecider, Map<String, ?> CustomVariables) {
     try {
       if (!ValidationUtils.isValidParams(
           new HashMap<String, Object>() {
@@ -54,15 +48,31 @@ public class CampaignVariation {
               put("campaignKey", campaignKey);
               put("userId", userId);
             }
+          },
+          new HashMap<String, Object>() {
+            {
+              put("api", "getVariationName");
+            }
           }
       )) {
         return null;
       }
 
+      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignKey", campaignKey);
+        }
+      }));
+
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+          {
+            put("campaignKey",campaignKey);
+          }
+        }));
         return null;
       } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
@@ -76,15 +86,15 @@ public class CampaignVariation {
         return null;
       }
 
-      return CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider);
+      return CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
   }
 
-  public static String getCampaignVariationName(Campaign campaign, String userId, VariationDecider variationDecider) {
-    Variation variation = variationDecider.getVariation(campaign, userId);
+  public static String getCampaignVariationName(Campaign campaign, String userId, VariationDecider variationDecider, Map<String, ?> CustomVariables) {
+    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables);
     return variation != null ? variation.getName() : null;
   }
 }

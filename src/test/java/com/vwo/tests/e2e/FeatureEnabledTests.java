@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.tests;
+package com.vwo.tests.e2e;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;

@@ -21,10 +21,12 @@ import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
 import com.vwo.models.Campaign;
 import com.vwo.models.Variation;
+import com.vwo.services.segmentation.PreSegmentation;
 import com.vwo.services.storage.Storage;
 import com.vwo.utils.StorageUtils;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class VariationDecider {
@@ -51,15 +53,64 @@ public class VariationDecider {
    * @param userId   - user id string
    * @return variation name or null if not found.
    */
-  public Variation getVariation(Campaign campaign, String userId) {
+  public Variation getVariation(Campaign campaign, String userId, Map<String, ?> rawCustomVariables) {
+    // Default initialization(s)
+    final Map<String, ?> CustomVariables = rawCustomVariables == null ? new HashMap<>() : rawCustomVariables;
+
     if (!campaign.getStatus().equalsIgnoreCase(CampaignEnums.STATUS.RUNNING.value())) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_RUNNING.value(new HashMap<String, String>() {
+      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
         {
           put("campaignKey", campaign.getKey());
         }
       }));
 
       return null;
+    }
+
+    // Check if user satisfies pre segmentation. If not, return null.
+    if (campaign.getSegments() != null && !((LinkedHashMap) campaign.getSegments()).isEmpty()) {
+      if (CustomVariables.isEmpty()) {
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.VALUE_NOT_PASSED_FOR_PRE_SEGMENT.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("campaignKey", campaign.getKey());
+          }
+        }));
+      }
+
+      if (!PreSegmentation.isPresegmentValid(campaign.getSegments(), CustomVariables)) {
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.PRE_SEGMENT_NOT_SATISFIED.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("campaignKey", campaign.getKey());
+            put("CustomVariables", CustomVariables.toString());
+          }
+        }));
+        return null;
+      }
+
+      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.PRE_SEGMENT_SATISFIED.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignKey", campaign.getKey());
+          put("CustomVariables", CustomVariables.toString());
+        }
+      }));
+    } else {
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_PRE_SEGMENT_FOUND.value(new HashMap<String, String>() {
+        {
+          put("campaignKey", campaign.getKey());
+        }
+      }));
+
+      if (!CustomVariables.isEmpty()) {
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.VALUE_PASSED_FOR_NO_PRE_SEGMENT.value(new HashMap<String, String>() {
+          {
+            put("campaignKey", campaign.getKey());
+            put("userId", userId);
+          }
+        }));
+      }
     }
 
     Variation variation;
