@@ -30,6 +30,7 @@ import com.vwo.utils.CampaignUtils;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ActivateCampaign {
   private static final Logger LOGGER = Logger.getLogger(ActivateCampaign.class);
@@ -44,14 +45,7 @@ public class ActivateCampaign {
    * @param isDevelopmentMode Development mode flag.
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
-  public static String activate(String campaignKey, String userId, SettingFile settingFile, VariationDecider variationDecider, boolean isDevelopmentMode) {
-    LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_ACTIVATE.value(new HashMap<String, String>() {
-      {
-        put("userId", userId);
-        put("campaignKey", campaignKey);
-      }
-    }));
-
+  public static String activate(String campaignKey, String userId, SettingFile settingFile, VariationDecider variationDecider, boolean isDevelopmentMode, Map<String, ?> CustomVariables) {
     try {
       if (!ValidationUtils.isValidParams(
           new HashMap<String, Object>() {
@@ -59,15 +53,31 @@ public class ActivateCampaign {
               put("campaignKey", campaignKey);
               put("userId", userId);
             }
+          },
+          new HashMap<String, Object>() {
+            {
+              put("api", "activate");
+            }
           }
       )) {
         return null;
       }
 
+      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_ACTIVATE.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignKey", campaignKey);
+        }
+      }));
+
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value());
+        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+          {
+            put("campaignKey",campaignKey);
+          }
+        }));
         return null;
       } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value()) || campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
@@ -81,7 +91,7 @@ public class ActivateCampaign {
         return null;
       }
 
-      return ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode);
+      return ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
@@ -93,9 +103,10 @@ public class ActivateCampaign {
       String userId,
       SettingFile settingFile,
       VariationDecider variationDecider,
-      boolean isDevelopmentMode
+      boolean isDevelopmentMode,
+      Map<String, ?> CustomVariables
   ) {
-    String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider);
+    String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
 
     if (variation != null) {
       LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new HashMap<String, String>() {

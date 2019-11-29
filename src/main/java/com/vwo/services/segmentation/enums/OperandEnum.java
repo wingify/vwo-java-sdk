@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package com.vwo.enums;
+package com.vwo.services.segmentation.enums;
 
-public enum UriEnums {
+public enum OperandEnum {
+  CUSTOM_VARIABLE("custom_variable");
 
-  BASE_URL("dev.visualwebsiteoptimizer.com"),
-  ACCOUNT_SETTINGS("/server-side/settings"),
-  TRACK_USER("/server-side/track-user"),
-  TRACK_GOAL("/server-side/track-goal"),
-  PUSH("/server-side/push");
+  String operand;
 
-  private final String uri;
-
-  UriEnums(String uri) {
-    this.uri = uri;
+  OperandEnum(String operand) {
+    this.operand = operand;
   }
 
-  @Override
-  public String toString() {
-    return this.uri;
+  public String value() {
+    return this.operand;
   }
 }

@@ -35,13 +35,21 @@ public class ValidationUtils {
       switch (param.getKey()) {
         case "campaignKey":
           if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value());
+            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value(new HashMap<String, String>() {
+              {
+                put("api", loggingParams.get("api").toString());
+              }
+            }));
             return false;
           }
           break;
         case "userId":
           if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_USER_ID.value());
+            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_USER_ID.value(new HashMap<String, String>() {
+              {
+                put("api", loggingParams.get("api").toString());
+              }
+            }));
             return false;
           }
           break;
@@ -54,6 +62,37 @@ public class ValidationUtils {
         case "variableKey":
           if (isEmptyValue(value)) {
             LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_VARIABLE_KEY.value());
+            return false;
+          }
+          break;
+        case "tagKey":
+          if (isEmptyValue(value)) {
+            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_TAG_KEY.value());
+            return false;
+          }
+          if (value.toString().length() > 255) {
+            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TAG_KEY_LENGTH_EXCEEDED.value(new HashMap<String, String>() {
+              {
+                put("tagKey", value.toString());
+                put("userId", loggingParams.get("userId").toString());
+              }
+            }));
+            return false;
+          }
+          break;
+        case "tagValue":
+          if (isEmptyValue(value)) {
+            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_TAG_VALUE.value());
+            return false;
+          }
+          if (value.toString().length() > 255) {
+            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TAG_VALUE_LENGTH_EXCEEDED.value(new HashMap<String, String>() {
+              {
+                put("tagValue", value.toString());
+                put("tagKey", loggingParams.get("tagKey").toString());
+                put("userId", loggingParams.get("userId").toString());
+              }
+            }));
             return false;
           }
           break;

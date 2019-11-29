@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.tests;
+package com.vwo.tests.e2e;
 
 import com.vwo.VWO;
 import com.vwo.logger.Logger;

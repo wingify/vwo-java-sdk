@@ -36,7 +36,8 @@ import java.util.Map;
         "key",
         "status",
         "type",
-        "variables"
+        "variables",
+        "segments"
 })
 public class Campaign {
 
@@ -56,6 +57,8 @@ public class Campaign {
   private String type;
   @JsonProperty("variables")
   private List<Variable> variables;
+  @JsonProperty("segments")
+  private Object segments;
 
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -141,6 +144,16 @@ public class Campaign {
   @JsonProperty("variables")
   public void setVariables(List<Variable> variables) {
     this.variables = variables;
+  }
+
+  @JsonProperty("segments")
+  public Object getSegments() {
+    return segments;
+  }
+
+  @JsonProperty("segments")
+  public void setSegments(Object segments) {
+    this.segments = segments;
   }
 
   @JsonAnyGetter

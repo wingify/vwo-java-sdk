@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.tests;
+package com.vwo.tests.e2e;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;

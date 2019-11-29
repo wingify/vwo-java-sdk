@@ -22,6 +22,9 @@ import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.UriEnums;
 import com.vwo.services.http.HttpClient;
 import com.vwo.logger.Logger;
+import com.vwo.services.http.HttpParams;
+import com.vwo.services.http.HttpRequestBuilder;
+import com.vwo.utils.HttpUtils;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -62,23 +65,14 @@ public class SettingsFileManager {
       }
     }));
 
+    HttpParams httpParams = HttpRequestBuilder.getSettingParams(accountID, sdkKey);
     HttpClient httpClient = new HttpClient();
     JsonNode jsonNode = null;
 
     try {
+      URI httpUri = HttpUtils.getHttpUri(httpParams);
+      HttpGet httpRequest = new HttpGet(httpUri);
 
-      URI uri = new URIBuilder()
-              .setScheme("https")
-              .setHost(UriEnums.BASE_URL.toString())
-              .setPath(UriEnums.ACCOUNT_SETTINGS.toString())
-              .setParameter("a", accountID)
-              .setParameter("i", sdkKey)
-              .setParameter("r", String.valueOf(Math.random()))
-              .setParameter("platform", "server")
-              .setParameter("api-version", "1")
-              .build();
-
-      HttpGet httpRequest = new HttpGet(uri);
       httpRequest.setHeader("Content-Type", "application/json");
       httpRequest.setHeader("charset", "UTF-8");
 
