@@ -67,6 +67,50 @@ public class VariationDecider {
       return null;
     }
 
+    Variation variation;
+
+    // Try to lookup in user storage service to get variation.
+    if (this.userStorage != null) {
+      try {
+        Map<String, String> userStorageMap = this.userStorage.get(userId, campaign.getKey());
+
+        if (userStorageMap == null) {
+          LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value());
+        } else if (StorageUtils.isValidUserStorageMap(userStorageMap)) {
+          variation = getStoredVariation(userStorageMap, userId, campaign);
+
+          if (variation != null) {
+            String variationName = variation.getName();
+            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GOT_STORED_VARIATION.value(new HashMap<String, String>() {
+              {
+                put("variationName", variationName);
+                put("campaignKey", campaign.getKey());
+                put("userId", userId);
+              }
+            }));
+            return variation;
+          } else {
+            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
+              {
+                put("campaignKey", campaign.getKey());
+                put("userId", userId);
+              }
+            }));
+          }
+        } else {
+          LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_USER_STORAGE_MAP.value(new HashMap<String, String>() {
+            {
+              put("map", userStorageMap.toString());
+            }
+          }));
+        }
+      } catch (Exception e) {
+        LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.NO_DATA_IN_USER_STORAGE.value());
+      }
+    } else {
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_USER_STORAGE_DEFINED.value());
+    }
+
     // Check if user satisfies pre segmentation. If not, return null.
     if (campaign.getSegments() != null && !((LinkedHashMap) campaign.getSegments()).isEmpty()) {
       if (CustomVariables.isEmpty()) {
@@ -111,50 +155,6 @@ public class VariationDecider {
           }
         }));
       }
-    }
-
-    Variation variation;
-
-    // Try to lookup in user storage service to get variation.
-    if (this.userStorage != null) {
-      try {
-        Map<String, String> userStorageMap = this.userStorage.get(userId, campaign.getKey());
-
-        if (userStorageMap == null) {
-          LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value());
-        } else if (StorageUtils.isValidUserStorageMap(userStorageMap)) {
-          variation = getStoredVariation(userStorageMap, userId, campaign);
-
-          if (variation != null) {
-            String variationName = variation.getName();
-            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GOT_STORED_VARIATION.value(new HashMap<String, String>() {
-              {
-                put("variationName", variationName);
-                put("campaignKey", campaign.getKey());
-                put("userId", userId);
-              }
-            }));
-            return variation;
-          } else {
-            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
-              {
-                put("campaignKey", campaign.getKey());
-                put("userId", userId);
-              }
-            }));
-          }
-        } else {
-          LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_USER_STORAGE_MAP.value(new HashMap<String, String>() {
-            {
-              put("map", userStorageMap.toString());
-            }
-          }));
-        }
-      } catch (Exception e) {
-        LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.NO_DATA_IN_USER_STORAGE.value());
-      }
-    } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_USER_STORAGE_DEFINED.value());
     }
 
     // Get variation using campaign settings for a user.

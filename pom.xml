@@ -37,7 +37,7 @@ limitations under the License. -->
         <url>scm:git@github.com:wingify/vwo-java-sdk.git</url>
         <connection>scm:git:git@github.com:wingify/vwo-java-sdk.git</connection>
         <developerConnection>scm:git:git@github.com:wingify/vwo-java-sdk.git</developerConnection>
-        <tag>v1.4.0</tag>
+        <tag>v1.4.1</tag>
     </scm>
 
     <developers>
