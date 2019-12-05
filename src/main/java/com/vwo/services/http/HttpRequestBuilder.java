@@ -322,7 +322,7 @@ public class HttpRequestBuilder {
       }
 
       public Builder withsdkVersion() {
-        this.sdk_v = "1.5.0";
+        this.sdk_v = "1.5.1";
         return this;
       }
 
