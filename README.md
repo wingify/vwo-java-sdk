@@ -72,7 +72,7 @@ Storage.User userStorage = return new Storage.User() {
         }
         return null;
      }
-    
+
      @Override
      public void set(Map<String, String> map){
         campaignStorageArray.add(map);
@@ -178,6 +178,10 @@ Refer [third-party-attributions.txt](https://github.com/wingify/vwo-java-sdk/blo
 * Core Contributor & Maintainer - [pntgupta](https://github.com/pntgupta)
 * Main Contributor - [sakshimahendruvk](https://github.com/sakshimahendruvk)
 * Repo health maintainer - [softvar](https://github.com/softvar)
+
+## Changelog
+
+Refer [CHANGELOG.md](https://github.com/wingify/vwo-java-sdk/blob/master/CHANGELOG.md)
 
 ## Contributing
 
