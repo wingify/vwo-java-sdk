@@ -4,6 +4,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2020-03-05
+### Breaking Changes
+To prevent ordered arguments and increasing use-cases, we are moving all optional arguments into a combined argument(Object).
+
+- customVariables argument in APIs: `activate`, `getVariation`, `track`, `isFeatureEnabled`, and `getFeatureVariableValue` have been moved into options object.
+- `revenueValue` parameter in `track` API is now moved into `options` argument.
+
+#### Before
+
+```java
+
+// activae API
+vwoInstance.activate(campaignKey, userId, customVariables);
+// getVariation API
+vwoInstance.getVariation(campaignKey, userId, customVariables);
+// track API
+vwoInstance.track(campaignKey, userId, goalIdentifier, revenueValue, customVariables);
+// isFeatureEnabled API
+vwoInstance.isFeatureEnabled(campaignKey, userId, customVariables);
+// getFeatureVariableValue API
+vwoInstance.getFeatureVariableValue(campaignKey, variableKey, userId, customVariables);
+```
+#### After
+
+```java
+
+// activae API
+vwoInstance.activate(campaignKey, userId, options);
+// getVariation API
+vwoInstance.getVariation(campaignKey, userId, options);
+// track API
+// Pass revenueValue inside options
+vwoInstance.track(campaignKey, userId, goalIdentifier, options);
+// isFeatureEnabled API
+vwoInstance.isFeatureEnabled(campaignKey, userId, options);
+// getFeatureVariableValue API
+vwoInstance.getFeatureVariableValue(campaignKey, variableKey, userId, options);
+```
+
+### Added
+Forced Variation capabilites
+- Introduced `Forced Variation` to force certain users into specific variation. Forcing can be based on User IDs or custom variables defined.
+### Changed
+- All existing APIs to handle custom-targeting-variables as an option for forcing variation
+- Code refactored to support Whitelisting. Order of execution
+
 ## [1.5.1] - 2019-12-06
 ### Changed
 - Update the user storage and presegment sequence. First try to get from User Storage service, if found, return. Otherwise, check pre-segmentation conditions against user custom-variables
