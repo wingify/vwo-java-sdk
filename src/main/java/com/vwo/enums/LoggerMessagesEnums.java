@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class LoggerMessagesEnums {
 
   public enum DEBUG_MESSAGES {
     FETCHING_ACCOUNT_SETTINGS("Fetching  account settings for ID: {{accountID}}."),
+    VARIATION_RANGE_ALLOCATED("Variation '{{variation}}' with weight '{{weight}}' got range as: ({{startRange}} to {{endRange}})"),
     CAMPAIGN_KEY_FOUND("campaignKey found: '{{campaignKey}}'."),
     UUID_GENERATED("Uuid generated for userId '{{userId}}' and accountId '{{accountId}}' is '{{uuid}}'."),
     ACTIVATING_CAMPAIGN("Activating user '{{userId}}'  for variation '{{variation}}'."),
@@ -62,8 +63,10 @@ public class LoggerMessagesEnums {
     SDK_INITIALIZED("SDK properly initialized."),
     HTTP_RESPONSE("Got Http response {{response}}."),
 
-    // Pre Segmentation
-    NO_PRE_SEGMENT_FOUND("Pre segment condition(s) not found for campaign '{{campaignKey}}'. Skipping it.");
+    // Segmentation
+    SEGMENTATION_STATUS("For userId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),
+    SEGMENTATION_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, segment was missing, hence skipping segmentation for {{variation}}"),
+    WHITELISTING_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, whitelisting was skipped");
 
     private final String msg;
 
@@ -78,7 +81,6 @@ public class LoggerMessagesEnums {
 
   public enum INFO_MESSAGES {
     NO_VARIATION_ALLOCATED("UserId '{{userId}}' of campaign '{{campaignKey}}' did not get any variation."),
-    VARIATION_ALLOCATED_SUCCESSFULLY("Campaign '{{campaignKey}}' having variation '{{variation}}' with weight '{{weight}}' got range as: ({{startRange}} to {{endRange}})"),
     NO_DATA_USER_STORAGE_SERVICE("Unable to fetch data from user storage."),
     INITIATING_ACTIVATE("Initiating activation of user '{{userId}}' for campaign '{{campaignKey}}'."),
     INITIATING_GET_VARIATION("Initiating getVariation of user '{{userId}}' for campaign '{{campaignKey}}'."),
@@ -91,11 +93,8 @@ public class LoggerMessagesEnums {
     FEATURE_NOT_ENABLED("isFeatureEnabled flag is false for variation '{{variation}}', hence retrieving variable from Control"),
     FEATURE_VARIABLE_FOUND("Value for variable '{{variableKey}}' of campaign '{{campaignKey}}' for user '{{userId}}' is: '{{variableValue}}'."),
 
-    // Pre Segmentation
-    PRE_SEGMENT_SATISFIED("User '{{userId}}' satisfied the pre segment condition(s) for campaign '{{campaignKey}}' and customVariables '{{CustomVariables}}'."),
-    PRE_SEGMENT_NOT_SATISFIED("User '{{userId}}' didn't satisfy the pre segment condition(s) for campaign '{{campaignKey}}' and customVariables '{{CustomVariables}}'."),
-    VALUE_PASSED_FOR_NO_PRE_SEGMENT("Pre-segment customVariables are passed for campaign '{{campaignKey}}' and userId '{{userId}}' but campaign has no pre-segmentation."),
-    VALUE_NOT_PASSED_FOR_PRE_SEGMENT("Pre-segment customVariables are not passed for campaign '{{campaignKey}}' and userId '{{userId}}' but campaign has pre-segmentation.");
+    // Segmentation
+    SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}");
 
     private final String msg;
 
@@ -112,7 +111,7 @@ public class LoggerMessagesEnums {
     INVALID_USER_STORAGE_MAP("The user storage service returned an invalid map: {{map}}."),
     NO_DATA_IN_USER_STORAGE("Data not found. Will proceed without user storage.\n Variation might be different if configuration is changed."),
 
-    // Pre Segmentation
+    // Segmentation
     INVALID_OPERATOR_EVALUATION("Invalid operator evaluation, expected operator(s) '{{expectedOperator}}' but got '{{operator}}' with operand(s) '{{operands}}"),
     INVALID_OPERAND_NODE("Invalid operand node, should contain at least 1 nested child but got '{{node}}'"),
     INVALID_OPERAND_TYPE("Invalid operand type '{{operand}}'"),
@@ -151,7 +150,8 @@ public class LoggerMessagesEnums {
     HTTP_REQUEST_EXCEPTION("Exception occurred in Http request."),
     INVALID_API("API '{{api}}' is not valid for userId '{{userId}}' in campaign '{{campaignKey}}' having campaign type '{{campaignType}}'."),
     VARIABLE_NOT_FOUND("Variable '{{variableKey}}' not found for campaign '{{campaignKey}}' and type '{{campaignType}}' for userId '{{userId}}'."),
-    VARIABLE_REQUESTED_WITH_WRONG_TYPE("Got variable type as '{{variableType}}', but expected '{{expectedVariableType}}. Please read docs and use correct API. Returning null.");
+    VARIABLE_REQUESTED_WITH_WRONG_TYPE("Got variable type as '{{variableType}}', but expected '{{expectedVariableType}}. Please read docs and use correct API. Returning null."),
+    SEGMENTATION_ERROR("Error while segmenting the userId:{{userId}} of campaignKey:{{campaignKey}} for {{variation}} with customVariables:{{customVariables}}. Error message: {{err}}");
 
 
     private final String msg;

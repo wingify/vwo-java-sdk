@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,18 +29,50 @@ import java.util.List;
 public class SettingsFileUtil implements SettingFile {
 
   private Settings settings;
-  private final double MAX_TRAFFIC_VALUE = 10000;
+  private static final double MAX_TRAFFIC_VALUE = 10000;
   private static final Logger LOGGER = Logger.getLogger(SettingsFileUtil.class);
 
+  public static void setVariationRange(List<Variation> variations) {
+    double allocatedRange = 0;
+
+    for (Variation variation : variations) {
+      Double stepFactor = getVariationBucketRange(variation.getWeight());
+      if (stepFactor != null && stepFactor != -1) {
+        variation.setStartRangeVariation((int) allocatedRange + 1);
+        allocatedRange = (Math.ceil(allocatedRange + stepFactor));
+        variation.setEndRangeVariation((int) allocatedRange);
+      } else {
+        variation.setStartRangeVariation(-1);
+        variation.setEndRangeVariation(-1);
+      }
+
+      LOGGER.info(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_RANGE_ALLOCATED.value(new HashMap<String, String>() {
+        {
+          put("variation", variation.getName());
+          put("weight", String.valueOf(variation.getWeight()));
+          put("startRange", String.valueOf(variation.getStartRangeVariation()));
+          put("endRange", String.valueOf(variation.getEndRangeVariation()));
+        }
+      }));
+    }
+  }
+
+  public static Double getVariationBucketRange(double variationWeight) {
+    double startRange = variationWeight * 100;
+    if (startRange == 0) {
+      startRange = -1;
+    }
+    return Math.min(startRange, MAX_TRAFFIC_VALUE);
+  }
 
   public SettingsFileUtil(Settings settings) {
     this.settings = settings;
   }
 
   public Settings processSettingsFile() {
-    List<Campaign> campaignList = settings.getCampaigns();
-    for (Campaign singleCampaign : campaignList) {
-      setVariationBucketing(singleCampaign);
+    List<Campaign> campaigns = settings.getCampaigns();
+    for (Campaign campaign : campaigns) {
+      setVariationRange(campaign.getVariations());
     }
     return this.settings;
   }
@@ -61,44 +93,6 @@ public class SettingsFileUtil implements SettingFile {
 
   public Settings getSettings() {
     return settings;
-  }
-
-  private Campaign setVariationBucketing(Campaign campaign) {
-    return setVariationAllocation(campaign);
-  }
-
-  private Campaign setVariationAllocation(Campaign campaign) {
-    List<Variation> variationList = campaign.getVariations();
-    for (Variation singleVariation : variationList) {
-      Double stepFactor = getVariationBucketRange(singleVariation.getWeight());
-      if (stepFactor != null && stepFactor != -1) {
-        singleVariation.setStartRangeVariation((int) campaign.getCurrentAllocationVariation() + 1);
-        campaign.setCurrentAllocationVariation(Math.ceil(campaign.getCurrentAllocationVariation() + stepFactor));
-        singleVariation.setEndRangeVariation((int) campaign.getCurrentAllocationVariation());
-      } else {
-        singleVariation.setStartRangeVariation(-1);
-        singleVariation.setEndRangeVariation(-1);
-      }
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.VARIATION_ALLOCATED_SUCCESSFULLY.value(new HashMap<String, String>() {
-        {
-          put("campaignKey", campaign.getKey());
-          put("variation", singleVariation.getName());
-          put("weight", String.valueOf(singleVariation.getWeight()));
-          put("startRange", String.valueOf(singleVariation.getStartRangeVariation()));
-          put("endRange", String.valueOf(singleVariation.getEndRangeVariation()));
-        }
-      }));
-    }
-    return campaign;
-  }
-
-  private Double getVariationBucketRange(double variationWeight) {
-    double startRange = variationWeight * 100;
-    if (startRange == 0) {
-      startRange = -1;
-    }
-    return Math.min(startRange, MAX_TRAFFIC_VALUE);
-
   }
 
   public static class Builder {

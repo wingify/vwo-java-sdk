@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ public class Segmentation {
    * @param tagKey Tag name
    * @param tagValue Tag value
    * @param userId ID assigned to a user
-   * @return
+   * @param isDevelopmentMode Development mode flag.
+   * @return boolean value
    */
   public static boolean pushCustomDimension(SettingFile settingFile, String tagKey, String tagValue, String userId, boolean isDevelopmentMode) {
     try {

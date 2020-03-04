@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
 import com.vwo.services.segmentation.enums.OperandEnum;
 import com.vwo.services.segmentation.enums.OperandValueTypeEnum;
+import com.vwo.services.segmentation.enums.VWOAttributesEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,7 +77,10 @@ public class SegmentOperand {
       if (OperandEnum.CUSTOM_VARIABLE.value().equalsIgnoreCase(this.operandType)) {
         Object rawValue = customVariables == null ? "" : customVariables.get(this.operandKey);
         String value = rawValue == null ? "" : rawValue.toString();
-        return isOperandValueMatching(value.trim(), operandValue.trim());
+        return isCustomVariableMatching(value.trim(), this.operandValue.trim());
+      } else if (OperandEnum.USER.value().equalsIgnoreCase(this.operandType)) {
+        String value = (String) customVariables.get(VWOAttributesEnum.USER_ID.value());
+        return isVariationTargetingVariableMatching(value, this.operandValue.trim());
       }
 
       return false;
@@ -121,14 +125,20 @@ public class SegmentOperand {
       Map.Entry<String, JsonNode> operandKeyValueEntry = operandKeyValueField.next();
       this.operandKey = operandKeyValueEntry.getKey();
       this.operandValue = operandKeyValueEntry.getValue().textValue();
-      return;
+    } else {
+      this.operandValue = node.textValue();
     }
+  }
 
-    LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_OPERAND_NODE.value(new HashMap<String, String>() {
-      {
-        put("node", node.toString());
-      }
-    }));
+  /**
+   * Matches the variation targeting variable value with the user attribute(s).
+   *
+   * @param userAttribute - User attribute to match
+   * @param expectedValues - CSV to match from
+   * @return - boolean value
+   */
+  private static boolean isVariationTargetingVariableMatching(String userAttribute, String expectedValues) {
+    return Arrays.stream(expectedValues.split(",")).anyMatch(value -> userAttribute.equals(value.trim()));
   }
 
   /**
@@ -138,7 +148,7 @@ public class SegmentOperand {
    * @param expectedValue - DSL value like wildcard(*1*)
    * @return - boolean value
    */
-  private static boolean isOperandValueMatching(String actualValue, String expectedValue) {
+  private static boolean isCustomVariableMatching(String actualValue, String expectedValue) {
     try {
       Pattern regex = Pattern.compile("^(" + String.join("|", expectedOperandValueTypes) + ")\\((.*)\\)");
       Matcher matcher = regex.matcher(expectedValue);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class GetVariationTests {
   public void setting1Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:50 and split:50-50");
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50, UserExpectations.DEV_TEST_1);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50, UserExpectations.AB_TRAFFIC_50_WEIGHT_50_50);
   }
 
   @Test
@@ -71,35 +71,35 @@ public class GetVariationTests {
   public void setting2Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:50-50");
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_50_50, UserExpectations.DEV_TEST_2);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_50_50, UserExpectations.AB_TRAFFIC_100_WEIGHT_50_50);
   }
 
   @Test
   public void setting3Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:20-80");
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_20_80, UserExpectations.DEV_TEST_3);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_20_80, UserExpectations.AB_TRAFFIC_100_WEIGHT_20_80);
   }
 
   @Test
   public void setting4Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:20 and split:10-90");
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_20_WEIGHT_10_90, UserExpectations.DEV_TEST_4);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_20_WEIGHT_10_90, UserExpectations.AB_TRAFFIC_20_WEIGHT_10_90);
   }
 
   @Test
   public void setting5Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:0-100");
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_0_100, UserExpectations.DEV_TEST_5);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_0_100, UserExpectations.AB_TRAFFIC_100_WEIGHT_0_100);
   }
 
   @Test
   public void setting6Tests() throws IOException {
     LOGGER.info("Should test against a campaign settings: traffic:100 and split:33.3333:33.3333:33.3333");
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.DEV_TEST_6);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.AB_TRAFFIC_100_WEIGHT_33_33_33);
   }
 
   @Test
@@ -113,7 +113,7 @@ public class GetVariationTests {
   public void notRunningCampaignTests() throws IOException {
     LOGGER.info("Should get null variation for non running campaign");
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_NOT_RUNNING_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_0_WEIGHT_10_20_30_40);
+    getVariationTest(com.vwo.tests.data.Settings.AB_NOT_RUNNING_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.TRAFFIC_0);
   }
 
   private void getVariationTest(String settingsFile, ArrayList<UserExpectations.Variation> userVariation) throws IOException {

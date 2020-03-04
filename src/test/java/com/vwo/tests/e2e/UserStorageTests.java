@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,8 +142,8 @@ public class UserStorageTests {
     ArrayList<Map<String, String>> campaignStorageArray = new ArrayList<>();
     Storage.User userStorage = this.getUserStorage(campaignStorageArray);
 
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.DEV_TEST_6, userStorage);
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_VARIATIONS_10, UserExpectations.DEV_TEST_6, userStorage);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.AB_TRAFFIC_100_WEIGHT_33_33_33, userStorage);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_VARIATIONS_10, UserExpectations.AB_TRAFFIC_100_WEIGHT_33_33_33, userStorage);
   }
 
   @Test
@@ -151,7 +151,7 @@ public class UserStorageTests {
     LOGGER.info("Should ignore saved variations if getting any exception from customer defined function");
 
     Storage.User userStorage = this.getUserStorageWithExceptions();
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.DEV_TEST_6, userStorage);
+    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.AB_TRAFFIC_100_WEIGHT_33_33_33, userStorage);
   }
 
 
@@ -205,7 +205,7 @@ public class UserStorageTests {
       public Map<String, String> get(String userId, String campaignName) throws Exception {
         return new HashMap<String, String>(){{
           put("userId", "punit");
-          put("campaignKey", "DEV_TEST_6");
+          put("campaignKey", "AB_TRAFFIC_100_WEIGHT_33_33_33");
           put("variationName", "Variation-1");
         }};
       }
@@ -223,7 +223,7 @@ public class UserStorageTests {
       String variation = userVariation.get(i).getVariation();
       campaignStorageArray.add(new HashMap<String, String>(){{
         put("userId", user);
-        put("campaignKey", "DEV_TEST_6");
+        put("campaignKey", "AB_TRAFFIC_100_WEIGHT_33_33_33");
         put("variationName", variation);
       }});
     }
@@ -235,7 +235,7 @@ public class UserStorageTests {
       String variation = userVariation.get(i).getVariation();
       campaignStorageArray.add(new HashMap<String, String>(){{
         put("userId", user);
-        put("campaignKey", "DEV_TEST_6");
+        put("campaignKey", "AB_TRAFFIC_100_WEIGHT_33_33_33");
         put("missingVariationName", variation);
       }});
     }

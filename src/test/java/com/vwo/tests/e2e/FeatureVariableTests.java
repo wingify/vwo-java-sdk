@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.vwo.tests.e2e;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
+import com.vwo.VWOAdditionalParams;
 import com.vwo.logger.Logger;
 import com.vwo.models.Settings;
 import com.vwo.models.Variable;
@@ -27,6 +28,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -210,7 +213,7 @@ public class FeatureVariableTests {
   public void featureRolloutTraffic0Tests() throws IOException {
     LOGGER.info("Should test against a feature rollout campaign settings with traffic 0");
 
-    featureRolloutTests(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_0, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_0_WEIGHT_10_20_30_40);
+    featureRolloutTests(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_0, UserExpectations.TRAFFIC_0);
   }
 
   @Test
@@ -249,43 +252,142 @@ public class FeatureVariableTests {
   public void featureTestTraffic0Tests() throws IOException {
     LOGGER.info("Should test against a feature test campaign settings with traffic 0");
 
-    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_0, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_0_WEIGHT_10_20_30_40);
+    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_0, UserExpectations.TRAFFIC_0, null);
   }
 
   @Test
   public void featureTestTraffic25Tests() throws IOException {
     LOGGER.info("Should test against a feature test campaign settings with traffic 25");
 
-    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_25, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_25_WEIGHT_10_20_30_40);
+    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_25, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_25_WEIGHT_10_20_30_40, null);
   }
 
   @Test
   public void featureTestTraffic50Tests() throws IOException {
     LOGGER.info("Should test against a feature test campaign settings with traffic 50");
 
-    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_50, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_50_WEIGHT_10_20_30_40);
+    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_50, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_50_WEIGHT_10_20_30_40, null);
   }
 
   @Test
   public void featureTestTraffic75Tests() throws IOException {
     LOGGER.info("Should test against a feature test campaign settings with traffic 75");
 
-    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_75, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_75_WEIGHT_10_20_30_40);
+    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_75, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_75_WEIGHT_10_20_30_40, null);
   }
 
   @Test
   public void featureTestTraffic100Tests() throws IOException {
     LOGGER.info("Should test against a feature test campaign settings with traffic 100");
 
-    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40);
+    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40, null);
   }
 
   @Test
   public void featureTestDisabledTests() throws IOException {
     LOGGER.info("Should test against a feature test campaign settings with traffic 100 and all variations disabled");
 
-    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100_DISABLED, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40);
+    featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100_DISABLED, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40, null);
   }
+
+  @Test
+  public void preSegmentTruthyTest() throws IOException {
+    Map<String, Object> customVariables = new HashMap<String, Object>() {
+      {
+        put("a", 987.1234);
+        put("hello", "world");
+      }
+    };
+
+    featureTestTests(com.vwo.tests.data.Settings.PRE_SEGMENT_FEATURE_TEST_TRAFFIC_75, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_75_WEIGHT_10_20_30_40, new VWO.AdditionalParams().setCustomVariables(customVariables));
+  }
+
+  @Test
+  public void preSegmentFalsyTest() throws IOException {
+    Map<String, Object> customVariables = new HashMap<String, Object>() {
+      {
+        put("a", 987.1234);
+        put("hello", "asdsd");
+      }
+    };
+
+    featureTestTests(com.vwo.tests.data.Settings.PRE_SEGMENT_FEATURE_TEST_TRAFFIC_75, UserExpectations.TRAFFIC_0, new VWO.AdditionalParams().setCustomVariables(customVariables));
+  }
+
+  @Test
+  public void userWhitelistingFalsyTest() throws IOException {
+    Map<String, Object> customVariables = new HashMap<String, Object>() {
+      {
+        put("eq", "not_something");
+      }
+    };
+
+    Map<String, Object> variationTargetingVariables = new HashMap<String, Object>() {
+      {
+        put("chrome", "true");
+        put("safari", "false");
+        put("browser", "firefox 106.69");
+      }
+    };
+
+    featureTestTests(com.vwo.tests.data.Settings.USER_WHITELISTING_FEATURE_TEST_TRAFFIC_100, UserExpectations.TRAFFIC_0, new VWO.AdditionalParams().setCustomVariables(customVariables).setVariationTargetingVariables(variationTargetingVariables));
+  }
+
+  @Test
+  public void userWhitelistingFalsyWithValidCustomDimensionTest() throws IOException {
+    Map<String, Object> customVariables = new HashMap<String, Object>() {
+      {
+        put("eq", "something");
+      }
+    };
+
+    Map<String, Object> variationTargetingVariables = new HashMap<String, Object>() {
+      {
+        put("chrome", "true");
+        put("safari", "false");
+        put("browser", "firefox 106.69");
+      }
+    };
+
+    featureTestTests(com.vwo.tests.data.Settings.USER_WHITELISTING_FEATURE_TEST_TRAFFIC_100, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40, new VWO.AdditionalParams().setCustomVariables(customVariables).setVariationTargetingVariables(variationTargetingVariables));
+  }
+
+  @Test
+  public void userWhitelistingTruthyTest() throws IOException {
+    Map<String, Object> customVariables = new HashMap<String, Object>() {
+      {
+        put("eq", "not_something");
+      }
+    };
+
+    Map<String, Object> variationTargetingVariables = new HashMap<String, Object>() {
+      {
+        put("chrome", "false");
+        put("safari", "true");
+        put("browser", "chrome 107.107");
+      }
+    };
+
+    featureTestTests(com.vwo.tests.data.Settings.USER_WHITELISTING_FEATURE_TEST_TRAFFIC_100, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40, new VWO.AdditionalParams().setCustomVariables(customVariables).setVariationTargetingVariables(variationTargetingVariables));
+  }
+
+  @Test
+  public void userWhitelistingSingleSegmentTruthyTest() throws IOException {
+    Map<String, Object> customVariables = new HashMap<String, Object>() {
+      {
+        put("eq", "something");
+      }
+    };
+
+    Map<String, Object> variationTargetingVariables = new HashMap<String, Object>() {
+      {
+        put("chrome", "false");
+      }
+    };
+
+    featureTestTests(com.vwo.tests.data.Settings.USER_WHITELISTING_FEATURE_TEST_TRAFFIC_100, UserExpectations.ALL_VARIATION_2, new VWO.AdditionalParams().setCustomVariables(customVariables).setVariationTargetingVariables(variationTargetingVariables));
+  }
+
 
   /**
    * PRIVATE FUNCTIONS
@@ -304,7 +406,7 @@ public class FeatureVariableTests {
     }
   }
 
-  private void featureTestTests(String SettingsConfig, ArrayList<UserExpectations.Variation> userExpectations) throws IOException {
+  private void featureTestTests(String SettingsConfig, ArrayList<UserExpectations.Variation> userExpectations, VWOAdditionalParams additionalParams) throws IOException {
     vwoInstance = VWO.launch(SettingsConfig).build();
     Settings featureTestSettingsConfig = new ObjectMapper().readValue(SettingsConfig, Settings.class);
     String campaignKey = featureTestSettingsConfig.getCampaigns().get(0).getKey();
@@ -313,7 +415,7 @@ public class FeatureVariableTests {
       for (int j = 0; j < featureTestSettingsConfig.getCampaigns().get(0).getVariations().get(0).getVariables().size(); j++) {
         String variableKey = featureTestSettingsConfig.getCampaigns().get(0).getVariations().get(0).getVariables().get(j).getKey();
         String variableType = featureTestSettingsConfig.getCampaigns().get(0).getVariations().get(0).getVariables().get(j).getType();
-        Object variableValue = vwoInstance.getFeatureVariableValue(campaignKey, variableKey, TestUtils.getUsers()[i]);
+        Object variableValue = vwoInstance.getFeatureVariableValue(campaignKey, variableKey, TestUtils.getUsers()[i], additionalParams);
 
         String expectedVariation = userExpectations.get(i).getVariation();
         boolean isFeatureEnabled = false;

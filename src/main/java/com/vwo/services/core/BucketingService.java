@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.vwo.models.Variable;
 import com.vwo.models.Variation;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class BucketingService {
 
@@ -35,11 +36,11 @@ public class BucketingService {
   /**
    * Get the hash value for used ID.
    *
-   * @param campaign - Campaign object
    * @param userId - User ID
+   * @param traffic - Campaign traffic
    * @return signed murmur hash value
    */
-  public static long getUserHashForCampaign(Campaign campaign, String userId) {
+  public static long getUserHashForCampaign(String userId, int traffic) {
     int murmurHash = Murmur3.hash32(userId.getBytes(), 0, userId.length(), SEED_VALUE);
 
     /**
@@ -59,17 +60,36 @@ public class BucketingService {
       }
     }));
 
-    if (bucketValueOfUser > campaign.getPercentTraffic()) {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
+    return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
+  }
+
+  public Variation getUserVariation(List<Variation> variations, String campaignKey, int campaignTraffic, String userId) {
+    long murmurHash = BucketingService.getUserHashForCampaign(userId, campaignTraffic);
+
+    if (murmurHash != -1) {
+      double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
+      int variationHashValue = BucketingService.getMultipliedHashValue(murmurHash, MAX_TRAFFIC_VALUE, multiplier);
+
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_HASH_VALUE.value(new HashMap<String, String>() {
         {
-          put("campaignKey", campaign.getKey());
+          put("campaignKey", campaignKey);
+          put("variationHashValue", String.valueOf(variationHashValue));
           put("userId", userId);
+          put("traffic", String.valueOf(campaignTraffic));
+          put("hashValue", String.valueOf(murmurHash));
         }
       }));
-      return -1;
-    } else {
-      return signedMurmurHash;
+
+      return getVariation(variations, variationHashValue);
     }
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
+      {
+        put("campaignKey", campaignKey);
+        put("userId", userId);
+      }
+    }));
+    return null;
   }
 
   /**
@@ -86,37 +106,15 @@ public class BucketingService {
     return multipliedValue + 1;
   }
 
-  public Variation getUserVariation(Campaign campaign, String userId) {
-    long murmurHash = BucketingService.getUserHashForCampaign(campaign, userId);
-
-    if (murmurHash != -1) {
-      double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaign.getPercentTraffic() / 100;
-      int variationHashValue = BucketingService.getMultipliedHashValue(murmurHash, MAX_TRAFFIC_VALUE, multiplier);
-
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_HASH_VALUE.value(new HashMap<String, String>() {
-        {
-          put("campaignKey", campaign.getKey());
-          put("variationHashValue", String.valueOf(variationHashValue));
-          put("userId", userId);
-          put("traffic", String.valueOf(campaign.getPercentTraffic()));
-          put("hashValue", String.valueOf(murmurHash));
-        }
-      }));
-
-      return getVariation(campaign, variationHashValue);
-    }
-    return null;
-  }
-
   /**
    * Get the variation according to traffic and user hash value.
    *
-   * @param campaign campaign setting
-   * @param variationHashValue variation hash value
+   * @param variations Campaign Variations
+   * @param variationHashValue Variation hash value
    * @return variation object
    */
-  private Variation getVariation(Campaign campaign, int variationHashValue) {
-    for (Variation variation: campaign.getVariations()) {
+  private Variation getVariation(List<Variation> variations, int variationHashValue) {
+    for (Variation variation: variations) {
       if (variationHashValue >= variation.getStartRangeVariation() && variationHashValue <= variation.getEndRangeVariation()) {
         return variation;
       }

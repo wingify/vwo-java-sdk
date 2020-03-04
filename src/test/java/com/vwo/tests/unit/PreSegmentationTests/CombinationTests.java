@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -547,7 +547,7 @@ public class CombinationTests {
 
   private static void _validateAllCases(String dsl, Map<String, Map<String, Object>> customVariables) {
     for(Map.Entry<String, Map<String, Object>> entry: customVariables.entrySet()) {
-      boolean isPresegmentValid = PreSegmentation.isPresegmentValid(dsl, entry.getValue());
+      boolean isPresegmentValid = PreSegmentation.isPresegmentValid(dsl, entry.getValue(), "", "");
       assertEquals(isPresegmentValid, entry.getValue().get("expectation"));
     }
   }

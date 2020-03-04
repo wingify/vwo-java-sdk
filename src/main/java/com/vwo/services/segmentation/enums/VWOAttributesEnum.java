@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package com.vwo.logger;
+package com.vwo.services.segmentation.enums;
 
-import com.vwo.VWO;
+public enum VWOAttributesEnum {
+  USER_ID("_vwoUserId");
 
-public abstract class VWOLogger {
-  public static String level;
+  String attribute;
 
-  public VWOLogger() {
-    this.level = VWO.Enums.LOGGER_LEVEL.ERROR.value();
+  VWOAttributesEnum(String attribute) {
+    this.attribute = attribute;
   }
 
-  public VWOLogger(String level) {
-    this.level = level;
+  public String value() {
+    return this.attribute;
   }
-
-  public abstract void trace(String var1, Object... var2);
-
-  public abstract void debug(String var1, Object... var2);
-
-  public abstract void info(String var1, Object... var2);
-
-  public abstract void warn(String var1, Object... var2);
-
-  public abstract void error(String var1, Object... var2);
 }

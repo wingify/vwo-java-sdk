@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-/**
- * This file HttpClient.java has references from "Optimizely Java SDK, version 3.2.0", Copyright 2017-2019, Optimizely,
- * under Apache 2.0 License.
- * Source - https://github.com/optimizely/java-sdk/blob/master/core-httpclient-impl/src/main/java/com/optimizely/ab/OptimizelyHttpClient.java
- */
 public class HttpClient implements Closeable {
   /**
    * https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/Closeable.html.

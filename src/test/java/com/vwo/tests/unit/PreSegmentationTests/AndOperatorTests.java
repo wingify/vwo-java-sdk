@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,19 @@ public class AndOperatorTests {
     verifyExpectation(dsl, customVariables);
   }
 
+  @Test
+  public void sdhgsjdh() {
+    String dsl = "{\"or\":[{\"user\":\"Varun\"}]}";
+    Map<String, Object> customVariables = new HashMap<String, Object>() {{
+      put("eq", "wrong");
+      put("reg", "wrong");
+      put("expectation", false);
+    }};
+
+    verifyExpectation(dsl, customVariables);
+  }
+
   public static void verifyExpectation(String dsl, Map<String, Object> customVariables) {
-    assertEquals(PreSegmentation.isPresegmentValid(dsl, customVariables), customVariables.get("expectation"));
+    assertEquals(PreSegmentation.isPresegmentValid(dsl, customVariables, "", ""), customVariables.get("expectation"));
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ public class TrackCampaign {
    * @param settingFile Settings File Configuration
    * @param variationDecider  Variation decider service
    * @param isDevelopmentMode Development mode flag.
+   * @param CustomVariables   Pre Segmentation custom variables
+   * @param variationTargetingVariables  User Whitelisting Targeting variables
    * @return Boolean value whether user is tracked or not.
    */
   public static boolean trackGoal(
@@ -57,7 +59,8 @@ public class TrackCampaign {
       SettingFile settingFile,
       VariationDecider variationDecider,
       boolean isDevelopmentMode,
-      Map<String, ?> CustomVariables
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables
   ) {
     try {
       if (!TrackCampaign.isTrackParamsValid(campaignKey, userId, goalIdentifier)) {
@@ -86,7 +89,7 @@ public class TrackCampaign {
         return false;
       }
 
-      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
+      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
 
       if (variation != null) {
         Goal goal = TrackCampaign.getGoalId(campaign, goalIdentifier);

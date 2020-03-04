@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ public class FeatureCampaign {
    * @param settingFile Settings File Configuration
    * @param variationDecider  Variation decider service
    * @param isDevelopmentMode Development mode flag.
+   * @param CustomVariables    Pre Segmentation custom variables
+   * @param variationTargetingVariables    User Whitelisting Targeting variables
    * @return Boolean corresponding to whether user became part of feature.
    */
   public static boolean isFeatureEnabled(
@@ -50,7 +52,8 @@ public class FeatureCampaign {
       SettingFile settingFile,
       VariationDecider variationDecider,
       boolean isDevelopmentMode,
-      Map<String, ?> CustomVariables
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables
   ) {
     try {
       if (!ValidationUtils.isValidParams(
@@ -102,8 +105,8 @@ public class FeatureCampaign {
       }
 
       String variation = campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
-          ? ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables)
-          : CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
+          ? ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables, variationTargetingVariables)
+          : CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
 
       if (variation == null) {
         return false;
@@ -131,6 +134,8 @@ public class FeatureCampaign {
    * @param variableType Expected Variable type
    * @param settingFile Settings File Configuration
    * @param variationDecider Variation decider service
+   * @param CustomVariables Pre Segmentation custom variables
+   * @param variationTargetingVariables User Whitelisting Targeting variables
    *
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
@@ -141,7 +146,8 @@ public class FeatureCampaign {
       String variableType,
       SettingFile settingFile,
       VariationDecider variationDecider,
-      Map<String, ?> CustomVariables
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables
   ) {
     try {
       if (!ValidationUtils.isValidParams(
@@ -193,7 +199,7 @@ public class FeatureCampaign {
         return null;
       }
 
-      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
+      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
 
       if (variation == null) {
         return null;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,44 @@ package com.vwo.services.segmentation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.logger.Logger;
+import com.vwo.services.core.VariationDecider;
 import com.vwo.services.segmentation.enums.OperatorEnum;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 public class PreSegmentation {
+
+  private static final Logger LOGGER = Logger.getLogger(PreSegmentation.class);
+
 
   /**
    * Evaluates if the user comes under the pre segmentation of not.
    *
    * @param dsl - Segmentor DSl String
    * @param customVariables - User config values
+   * @param userId - User ID
+   * @param campaignKey - Campaign Key name
    * @return - Boolean result
    */
-  public static boolean isPresegmentValid(Object dsl, Map<String, ?> customVariables) {
+  public static boolean isPresegmentValid(Object dsl, Map<String, ?> customVariables, String userId, String campaignKey) {
     try {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode dslNodes = dsl instanceof String ? mapper.readValue(dsl.toString(), JsonNode.class) : mapper.valueToTree(dsl);
       return traverseDslNodesPostOrder(dslNodes, customVariables);
     } catch (Exception e) {
+      LOGGER.info(LoggerMessagesEnums.ERROR_MESSAGES.SEGMENTATION_ERROR.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignKey", campaignKey);
+          put("variation", userId);
+          put("err", e.getMessage());
+          put("customVariables", customVariables.toString());
+        }
+      }));
       return false;
     }
   }

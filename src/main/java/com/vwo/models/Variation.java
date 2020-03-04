@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.vwo.VWO;
+import com.vwo.logger.Logger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,9 +35,12 @@ import java.util.Map;
         "name",
         "changes",
         "weight",
-        "isFeatureEnabled"
+        "isFeatureEnabled",
+        "segments"
 })
-public class Variation {
+public class Variation implements Cloneable {
+
+  private static final Logger LOGGER = Logger.getLogger(Variation.class);
 
   @JsonProperty("id")
   private Integer id;
@@ -49,6 +54,8 @@ public class Variation {
   private boolean isFeatureEnabled;
   @JsonProperty("variables")
   private List<Variable> variables;
+  @JsonProperty("segments")
+  private Object segments;
 
 
   private Integer startRangeVariation;
@@ -117,6 +124,11 @@ public class Variation {
     this.variables = variables;
   }
 
+  @JsonProperty("segments")
+  public Object getSegments() {
+    return segments;
+  }
+
   public Integer getStartRangeVariation() {
     return startRangeVariation;
   }
@@ -143,4 +155,12 @@ public class Variation {
     this.additionalProperties.put(name, value);
   }
 
+  public Variation clone() {
+    try {
+      return (Variation) super.clone();
+    } catch (CloneNotSupportedException e) {
+      LOGGER.error("Exception occurred while cloning variation", e.getStackTrace());
+      return this;
+    }
+  }
 }

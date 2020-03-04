@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Copyright 2019 Wingify Software Pvt. Ltd.
+<!-- Copyright 2019-2020 Wingify Software Pvt. Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ limitations under the License. -->
         <url>scm:git@github.com:wingify/vwo-java-sdk.git</url>
         <connection>scm:git:git@github.com:wingify/vwo-java-sdk.git</connection>
         <developerConnection>scm:git:git@github.com:wingify/vwo-java-sdk.git</developerConnection>
-        <tag>v1.4.1</tag>
+        <tag>v1.5.1</tag>
     </scm>
 
     <developers>

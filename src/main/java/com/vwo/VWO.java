@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,6 @@ import com.vwo.services.storage.Storage;
 import java.util.Map;
 
 /**
- * This file VWO.java has references from "Optimizely Java SDK, version 3.2.0", Copyright 2017-2019, Optimizely,
- * under Apache 2.0 License.
- * Source - https://github.com/optimizely/java-sdk/blob/master/core-api/src/main/java/com/optimizely/ab/Optimizely.java
- */
-
-/**
  * Main VWO class exposed to customers. It needs to be instantiated to access all the APIs.
  */
 public class VWO {
@@ -52,6 +46,8 @@ public class VWO {
   private boolean developmentMode;
 
   public static final class Enums extends VWOEnums {}
+
+  public static final class AdditionalParams extends VWOAdditionalParams {}
 
   private static final Logger LOGGER = Logger.getLogger(VWO.class);
 
@@ -104,6 +100,27 @@ public class VWO {
   }
 
   /**
+   * Get variation and track conversion on VWO server for users falling in provided pre-segmentation.
+   *
+   * @param campaignKey Campaign key
+   * @param userId      User ID
+   * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
+   * @return            String variation name, or null if the user doesn't qualify to become a part of the campaign.
+   */
+  public String activate(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
+    additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
+    return ActivateCampaign.activate(
+      campaignKey,
+      userId,
+      this.getSettingFile(),
+      this.getVariationDecider(),
+      this.isDevelopmentMode(),
+      additionalParams.getCustomVariables(),
+      additionalParams.getVariationTargetingVariables()
+    );
+  }
+
+  /**
    * Get variation and track conversion on VWO server.
    *
    * @param campaignKey Campaign key
@@ -111,19 +128,28 @@ public class VWO {
    * @return            String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignKey, String userId) {
-    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null);
+    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null, null);
   }
 
   /**
-   * Get variation and track conversion on VWO server for users falling in provided pre-segmentation.
+   * Get variation name for users falling in provided pre-segmentation.
    *
-   * @param campaignKey Campaign key
-   * @param userId      User ID
-   * @param CustomVariables Pre-segmentation data
-   * @return            String variation name, or null if the user doesn't qualify to become a part of the campaign.
+   * @param campaignKey  Campaign key
+   * @param userId       User ID
+   * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
+   * @return             Variation name
    */
-  public String activate(String campaignKey, String userId, Map<String, ?> CustomVariables) {
-    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), CustomVariables);
+  public String getVariationName(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
+    additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
+
+    return CampaignVariation.getVariationName(
+      campaignKey,
+      userId,
+      this.getSettingFile(),
+      this.getVariationDecider(),
+      additionalParams.getCustomVariables(),
+      additionalParams.getVariationTargetingVariables()
+    );
   }
 
   /**
@@ -134,19 +160,7 @@ public class VWO {
    * @return             Variation name
    */
   public String getVariationName(String campaignKey, String userId) {
-    return CampaignVariation.getVariationName(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), null);
-  }
-
-  /**
-   * Get variation name for users falling in provided pre-segmentation.
-   *
-   * @param campaignKey  Campaign key
-   * @param userId       User ID
-   * @param CustomVariables Pre-segmentation data
-   * @return             Variation name
-   */
-  public String getVariationName(String campaignKey, String userId, Map<String, ?> CustomVariables) {
-    return CampaignVariation.getVariationName(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), CustomVariables);
+    return CampaignVariation.getVariationName(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), null, null);
   }
 
   /**
@@ -155,33 +169,27 @@ public class VWO {
    * @param campaignKey     Campaign key
    * @param userId          User ID
    * @param goalIdentifier  Goal key
-   * @param revenueValue    revenue value generated on triggering the goal
+   * @param additionalParams Any Additional params (revenueValue, customVariables, variationTargetingVariables)
    * @return                Boolean value whether user is tracked or not.
    */
-  public boolean track(String campaignKey, String userId, String goalIdentifier, Object revenueValue) {
-    return TrackCampaign.trackGoal(campaignKey, userId, goalIdentifier, revenueValue, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null);
+  public boolean track(String campaignKey, String userId, String goalIdentifier, VWOAdditionalParams additionalParams) {
+    additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
+
+    return TrackCampaign.trackGoal(
+      campaignKey,
+      userId,
+      goalIdentifier,
+      additionalParams.getRevenueValue(),
+      this.getSettingFile(),
+      this.getVariationDecider(),
+      this.isDevelopmentMode(),
+      additionalParams.getCustomVariables(),
+      additionalParams.getVariationTargetingVariables()
+    );
   }
 
   public boolean track(String campaignKey, String userId, String goalIdentifier) {
-    return TrackCampaign.trackGoal(campaignKey, userId, goalIdentifier, null, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null);
-  }
-
-  /**
-   * Get variation, tracks conversion event and send to VWO server for users falling in provided pre-segmentation.
-   *
-   * @param campaignKey     Campaign key
-   * @param userId          User ID
-   * @param goalIdentifier  Goal key
-   * @param revenueValue    revenue value generated on triggering the goal
-   * @param CustomVariables Pre-segmentation data
-   * @return                Boolean value whether user is tracked or not.
-   */
-  public boolean track(String campaignKey, String userId, String goalIdentifier, Object revenueValue, Map<String, ?> CustomVariables) {
-    return TrackCampaign.trackGoal(campaignKey, userId, goalIdentifier, revenueValue, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), CustomVariables);
-  }
-
-  public boolean track(String campaignKey, String userId, String goalIdentifier, Map<String, ?> CustomVariables) {
-    return TrackCampaign.trackGoal(campaignKey, userId, goalIdentifier, null, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), CustomVariables);
+    return TrackCampaign.trackGoal(campaignKey, userId, goalIdentifier, null, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null, null);
   }
 
   /**
@@ -189,10 +197,21 @@ public class VWO {
    *
    * @param campaignKey Unique campaign test key
    * @param userId ID assigned to a user
+   * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
    * @return Boolean corresponding to whether user became part of feature.
    */
-  public boolean isFeatureEnabled(String campaignKey, String userId) {
-    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null);
+  public boolean isFeatureEnabled(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
+    additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
+
+    return FeatureCampaign.isFeatureEnabled(
+      campaignKey,
+      userId,
+      this.getSettingFile(),
+      this.getVariationDecider(),
+      this.isDevelopmentMode(),
+      additionalParams.getCustomVariables(),
+      additionalParams.getVariationTargetingVariables()
+    );
   }
 
   /**
@@ -200,11 +219,10 @@ public class VWO {
    *
    * @param campaignKey Unique campaign test key
    * @param userId ID assigned to a user
-   * @param CustomVariables Pre-segmentation data
    * @return Boolean corresponding to whether user became part of feature.
    */
-  public boolean isFeatureEnabled(String campaignKey, String userId, Map<String, ?> CustomVariables) {
-    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), CustomVariables);
+  public boolean isFeatureEnabled(String campaignKey, String userId) {
+    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null, null);
   }
 
   /**
@@ -213,10 +231,22 @@ public class VWO {
    * @param campaignKey Unique campaign test key
    * @param userId ID assigned to a user
    * @param variableKey Variable name/key
+   * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
-  public Object getFeatureVariableValue(String campaignKey, String variableKey, String userId) {
-    return FeatureCampaign.getFeatureVariable(campaignKey, userId, variableKey, null, this.getSettingFile(), this.getVariationDecider(), null);
+  public Object getFeatureVariableValue(String campaignKey, String variableKey, String userId, VWOAdditionalParams additionalParams) {
+    additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
+
+    return FeatureCampaign.getFeatureVariable(
+      campaignKey,
+      userId,
+      variableKey,
+      null,
+      this.getSettingFile(),
+      this.getVariationDecider(),
+      additionalParams.getCustomVariables(),
+      additionalParams.getVariationTargetingVariables()
+    );
   }
 
   /**
@@ -225,11 +255,10 @@ public class VWO {
    * @param campaignKey Unique campaign test key
    * @param variableKey Variable name/key
    * @param userId ID assigned to a user
-   * @param CustomVariables Pre-segmentation data
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
-  public Object getFeatureVariableValue(String campaignKey, String variableKey, String userId, Map<String, ?> CustomVariables) {
-    return FeatureCampaign.getFeatureVariable(campaignKey, userId, variableKey, null, this.getSettingFile(), this.getVariationDecider(), CustomVariables);
+  public Object getFeatureVariableValue(String campaignKey, String variableKey, String userId) {
+    return FeatureCampaign.getFeatureVariable(campaignKey, userId, variableKey, null, this.getSettingFile(), this.getVariationDecider(), null, null);
   }
 
   /**

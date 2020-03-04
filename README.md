@@ -40,7 +40,7 @@ Each VWO SDK client corresponds to the settingsFIle representing the current sta
 Setting File is a pre-requisite for initiating the VWO CLIENT INSTANCE.
 
 ```java
-String settingsFile = VWO.launch(accountId, sdkKey));
+String settingsFile = VWO.getSettingsFile(accountId, sdkKey));
 ```
 
 **INSTANTIATION**
@@ -52,7 +52,7 @@ The mandatory parameter for instantiating the SDK is settingsFile.
 ```java
 import com.vwo.VWO;
 
-VWO vwoInstance = VWO.createInstance(settingsFile).build();
+VWO vwoInstance = VWO.launch(settingsFile).build();
 ```
 
 The VWO client class needs to be instantiated as an instance that exposes various API methods like activate, getVariation and track.
@@ -195,4 +195,4 @@ Please go through our [contributing guidelines](https://github.com/wingify/vwo-j
 
 [Apache License, Version 2.0](https://github.com/wingify/vwo-java-sdk/blob/master/LICENSE)
 
-Copyright 2019 Wingify Software Pvt. Ltd.
+Copyright 2019-2020 Wingify Software Pvt. Ltd.

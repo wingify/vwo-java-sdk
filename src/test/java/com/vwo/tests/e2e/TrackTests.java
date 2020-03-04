@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class TrackTests {
     Settings settingsFile = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50, Settings.class);
     String campaignKey = settingsFile.getCampaigns().get(0).getKey();
     String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
-    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("DEV_TEST_1").get(UserExpectations.class);
+    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_50_WEIGHT_50_50").get(UserExpectations.class);
 
     for (int i = 0; i < userVariation.size(); i++) {
       boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier);
@@ -98,7 +98,7 @@ public class TrackTests {
 
     String campaignKey = settingsFile.getCampaigns().get(0).getKey();
     String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
-    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("DEV_TEST_2").get(UserExpectations.class);
+    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_100_WEIGHT_50_50").get(UserExpectations.class);
 
 
     for (int i = 0; i < userVariation.size(); i++) {
@@ -116,11 +116,11 @@ public class TrackTests {
 
     String campaignKey = settingsFile.getCampaigns().get(0).getKey();
     String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
-    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("DEV_TEST_2").get(UserExpectations.class);
+    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_100_WEIGHT_50_50").get(UserExpectations.class);
 
 
     for (int i = 0; i < userVariation.size(); i++) {
-      boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier, 123);
+      boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier, new VWO.AdditionalParams().setRevenueValue(123));
 
       if (userVariation.get(i).getVariation() != null) {
         assertEquals(isTracked, true);
@@ -139,7 +139,7 @@ public class TrackTests {
 
     String campaignKey = settingsFile.getCampaigns().get(0).getKey();
     String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
-    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("DEV_TEST_3").get(UserExpectations.class);
+    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_100_WEIGHT_20_80").get(UserExpectations.class);
 
     for (int i = 0; i < userVariation.size(); i++) {
       boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier);
@@ -161,7 +161,7 @@ public class TrackTests {
 
     String campaignKey = settingsFile.getCampaigns().get(0).getKey();
     String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
-    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("DEV_TEST_4").get(UserExpectations.class);
+    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_20_WEIGHT_10_90").get(UserExpectations.class);
 
     for (int i = 0; i < userVariation.size(); i++) {
       boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier);
@@ -183,7 +183,7 @@ public class TrackTests {
 
     String campaignKey = settingsFile.getCampaigns().get(0).getKey();
     String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
-    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("DEV_TEST_5").get(UserExpectations.class);
+    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_100_WEIGHT_0_100").get(UserExpectations.class);
 
     for (int i = 0; i < userVariation.size(); i++) {
       boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier);
@@ -205,7 +205,7 @@ public class TrackTests {
 
     String campaignKey = settingsFile.getCampaigns().get(0).getKey();
     String goalIdentifier = settingsFile.getCampaigns().get(0).getGoals().get(0).getIdentifier();
-    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("DEV_TEST_6").get(UserExpectations.class);
+    ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_100_WEIGHT_33_33_33").get(UserExpectations.class);
 
     for (int i = 0; i < userVariation.size(); i++) {
       boolean isTracked = vwoInstance.track(campaignKey, TestUtils.getUsers()[i], goalIdentifier);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,19 @@ public class ActivateCampaign {
    * @param settingFile Settings file Configuration
    * @param variationDecider  Variation decider service
    * @param isDevelopmentMode Development mode flag.
+   * @param CustomVariables Pre Segmentation custom variables
+   * @param variationTargetingVariables User Whitelisting Targeting variables
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
-  public static String activate(String campaignKey, String userId, SettingFile settingFile, VariationDecider variationDecider, boolean isDevelopmentMode, Map<String, ?> CustomVariables) {
+  public static String activate(
+      String campaignKey,
+      String userId,
+      SettingFile settingFile,
+      VariationDecider variationDecider,
+      boolean isDevelopmentMode,
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables
+  ) {
     try {
       if (!ValidationUtils.isValidParams(
           new HashMap<String, Object>() {
@@ -91,7 +101,7 @@ public class ActivateCampaign {
         return null;
       }
 
-      return ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables);
+      return ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables, variationTargetingVariables);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
@@ -104,9 +114,10 @@ public class ActivateCampaign {
       SettingFile settingFile,
       VariationDecider variationDecider,
       boolean isDevelopmentMode,
-      Map<String, ?> CustomVariables
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables
   ) {
-    String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
+    String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
 
     if (variation != null) {
       LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new HashMap<String, String>() {

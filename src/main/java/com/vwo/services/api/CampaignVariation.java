@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,18 @@ public class CampaignVariation {
    * @param userId             User ID
    * @param settingFile  Settings file Configuration
    * @param variationDecider   Variation decider service
+   * @param CustomVariables Pre Segmentation custom variables
+   * @param variationTargetingVariables User Whitelisting Targeting variables
    * @return Variation name
    */
-  public static String getVariationName(String campaignKey, String userId, SettingFile settingFile, VariationDecider variationDecider, Map<String, ?> CustomVariables) {
+  public static String getVariationName(
+      String campaignKey,
+      String userId,
+      SettingFile settingFile,
+      VariationDecider variationDecider,
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables
+  ) {
     try {
       if (!ValidationUtils.isValidParams(
           new HashMap<String, Object>() {
@@ -86,15 +95,15 @@ public class CampaignVariation {
         return null;
       }
 
-      return CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables);
+      return CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
   }
 
-  public static String getCampaignVariationName(Campaign campaign, String userId, VariationDecider variationDecider, Map<String, ?> CustomVariables) {
-    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables);
+  public static String getCampaignVariationName(Campaign campaign, String userId, VariationDecider variationDecider, Map<String, ?> CustomVariables, Map<String, ?> variationTargetingVariables) {
+    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables, variationTargetingVariables);
     return variation != null ? variation.getName() : null;
   }
 }

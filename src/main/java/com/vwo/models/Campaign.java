@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2020 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,8 @@ import java.util.Map;
         "status",
         "type",
         "variables",
-        "segments"
+        "segments",
+        "isForcedVariationEnabled"
 })
 public class Campaign {
 
@@ -59,17 +60,13 @@ public class Campaign {
   private List<Variable> variables;
   @JsonProperty("segments")
   private Object segments;
-
-  @JsonIgnore
-  private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+  @JsonProperty("isForcedVariationEnabled")
+  private boolean isForcedVariationEnabled;
 
   @JsonProperty("goals")
   public List<Goal> getGoals() {
     return goals;
   }
-
-  private double currentAllocationVariation = 0;
-
 
   @JsonProperty("goals")
   public void setGoals(List<Goal> goals) {
@@ -156,26 +153,9 @@ public class Campaign {
     this.segments = segments;
   }
 
-  @JsonAnyGetter
-  public Map<String, Object> getAdditionalProperties() {
-    return this.additionalProperties;
-  }
-
-  @JsonAnySetter
-  public void setAdditionalProperty(String name, Object value) {
-    this.additionalProperties.put(name, value);
-  }
-
-  public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-    this.additionalProperties = additionalProperties;
-  }
-
-  public double getCurrentAllocationVariation() {
-    return currentAllocationVariation;
-  }
-
-  public void setCurrentAllocationVariation(double currentAllocationVariation) {
-    this.currentAllocationVariation = currentAllocationVariation;
+  @JsonProperty("isForcedVariationEnabled")
+  public boolean getIsForcedVariationEnabled() {
+    return isForcedVariationEnabled;
   }
 
 }
