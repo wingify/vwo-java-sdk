@@ -19,7 +19,7 @@ limitations under the License. -->
 
     <groupId>com.vwo.sdk</groupId>
     <artifactId>vwo-java-sdk</artifactId>
-    <version>1.6.0</version>
+    <version>1.6.1</version>
     <packaging>jar</packaging>
 
     <name>VWO Java Server Side SDK</name>
@@ -37,7 +37,7 @@ limitations under the License. -->
         <url>scm:git@github.com:wingify/vwo-java-sdk.git</url>
         <connection>scm:git:git@github.com:wingify/vwo-java-sdk.git</connection>
         <developerConnection>scm:git:git@github.com:wingify/vwo-java-sdk.git</developerConnection>
-        <tag>v1.5.1</tag>
+        <tag>v1.6.0</tag>
     </scm>
 
     <developers>

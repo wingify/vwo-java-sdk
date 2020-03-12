@@ -116,7 +116,7 @@ public class VariationDecider {
           whiteListedVariation = bucketingService.getUserVariation(whiteListedVariations, campaign.getKey(), 100, userId);
         }
 
-        this.setVariationInUserStorage(whiteListedVariation, campaign.getKey(), userId);
+        // this.setVariationInUserStorage(whiteListedVariation, campaign.getKey(), userId);
 
         String variationName = whiteListedVariation.getName();
 
