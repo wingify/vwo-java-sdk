@@ -16,12 +16,15 @@
 
 package com.vwo;
 
+import com.vwo.enums.GoalEnums;
+
 import java.util.Map;
 
 public class VWOAdditionalParams {
   private Map<String, ?> customVariables;
   private Map<String, ?> variationTargetingVariables;
   private Object revenueValue;
+  GoalEnums.GOAL_TYPES goalTypeToTrack;
 
   public Map<String, ?> getCustomVariables() {
     return customVariables;
@@ -47,6 +50,15 @@ public class VWOAdditionalParams {
 
   public VWOAdditionalParams setRevenueValue(Object revenueValue) {
     this.revenueValue = revenueValue;
+    return this;
+  }
+
+  public GoalEnums.GOAL_TYPES getGoalTypeToTrack() {
+    return goalTypeToTrack;
+  }
+
+  public VWOAdditionalParams setGoalTypeToTrack(GoalEnums.GOAL_TYPES goalTypeToTrack) {
+    this.goalTypeToTrack = goalTypeToTrack;
     return this;
   }
 }

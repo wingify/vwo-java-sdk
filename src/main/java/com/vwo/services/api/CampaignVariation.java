@@ -16,6 +16,7 @@
 
 package com.vwo.services.api;
 
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
@@ -58,11 +59,7 @@ public class CampaignVariation {
               put("userId", userId);
             }
           },
-          new HashMap<String, Object>() {
-            {
-              put("api", "getVariationName");
-            }
-          }
+          APIEnums.API_TYPES.GET_VARIATION_NAME
       )) {
         return null;
       }

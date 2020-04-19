@@ -16,6 +16,7 @@
 
 package com.vwo;
 
+import com.vwo.enums.GoalEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.services.core.BucketingService;
 import com.vwo.services.core.VariationDecider;
@@ -43,6 +44,7 @@ public class VWO {
   final SettingFile settingFile;
   final VWOLogger customLogger;
   final VariationDecider variationDecider;
+  final GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier;
   private boolean developmentMode;
 
   public static final class Enums extends VWOEnums {}
@@ -55,20 +57,22 @@ public class VWO {
               Storage.User userStorage,
               VariationDecider variationDecider,
               VWOLogger customLogger,
-              boolean developmentMode) {
+              boolean developmentMode,
+              GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier) {
 
     this.userStorage = userStorage;
     this.settingFile = settingFile;
     this.customLogger = customLogger;
     this.developmentMode = developmentMode;
     this.variationDecider = variationDecider;
+    this.goalsToTrackWithSameIdentifier = goalsToTrackWithSameIdentifier;
   }
 
   public SettingFile getSettingFile() {
     return this.settingFile;
   }
 
-  public Storage.User getuserStorage() {
+  public Storage.User getUserStorage() {
     return this.userStorage;
   }
 
@@ -166,14 +170,17 @@ public class VWO {
   /**
    * Get variation, tracks conversion event and send to VWO server.
    *
-   * @param campaignKey     Campaign key
-   * @param userId          User ID
-   * @param goalIdentifier  Goal key
+   * @param campaignKey      Campaign key or array of Strings containing campaign keys or null
+   * @param userId           User ID
+   * @param goalIdentifier   Goal key
    * @param additionalParams Any Additional params (revenueValue, customVariables, variationTargetingVariables)
-   * @return                Boolean value whether user is tracked or not.
+   * @return                 Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
    */
-  public boolean track(String campaignKey, String userId, String goalIdentifier, VWOAdditionalParams additionalParams) {
+  public Map<String, Boolean> track(Object campaignKey, String userId, String goalIdentifier, VWOAdditionalParams additionalParams) {
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
+    GoalEnums.GOAL_TYPES goalsToTrack = additionalParams.getGoalTypeToTrack() == null
+        ? this.goalsToTrackWithSameIdentifier
+        : additionalParams.getGoalTypeToTrack();
 
     return TrackCampaign.trackGoal(
       campaignKey,
@@ -184,12 +191,24 @@ public class VWO {
       this.getVariationDecider(),
       this.isDevelopmentMode(),
       additionalParams.getCustomVariables(),
-      additionalParams.getVariationTargetingVariables()
+      additionalParams.getVariationTargetingVariables(),
+      goalsToTrack
     );
   }
 
-  public boolean track(String campaignKey, String userId, String goalIdentifier) {
-    return TrackCampaign.trackGoal(campaignKey, userId, goalIdentifier, null, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null, null);
+  public Map<String, Boolean> track(Object campaignKey, String userId, String goalIdentifier) {
+    return TrackCampaign.trackGoal(
+      campaignKey,
+      userId,
+      goalIdentifier,
+      null,
+      this.getSettingFile(),
+      this.getVariationDecider(),
+      this.isDevelopmentMode(),
+      null,
+      null,
+      this.goalsToTrackWithSameIdentifier
+    );
   }
 
   /**
@@ -307,6 +326,7 @@ public class VWO {
     private BucketingService bucketingService;
     private VWOLogger customLogger;
     private boolean developmentMode;
+    private GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier = GoalEnums.GOAL_TYPES.ALL;
 
 
     /**
@@ -354,6 +374,17 @@ public class VWO {
     }
 
     /**
+     * Notify whether the goal should be tracked again if its already being tracked.
+     *
+     * @param value true if goal should be tracked every time.
+     * @return Builder instance
+     */
+    public Builder withGoalsToTrackWithSameIdentifier(GoalEnums.GOAL_TYPES value) {
+      this.goalsToTrackWithSameIdentifier = value;
+      return this;
+    }
+
+    /**
      * Creates a new VWO instance.
      *
      * @return VWO instance
@@ -383,7 +414,7 @@ public class VWO {
     }
 
     private VWO createVWOInstance() {
-      VWO vwoInstance = new VWO(this.settingFile, this.userStorage, this.variationDecider, this.customLogger, this.developmentMode);
+      VWO vwoInstance = new VWO(this.settingFile, this.userStorage, this.variationDecider, this.customLogger, this.developmentMode, this.goalsToTrackWithSameIdentifier);
       if (vwoInstance != null) {
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SDK_INITIALIZED.value());
       }

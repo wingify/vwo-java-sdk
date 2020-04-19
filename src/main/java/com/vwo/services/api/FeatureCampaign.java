@@ -16,6 +16,7 @@
 
 package com.vwo.services.api;
 
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
@@ -63,11 +64,7 @@ public class FeatureCampaign {
               put("userId", userId);
             }
           },
-          new HashMap<String, Object>() {
-            {
-              put("api", "isFeatureEnabled");
-            }
-          }
+          APIEnums.API_TYPES.IS_FEATURE_ENABLED
       )) {
         return false;
       }
@@ -158,11 +155,7 @@ public class FeatureCampaign {
               put("variableKey", variableKey);
             }
           },
-          new HashMap<String, Object>() {
-            {
-              put("api", "getFeatureVariableValue");
-            }
-          }
+          APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE
       )) {
         return null;
       }

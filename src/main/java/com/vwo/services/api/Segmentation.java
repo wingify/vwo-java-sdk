@@ -16,6 +16,7 @@
 
 package com.vwo.services.api;
 
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.services.http.HttpParams;
@@ -42,18 +43,14 @@ public class Segmentation {
   public static boolean pushCustomDimension(SettingFile settingFile, String tagKey, String tagValue, String userId, boolean isDevelopmentMode) {
     try {
       if (!ValidationUtils.isValidParams(
-              new HashMap<String, Object>() {
-                {
-                  put("tagKey", tagKey);
-                  put("tagValue", tagValue);
-                  put("userId", userId);
-                }
-              },
-              new HashMap<String, Object>() {
-                {
-                  put("api", "push");
-                }
-              }
+          new HashMap<String, Object>() {
+            {
+              put("tagKey", tagKey);
+              put("tagValue", tagValue);
+              put("userId", userId);
+            }
+          },
+          APIEnums.API_TYPES.PUSH
       )) {
         return false;
       }

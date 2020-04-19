@@ -47,7 +47,7 @@ public class PreSegmentation {
       JsonNode dslNodes = dsl instanceof String ? mapper.readValue(dsl.toString(), JsonNode.class) : mapper.valueToTree(dsl);
       return traverseDslNodesPostOrder(dslNodes, customVariables);
     } catch (Exception e) {
-      LOGGER.info(LoggerMessagesEnums.ERROR_MESSAGES.SEGMENTATION_ERROR.value(new HashMap<String, String>() {
+      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SEGMENTATION_ERROR.value(new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);

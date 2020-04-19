@@ -67,7 +67,7 @@ public class APITests {
     assertTrue(vwoInstanceClass.getMethod("getVariationName", variationArg) != null);
 
     Class[] trackArg = new Class[3];
-    trackArg[0] = String.class;
+    trackArg[0] = Object.class;
     trackArg[1] = String.class;
     trackArg[2] = String.class;
     assertTrue(vwoInstanceClass.getMethod("track", trackArg) != null);

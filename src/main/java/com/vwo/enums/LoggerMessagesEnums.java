@@ -20,6 +20,7 @@ import com.vwo.logger.Logger;
 
 import java.util.Map;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class LoggerMessagesEnums {
 
   private static final Logger LOGGER = Logger.getLogger(LoggerMessagesEnums.class);
@@ -89,7 +90,6 @@ public class LoggerMessagesEnums {
     INITIATING_PUSH_DIMENSION("Initiating push segment of user '{{userId}}' with tag name `{{tagKey}}` and tag value '{{tagValue}}'."),
     GOT_VARIATION_FOR_USER("User '{{userId}}' of campaign '{{campaignKey}}' got variation '{{variation}}'."),
     USER_NOT_PART_OF_CAMPAIGN("User '{{userId}}' did not become part of campaign '{{campaignKey}}'"),
-    TRACK_API_VARIATION_NOT_FOUND("Variation not found for campaign '{{campaignKey}}' and userId '{{userId}}'."),
     FEATURE_NOT_ENABLED("isFeatureEnabled flag is false for variation '{{variation}}', hence retrieving variable from Control"),
     FEATURE_VARIABLE_FOUND("Value for variable '{{variableKey}}' of campaign '{{campaignKey}}' for user '{{userId}}' is: '{{variableValue}}'."),
 
@@ -132,18 +132,23 @@ public class LoggerMessagesEnums {
   public enum ERROR_MESSAGES {
     GENERIC_ERROR("Unexpected Exception"),
     MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS("AccountId and sdkKey are required for fetching account settings. Aborting!"),
-    MISSING_CAMPAIGN_KEY("The campaignKey is required for '{{api}}' api. Cannot proceed further."),
-    MISSING_USER_ID("The userId is required for '{{api}}' api. Cannot proceed further."),
-    MISSING_VARIABLE_KEY("The variableKey is required to get feature variable."),
-    MISSING_TAG_KEY("A tag-key is required for the push API."),
+    ACTIVATE_API_MISSING_PARAMS("'activate' API got bad parameters. It expects campaignKey(String) as first, userId(String) as second and options(optional Object) as third argument"),
+    GET_VARIATION_API_MISSING_PARAMS("'getVariation' API got bad parameters. It expects campaignKey(String) as first, userId(String) as second and options(optional Object) as third argument"),
+    IS_FEATURE_ENABLED_API_MISSING_PARAMS("'isFeatureEnabled' API got bad parameters. It expects Campaign(String) as first, userId(String) as second and options(optional Object) as third argument"),
+    GET_FEATURE_VARIABLE_MISSING_PARAMS(
+      "'getFeatureVariableValue' API got bad parameters. It expects campaignKey(String) as first, variableKey(String) as second, userId(String) as third, and options(optional Object) as fourth argument"
+    ),
+    PUSH_API_INVALID_PARAMS("'push' API got bad parameters. It expects tagKey(String) as first, tagValue(String) as second and userId(String) as third argument"),
+    TRACK_API_MISSING_PARAMS(
+      "'track' API got bad parameters. It expects campaignKey(String or Array of Strings or null) as first, userId(String) as second, goalIdentifier(String/Number) as third and options(optional Object) as fourth argument"
+    ),
     TAG_KEY_LENGTH_EXCEEDED("Length of tag key '{{tagKey}}' and userId '{{userId}}' can not be greater than 255."),
     TAG_VALUE_LENGTH_EXCEEDED("Length of tag value '{{tagValue}}' for tag key '{{tagKey}}' and userId '{{userId}}' can not be greater than 255."),
-    MISSING_TAG_VALUE("A tag-value is required for the push API."),
-    MISSING_GOAL_IDENTIFIER("The goal identifier is required to track a goal. Cannot proceed further."),
     MISSING_GOAL_REVENUE("Revenue value should be passed for revenue goal '{{goalIdentifier}}' for campaign '{{campaignKey}}' and userId '{{userId}}'."),
     MISSING_PARAM("Expected parameters are missing."),
     ACCOUNT_SETTINGS_NOT_FOUND("Request failed for fetching account settings. Got Status Code: '{{statusCode}}' and message: '{{message}}'."),
     CAMPAIGN_NOT_FOUND("Campaign {{campaignKey}} is not RUNNING. Please verify from VWO App."),
+    NO_CAMPAIGN_FOUND("No campaign found for goalIdentifier:{{goalIdentifier}}. Please verify from VWO app."),
     SAVE_USER_STORAGE_SERVICE_FAILED("Saving data into user storage failed for user '{{userId}}'."),
     UNABLE_TO_DISPATCH_HTTP_REQUEST("Exception while executing http request."),
     TRACK_API_GOAL_NOT_FOUND("Goal '{{goalIdentifier}}' not found for campaign '{{campaignKey}}' and userId '{{userId}}'."),
