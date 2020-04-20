@@ -100,7 +100,20 @@ public class CampaignVariation {
   }
 
   public static String getCampaignVariationName(Campaign campaign, String userId, VariationDecider variationDecider, Map<String, ?> CustomVariables, Map<String, ?> variationTargetingVariables) {
-    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables, variationTargetingVariables);
+    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables, variationTargetingVariables, null, null);
+    return variation != null ? variation.getName() : null;
+  }
+
+  public static String getCampaignVariationName(
+      Campaign campaign,
+      String userId,
+      VariationDecider variationDecider,
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables,
+      String goalIdentifier,
+      Boolean shouldTrackReturningUser
+  ) {
+    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
     return variation != null ? variation.getName() : null;
   }
 }

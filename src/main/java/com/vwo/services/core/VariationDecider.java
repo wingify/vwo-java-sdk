@@ -27,6 +27,7 @@ import com.vwo.services.segmentation.PreSegmentation;
 import com.vwo.services.segmentation.enums.VWOAttributesEnum;
 import com.vwo.services.settings.SettingsFileUtil;
 import com.vwo.services.storage.Storage;
+import com.vwo.services.storage.UserStorage;
 import com.vwo.utils.CampaignUtils;
 import com.vwo.utils.StorageUtils;
 
@@ -40,11 +41,13 @@ public class VariationDecider {
 
   private final BucketingService bucketingService;
   private final Storage.User userStorage;
+  private boolean shouldTrackReturningUser;
   private static final Logger LOGGER = Logger.getLogger(VariationDecider.class);
 
-  public VariationDecider(BucketingService bucketingService, Storage.User userStorage) {
+  public VariationDecider(BucketingService bucketingService, Storage.User userStorage, boolean shouldTrackReturningUser) {
     this.bucketingService = bucketingService;
     this.userStorage = userStorage;
+    this.shouldTrackReturningUser = shouldTrackReturningUser;
   }
 
   /**
@@ -56,7 +59,14 @@ public class VariationDecider {
    * @param rawVariationTargetingVariables User Whitelisting Targeting variables
    * @return variation name or null if not found.
    */
-  public Variation getVariation(Campaign campaign, String userId, Map<String, ?> rawCustomVariables, Map<String, ?> rawVariationTargetingVariables) {
+  public Variation getVariation(
+      Campaign campaign,
+      String userId,
+      Map<String, ?> rawCustomVariables,
+      Map<String, ?> rawVariationTargetingVariables,
+      String goalIdentifier,
+      Boolean shouldTrackReturningUser
+  ) {
     // Default initialization(s)
     final Map<String, ?> customVariables = rawCustomVariables == null ? new HashMap<>() : rawCustomVariables;
     final Map<String, ?> variationTargetingVariables = rawVariationTargetingVariables == null ? new HashMap<>() : rawVariationTargetingVariables;
@@ -161,6 +171,31 @@ public class VariationDecider {
         if (userStorageMap == null) {
           LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value());
         } else if (StorageUtils.isValidUserStorageMap(userStorageMap)) {
+          if (shouldTrackReturningUser == null) {
+            shouldTrackReturningUser = this.shouldTrackReturningUser;
+          }
+
+          if (goalIdentifier != null && !shouldTrackReturningUser) {
+            if (checkGoalTracked(goalIdentifier, userStorageMap)) {
+              LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.GOAL_ALREADY_TRACKED.value(new HashMap<String, String>() {
+                {
+                  put("goalIdentifer", goalIdentifier);
+                  put("campaignKey", campaign.getKey());
+                  put("userId", userId);
+                }
+              }));
+              return null;
+            }
+          } else if (goalIdentifier != null && shouldTrackReturningUser) {
+            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GOAL_SHOULD_TRACK_AGAIN.value(new HashMap<String, String>() {
+              {
+                put("goalIdentifer", goalIdentifier);
+                put("campaignKey", campaign.getKey());
+                put("userId", userId);
+              }
+            }));
+          }
+
           variation = getStoredVariation(userStorageMap, userId, campaign);
 
           if (variation != null) {
@@ -172,6 +207,10 @@ public class VariationDecider {
                 put("userId", userId);
               }
             }));
+
+            if (goalIdentifier != null) {
+              setGoalInUserStorage(userStorageMap, goalIdentifier, userId, campaign);
+            }
             return variation;
           } else {
             LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
@@ -224,7 +263,7 @@ public class VariationDecider {
 
     // Get variation using campaign settings for a user.
     variation = bucketingService.getUserVariation(campaign.getVariations(), campaign.getKey(), campaign.getPercentTraffic(), userId);
-    this.setVariationInUserStorage(variation, campaign.getKey(), userId);
+    this.setVariationInUserStorage(variation, campaign.getKey(), userId, goalIdentifier);
     return variation;
   }
 
@@ -267,7 +306,7 @@ public class VariationDecider {
    * @param campaignKey  - campaign key
    * @param variation - variation instance
    */
-  private void setVariation(String userId, String campaignKey, Variation variation) {
+  private void setVariation(String userId, String campaignKey, Variation variation, String goalIdentifier) {
     if (this.userStorage != null) {
       String campaignId = campaignKey;
       String variationId = variation.getName();
@@ -279,6 +318,10 @@ public class VariationDecider {
           put(Storage.User.variationKey, variationId);
         }
       };
+
+      if (goalIdentifier != null) {
+        variationMap.put(Storage.User.goalIdentifier, goalIdentifier);
+      }
 
       try {
         this.userStorage.set(variationMap);
@@ -299,12 +342,12 @@ public class VariationDecider {
    * @param campaignKey - campaign key
    * @param userId - user id
    */
-  private void setVariationInUserStorage(Variation variation, String campaignKey, String userId) {
+  private void setVariationInUserStorage(Variation variation, String campaignKey, String userId, String goalIdentifier) {
     // Set variation in user storage service if defined by the customer.
     if (variation != null) {
       String variationName = variation.getName();
       if (this.userStorage != null) {
-        setVariation(userId, campaignKey, variation);
+        setVariation(userId, campaignKey, variation, goalIdentifier);
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SAVED_IN_USER_STORAGE_SERVICE.value(new HashMap<String, String>() {
           {
             put("userId", userId);
@@ -327,5 +370,43 @@ public class VariationDecider {
         }
       }));
     }
+  }
+
+  /**
+   * set the goal in the user storage.
+   *
+   * @param goalIdentifier - goalIdentifier String
+   * @param userId         - userId string
+   * @param campaign       - campaign object
+   */
+  public void setGoalInUserStorage(Map<String, String> userStorageMap, String goalIdentifier, String userId, Campaign campaign) {
+    try {
+      ArrayList<String> goalList = StorageUtils.stringToArray(userStorageMap.get(UserStorage.goalIdentifier));
+      if (goalList.isEmpty() || !goalList.contains(goalIdentifier)) {
+        goalList.add(goalIdentifier);
+      }
+      String goalString = StorageUtils.arrayToString(goalList);
+      userStorageMap.put(UserStorage.goalIdentifier, goalString);
+      userStorage.set(userStorageMap);
+    } catch (Exception e) {
+      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SAVE_USER_STORAGE_SERVICE_FAILED.value(new HashMap<String, String>() {
+        {
+          put("userId", userId);
+          put("campaignKey", campaign.getKey());
+        }
+      }), e);
+    }
+  }
+
+  /**
+   * check if the goal is already tracked.
+   *
+   * @param goalIdentifier  - goalIdentifier string
+   * @param userStorageMap - UserStorageData object
+   * @return true if goal is found in user storage, else false.
+   */
+  private boolean checkGoalTracked(String goalIdentifier, Map<String, String> userStorageMap) {
+    ArrayList<String> goalList = StorageUtils.stringToArray(userStorageMap.get(UserStorage.goalIdentifier));
+    return goalList != null && goalList.contains(goalIdentifier);
   }
 }

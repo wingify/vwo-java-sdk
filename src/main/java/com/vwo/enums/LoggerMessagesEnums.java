@@ -63,6 +63,7 @@ public class LoggerMessagesEnums {
     SETTINGS_FILE_PROCESSED("Settings file processed successfully."),
     SDK_INITIALIZED("SDK properly initialized."),
     HTTP_RESPONSE("Got Http response {{response}}."),
+    GOAL_SHOULD_TRACK_AGAIN("Goal:{{goalIdentifer}} of Campaign:{{campaignKey}} for User ID:{{userId}} has already been tracked earlier. shouldTrackReturningUser is true, therefore, is eligible to be tracked again"),
 
     // Segmentation
     SEGMENTATION_STATUS("For userId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),
@@ -92,6 +93,7 @@ public class LoggerMessagesEnums {
     USER_NOT_PART_OF_CAMPAIGN("User '{{userId}}' did not become part of campaign '{{campaignKey}}'"),
     FEATURE_NOT_ENABLED("isFeatureEnabled flag is false for variation '{{variation}}', hence retrieving variable from Control"),
     FEATURE_VARIABLE_FOUND("Value for variable '{{variableKey}}' of campaign '{{campaignKey}}' for user '{{userId}}' is: '{{variableValue}}'."),
+    GOAL_ALREADY_TRACKED("Goal:{{goalIdentifer}} of Campaign:{{campaignKey}} for User ID:{{userId}} has already been tracked earlier. Skipping now."),
 
     // Segmentation
     SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}");

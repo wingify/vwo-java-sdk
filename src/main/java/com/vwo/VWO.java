@@ -192,7 +192,8 @@ public class VWO {
       this.isDevelopmentMode(),
       additionalParams.getCustomVariables(),
       additionalParams.getVariationTargetingVariables(),
-      goalsToTrack
+      goalsToTrack,
+      additionalParams.getShouldTrackReturningUser()
     );
   }
 
@@ -207,7 +208,8 @@ public class VWO {
       this.isDevelopmentMode(),
       null,
       null,
-      this.goalsToTrackWithSameIdentifier
+      this.goalsToTrackWithSameIdentifier,
+      null
     );
   }
 
@@ -327,6 +329,7 @@ public class VWO {
     private VWOLogger customLogger;
     private boolean developmentMode;
     private GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier = GoalEnums.GOAL_TYPES.ALL;
+    private Boolean shouldTrackReturningUser = true;
 
 
     /**
@@ -385,6 +388,17 @@ public class VWO {
     }
 
     /**
+     * Notify whether the goal should be tracked again if its already being tracked.
+     *
+     * @param value true if goal should be tracked every time.
+     * @return Builder instance
+     */
+    public Builder shouldTrackReturningUser(boolean value) {
+      this.shouldTrackReturningUser = value;
+      return this;
+    }
+
+    /**
      * Creates a new VWO instance.
      *
      * @return VWO instance
@@ -409,7 +423,7 @@ public class VWO {
       }
 
       this.bucketingService = new BucketingService();
-      this.variationDecider = new VariationDecider(bucketingService, userStorage);
+      this.variationDecider = new VariationDecider(bucketingService, userStorage, shouldTrackReturningUser);
       this.developmentMode = this.developmentMode || false;
     }
 
