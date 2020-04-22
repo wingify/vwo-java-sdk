@@ -329,7 +329,7 @@ public class VWO {
     private VWOLogger customLogger;
     private boolean developmentMode;
     private GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier = GoalEnums.GOAL_TYPES.ALL;
-    private Boolean shouldTrackReturningUser = true;
+    private Boolean shouldTrackReturningUser = false;
 
 
     /**

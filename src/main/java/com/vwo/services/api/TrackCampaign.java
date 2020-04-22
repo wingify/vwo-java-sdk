@@ -96,7 +96,7 @@ public class TrackCampaign {
       Map<String, Boolean> trackStatus = new HashMap<>();
       for (int i = 0; i < campaignList.size(); i++) {
         Campaign campaign = campaignList.get(i);
-        String key = campaign == null ? ((String[])campaignKey)[0] : campaign.getKey();
+        String key = campaign == null ? ((String[])campaignKey)[i] : campaign.getKey();
         trackStatus.put(key, false);
 
         if (campaign == null) {

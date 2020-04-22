@@ -67,7 +67,8 @@ public class VWOAdditionalParams {
     return shouldTrackReturningUser;
   }
 
-  public void setShouldTrackReturningUser(Boolean shouldTrackReturningUser) {
+  public VWOAdditionalParams setShouldTrackReturningUser(Boolean shouldTrackReturningUser) {
     this.shouldTrackReturningUser = shouldTrackReturningUser;
+    return this;
   }
 }
