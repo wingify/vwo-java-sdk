@@ -42,7 +42,7 @@ public class TrackCampaign {
   /**
    * Get variation, tracks conversion event and send to VWO server.
    *
-   * @param campaignKey       Campaign key or array of Strings containing campaign keys or null
+   * @param campaignSpecifier       Campaign key or array of Strings containing campaign keys or null
    * @param userId            User ID
    * @param goalIdentifier    Goal key
    * @param revenueValue      revenue generated on triggering the goal
@@ -56,7 +56,7 @@ public class TrackCampaign {
    * @return Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
    */
   public static Map<String, Boolean> trackGoal(
-      Object campaignKey,
+      Object campaignSpecifier,
       String userId,
       String goalIdentifier,
       Object revenueValue,
@@ -69,17 +69,17 @@ public class TrackCampaign {
       Boolean shouldTrackReturningUser
   ) {
     try {
-      if (!TrackCampaign.isTrackParamsValid(campaignKey, userId, goalIdentifier)) {
+      if (!TrackCampaign.isTrackParamsValid(campaignSpecifier, userId, goalIdentifier)) {
         return null;
       }
 
       ArrayList<Campaign> campaignList = new ArrayList<>();
 
-      if (campaignKey == null) {
+      if (campaignSpecifier == null) {
         campaignList = CampaignUtils.getCampaignFromGoalIdentifier(goalIdentifier, settingFile.getSettings().getCampaigns());
       } else {
-        campaignKey = campaignKey instanceof String ? new String[] { (String) campaignKey } : campaignKey;
-        for (String campaign : (String[]) campaignKey) {
+        campaignSpecifier = campaignSpecifier instanceof String ? new String[] { (String) campaignSpecifier } : campaignSpecifier;
+        for (String campaign : (String[]) campaignSpecifier) {
           campaignList.add(settingFile.getCampaign(campaign));
         }
       }
@@ -96,7 +96,7 @@ public class TrackCampaign {
       Map<String, Boolean> trackStatus = new HashMap<>();
       for (int i = 0; i < campaignList.size(); i++) {
         Campaign campaign = campaignList.get(i);
-        String key = campaign == null ? ((String[])campaignKey)[i] : campaign.getKey();
+        String key = campaign == null ? ((String[])campaignSpecifier)[i] : campaign.getKey();
         trackStatus.put(key, false);
 
         if (campaign == null) {
@@ -125,31 +125,34 @@ public class TrackCampaign {
                 put("campaignKey", key);
               }
             }));
-          } else if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value()) && revenueValue == null) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(new HashMap<String, String>() {
-              {
-                put("goalIdentifier", goalIdentifier);
-                put("userId", userId);
-                put("campaignKey", key);
-              }
-            }));
           } else if (goalsToTrack.value().equals(GoalEnums.GOAL_TYPES.ALL.value()) || goalsToTrack.value().equals(goal.getType())) {
-            Object revenue = goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.CUSTOM.value()) ? null : revenueValue;
 
-            String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
+            if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value()) && revenueValue == null) {
+              LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(new HashMap<String, String>() {
+                {
+                  put("goalIdentifier", goalIdentifier);
+                  put("userId", userId);
+                  put("campaignKey", key);
+                }
+              }));
+            } else {
+              Object revenue = goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.CUSTOM.value()) ? null : revenueValue;
 
-            if (variation != null) {
-              TrackCampaign.sendTrackCall(
-                  settingFile,
-                  campaign,
-                  userId,
-                  goal,
-                  CampaignUtils.getVariationObjectFromCampaign(campaign, variation),
-                  revenue,
-                  isDevelopmentMode
-              );
+              String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
 
-              trackStatus.put(key, true);
+              if (variation != null) {
+                TrackCampaign.sendTrackCall(
+                    settingFile,
+                    campaign,
+                    userId,
+                    goal,
+                    CampaignUtils.getVariationObjectFromCampaign(campaign, variation),
+                    revenue,
+                    isDevelopmentMode
+                );
+
+                trackStatus.put(key, true);
+              }
             }
           }
         }
@@ -162,11 +165,11 @@ public class TrackCampaign {
     }
   }
 
-  private static boolean isTrackParamsValid(Object campaignKey, String userId, String goalIdentifier) {
+  private static boolean isTrackParamsValid(Object campaignSpecifier, String userId, String goalIdentifier) {
     return ValidationUtils.isValidParams(
         new HashMap<String, Object>() {
           {
-            put("campaignKey", campaignKey);
+            put("campaignKey", campaignSpecifier);
             put("userId", userId);
             put("goalIdentifier", goalIdentifier);
           }

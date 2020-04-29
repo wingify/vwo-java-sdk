@@ -347,7 +347,7 @@ public class TrackTests {
   public void trackOnlyParticularGoalTypeTest() throws NoSuchFieldException, IllegalAccessException {
     VWO vwoInstance = VWO
       .launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100)
-      .withGoalsToTrackWithSameIdentifier(GoalEnums.GOAL_TYPES.ALL)
+      .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.ALL)
       .build();
 
     ArrayList<UserExpectations.Variation> userVariation = (ArrayList<UserExpectations.Variation>) UserExpectations.class.getField("AB_TRAFFIC_100_WEIGHT_50_50").get(UserExpectations.class);
@@ -371,7 +371,7 @@ public class TrackTests {
     //    track only custom goal
     vwoInstance = VWO
       .launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100)
-      .withGoalsToTrackWithSameIdentifier(GoalEnums.GOAL_TYPES.CUSTOM)
+      .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.CUSTOM)
       .build();
     for (int i = 0; i < userVariation.size(); i++) {
       VWOAdditionalParams additionalParams = new VWOAdditionalParams();
@@ -384,7 +384,7 @@ public class TrackTests {
     //track only revenue goal
     vwoInstance = VWO
       .launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100)
-      .withGoalsToTrackWithSameIdentifier(GoalEnums.GOAL_TYPES.REVENUE)
+      .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.REVENUE)
       .build();
     for (int i = 0; i < userVariation.size(); i++) {
       VWOAdditionalParams additionalParams = new VWOAdditionalParams();
@@ -402,7 +402,7 @@ public class TrackTests {
     //track only custom goal passed from options in track campaign
     vwoInstance = VWO
       .launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100)
-      .withGoalsToTrackWithSameIdentifier(GoalEnums.GOAL_TYPES.ALL)
+      .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.ALL)
       .build();
     for (int i = 0; i < userVariation.size(); i++) {
       VWOAdditionalParams additionalParams = new VWOAdditionalParams();

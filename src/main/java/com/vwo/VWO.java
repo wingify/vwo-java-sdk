@@ -44,7 +44,7 @@ public class VWO {
   final SettingFile settingFile;
   final VWOLogger customLogger;
   final VariationDecider variationDecider;
-  final GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier;
+  final GoalEnums.GOAL_TYPES goalTypeToTrack;
   private boolean developmentMode;
 
   public static final class Enums extends VWOEnums {}
@@ -58,14 +58,14 @@ public class VWO {
               VariationDecider variationDecider,
               VWOLogger customLogger,
               boolean developmentMode,
-              GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier) {
+              GoalEnums.GOAL_TYPES goalTypeToTrack) {
 
     this.userStorage = userStorage;
     this.settingFile = settingFile;
     this.customLogger = customLogger;
     this.developmentMode = developmentMode;
     this.variationDecider = variationDecider;
-    this.goalsToTrackWithSameIdentifier = goalsToTrackWithSameIdentifier;
+    this.goalTypeToTrack = goalTypeToTrack;
   }
 
   public SettingFile getSettingFile() {
@@ -179,7 +179,7 @@ public class VWO {
   public Map<String, Boolean> track(Object campaignKey, String userId, String goalIdentifier, VWOAdditionalParams additionalParams) {
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
     GoalEnums.GOAL_TYPES goalsToTrack = additionalParams.getGoalTypeToTrack() == null
-        ? this.goalsToTrackWithSameIdentifier
+        ? this.goalTypeToTrack
         : additionalParams.getGoalTypeToTrack();
 
     return TrackCampaign.trackGoal(
@@ -208,7 +208,7 @@ public class VWO {
       this.isDevelopmentMode(),
       null,
       null,
-      this.goalsToTrackWithSameIdentifier,
+      this.goalTypeToTrack,
       null
     );
   }
@@ -328,7 +328,7 @@ public class VWO {
     private BucketingService bucketingService;
     private VWOLogger customLogger;
     private boolean developmentMode;
-    private GoalEnums.GOAL_TYPES goalsToTrackWithSameIdentifier = GoalEnums.GOAL_TYPES.ALL;
+    private GoalEnums.GOAL_TYPES goalTypeToTrack = GoalEnums.GOAL_TYPES.ALL;
     private Boolean shouldTrackReturningUser = false;
 
 
@@ -382,8 +382,8 @@ public class VWO {
      * @param value true if goal should be tracked every time.
      * @return Builder instance
      */
-    public Builder withGoalsToTrackWithSameIdentifier(GoalEnums.GOAL_TYPES value) {
-      this.goalsToTrackWithSameIdentifier = value;
+    public Builder withGoalTypeToTrack(GoalEnums.GOAL_TYPES value) {
+      this.goalTypeToTrack = value;
       return this;
     }
 
@@ -393,7 +393,7 @@ public class VWO {
      * @param value true if goal should be tracked every time.
      * @return Builder instance
      */
-    public Builder shouldTrackReturningUser(boolean value) {
+    public Builder withShouldTrackReturningUser(boolean value) {
       this.shouldTrackReturningUser = value;
       return this;
     }
@@ -428,7 +428,7 @@ public class VWO {
     }
 
     private VWO createVWOInstance() {
-      VWO vwoInstance = new VWO(this.settingFile, this.userStorage, this.variationDecider, this.customLogger, this.developmentMode, this.goalsToTrackWithSameIdentifier);
+      VWO vwoInstance = new VWO(this.settingFile, this.userStorage, this.variationDecider, this.customLogger, this.developmentMode, this.goalTypeToTrack);
       if (vwoInstance != null) {
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SDK_INITIALIZED.value());
       }

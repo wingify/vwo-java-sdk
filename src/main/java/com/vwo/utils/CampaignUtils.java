@@ -61,6 +61,13 @@ public class CampaignUtils {
     }
   }
 
+  /**
+   * Filter campaigns from the given list matching the given goal identifier.
+   * @param goalIdentifier Goal identifier name
+   * @param campaigns Campaigns List
+   *
+   * @return List of campaigns matching goal identifier.
+   */
   public static ArrayList<Campaign> getCampaignFromGoalIdentifier(String goalIdentifier, List<Campaign> campaigns) {
     if (campaigns != null) {
       ArrayList<Campaign> campaignList = new ArrayList<>();
