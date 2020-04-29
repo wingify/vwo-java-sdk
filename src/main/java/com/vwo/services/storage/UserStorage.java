@@ -23,6 +23,7 @@ public interface UserStorage {
   String userId = "userId";
   String campaignKey = "campaignKey";
   String variationKey = "variationName";
+  String goalIdentifier = "goalIdentifier";
 
   Map<String, String> get(String userId, String campaignKey) throws Exception;
 

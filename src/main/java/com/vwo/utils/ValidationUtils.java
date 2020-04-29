@@ -16,6 +16,7 @@
 
 package com.vwo.utils;
 
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
 
@@ -25,56 +26,84 @@ import java.util.Map;
 public class ValidationUtils {
   private static final Logger LOGGER = Logger.getLogger(ValidationUtils.class);
 
-  public static boolean isValidParams(Map<String, Object> params, Map<String, Object>... additionalParams) {
-    Map<String, Object> loggingParams = additionalParams.length > 0 ? additionalParams[0] : new HashMap<String, Object>() {};
-    loggingParams.putAll(params);
+  public static boolean isValidParams(Map<String, Object> params, APIEnums.API_TYPES api) {
+    switch (api) {
+      case ACTIVATE:
+        if (!ValidationUtils.areBasicChecksValid(params)) {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.ACTIVATE_API_MISSING_PARAMS.value());
+          return false;
+        }
+        break;
+      case GET_VARIATION_NAME:
+        if (!ValidationUtils.areBasicChecksValid(params)) {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GET_VARIATION_API_MISSING_PARAMS.value());
+          return false;
+        }
+        break;
+      case IS_FEATURE_ENABLED:
+        if (!ValidationUtils.areBasicChecksValid(params)) {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.IS_FEATURE_ENABLED_API_MISSING_PARAMS.value());
+          return false;
+        }
+        break;
+      case GET_FEATURE_VARIABLE_VALUE:
+        if (!ValidationUtils.areBasicChecksValid(params)) {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GET_FEATURE_VARIABLE_MISSING_PARAMS.value());
+          return false;
+        }
+        break;
+      case PUSH:
+        if (!ValidationUtils.areBasicChecksValid(params)) {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.PUSH_API_INVALID_PARAMS.value());
+          return false;
+        }
+        break;
+      case TRACK:
+        if (!ValidationUtils.areBasicChecksValid(params, api)) {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TRACK_API_MISSING_PARAMS.value());
+          return false;
+        }
+        break;
+      default:
+        return false;
+    }
+    return true;
+  }
 
+  private static boolean areBasicChecksValid(Map<String, Object> params) {
+    return ValidationUtils.areBasicChecksValid(params, null);
+  }
+
+  private static boolean areBasicChecksValid(Map<String, Object> params, APIEnums.API_TYPES api) {
     for (Map.Entry<String, Object> param: params.entrySet()) {
       Object value = param.getValue();
 
       switch (param.getKey()) {
         case "campaignKey":
-          if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_CAMPAIGN_KEY.value(new HashMap<String, String>() {
-              {
-                put("api", loggingParams.get("api").toString());
-              }
-            }));
+          if (api != null && api.equals(APIEnums.API_TYPES.TRACK)) {
+            if (!(value == null || (value instanceof String && !value.toString().isEmpty()) || (value instanceof String[] && ((String[]) value).length != 0))) {
+              return false;
+            }
+          } else if (isEmptyValue(value)) {
             return false;
           }
           break;
         case "userId":
-          if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_USER_ID.value(new HashMap<String, String>() {
-              {
-                put("api", loggingParams.get("api").toString());
-              }
-            }));
-            return false;
-          }
-          break;
         case "goalIdentifier":
-          if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_GOAL_IDENTIFIER.value());
-            return false;
-          }
-          break;
         case "variableKey":
           if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_VARIABLE_KEY.value());
             return false;
           }
           break;
         case "tagKey":
           if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_TAG_KEY.value());
             return false;
           }
           if (value.toString().length() > 255) {
             LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TAG_KEY_LENGTH_EXCEEDED.value(new HashMap<String, String>() {
               {
                 put("tagKey", value.toString());
-                put("userId", loggingParams.get("userId").toString());
+                put("userId", params.get("userId").toString());
               }
             }));
             return false;
@@ -82,15 +111,14 @@ public class ValidationUtils {
           break;
         case "tagValue":
           if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_TAG_VALUE.value());
             return false;
           }
           if (value.toString().length() > 255) {
             LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TAG_VALUE_LENGTH_EXCEEDED.value(new HashMap<String, String>() {
               {
                 put("tagValue", value.toString());
-                put("tagKey", loggingParams.get("tagKey").toString());
-                put("userId", loggingParams.get("userId").toString());
+                put("tagKey", params.get("tagKey").toString());
+                put("userId", params.get("userId").toString());
               }
             }));
             return false;

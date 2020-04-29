@@ -18,14 +18,49 @@ package com.vwo.utils;
 
 import com.vwo.services.storage.Storage;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 public class StorageUtils {
+  private static String delimeter = "_vwo_";
 
   public static boolean isValidUserStorageMap(Map<String, String> map) {
     return map.containsKey(Storage.User.userId)
             && map.containsKey(Storage.User.campaignKey)
             && map.containsKey(Storage.User.variationKey);
+  }
+
+  /**
+   * convert a ArrayList into a string.
+   *
+   * @param arrayList Arraylist to be converted
+   * @return converted string value
+   */
+  public static String arrayToString(ArrayList<String> arrayList) {
+    if (arrayList.size() == 0) {
+      return null;
+    }
+
+    String goalListString = "";
+    for (String goalIdentifier : arrayList) {
+      goalListString += goalIdentifier + StorageUtils.delimeter;
+    }
+    return goalListString;
+  }
+
+  /**
+   * convert a String into a Array List.
+   *
+   * @param goalListString String to be converted
+   * @return converted Arraylist object
+   */
+  public static ArrayList<String> stringToArray(String goalListString) {
+    if (goalListString == null || goalListString.isEmpty()) {
+      return new ArrayList<>();
+    }
+    ArrayList<String> goalListArray = new ArrayList<>(Arrays.asList(goalListString.split(StorageUtils.delimeter)));
+    return goalListArray;
   }
 
 }

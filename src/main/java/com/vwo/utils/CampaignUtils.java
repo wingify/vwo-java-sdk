@@ -16,9 +16,12 @@
 
 package com.vwo.utils;
 
+import com.vwo.enums.CampaignEnums;
 import com.vwo.models.Campaign;
+import com.vwo.models.Goal;
 import com.vwo.models.Variation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CampaignUtils {
@@ -56,5 +59,28 @@ public class CampaignUtils {
     } else {
       variations.forEach(variation -> variation.setWeight((variation.getWeight() / totalWeight) * 100));
     }
+  }
+
+  /**
+   * Filter campaigns from the given list matching the given goal identifier.
+   * @param goalIdentifier Goal identifier name
+   * @param campaigns Campaigns List
+   *
+   * @return List of campaigns matching goal identifier.
+   */
+  public static ArrayList<Campaign> getCampaignFromGoalIdentifier(String goalIdentifier, List<Campaign> campaigns) {
+    if (campaigns != null) {
+      ArrayList<Campaign> campaignList = new ArrayList<>();
+      for (Campaign campaign : campaigns) {
+        List<Goal> goalList = campaign.getGoals();
+        for (Goal goal : goalList) {
+          if (goal.getIdentifier().equals(goalIdentifier) && campaign.getStatus().equals(CampaignEnums.STATUS.RUNNING.value())) {
+            campaignList.add(campaign);
+          }
+        }
+      }
+      return campaignList;
+    }
+    return null;
   }
 }

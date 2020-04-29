@@ -16,21 +16,25 @@
 
 package com.vwo.enums;
 
-public class GoalEnums {
+public class APIEnums {
+  public enum API_TYPES {
+    ACTIVATE("activate"),
+    GET_VARIATION_NAME("getVariationName"),
+    IS_FEATURE_ENABLED("isFeatureEnabled"),
+    GET_FEATURE_VARIABLE_VALUE("getFeatureVariableValue"),
+    PUSH("push"),
+    TRACK("track");
 
-  public enum GOAL_TYPES {
-    REVENUE("REVENUE_TRACKING"),
-    CUSTOM("CUSTOM_GOAL"),
-    ALL("ALL");
 
     private final String type;
 
-    GOAL_TYPES(String type) {
+    API_TYPES(String type) {
       this.type = type;
     }
 
     public String value() {
       return this.type;
     }
+
   }
 }
