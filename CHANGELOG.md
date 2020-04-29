@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.8.0] - 2020-04-29
+### Changes
+- Update track API to handle duplicate and unique conversions and corresponding changes in `launch` API
+- Update track API to track a goal globally across campaigns with the same `goalIdentififer` and corresponding changes in `launch` API
+
+```java
+// it will track goal having `goalIdentifier` of campaign having `campaignKey` for the user having `userId` as id.
+vwoClientInstance.track(campaignKey, userId, goalIdentifier, options);
+// it will track goal having `goalIdentifier` of campaigns having `campaignKey1` and `campaignKey2` for the user having `userId` as id.
+String[] campaignKeysList = {
+  "campaignKey1",
+  "campaignKey2",
+}
+vwoClientInstance.track(campaignKeysList, userId, goalIdentifier, options);
+// it will track goal having `goalIdentifier` of all the campaigns
+vwoClientInstance.track(null, userId, goalIdentifier, options);
+//Read more about configuration and usage - https://developers.vwo.com/reference#server-side-sdk-track
+```
+
 ## [1.6.1] - 2020-03-12
 ### Changed
 - Prevent updation in user storage in case forced variation is found.
@@ -19,7 +39,7 @@ To prevent ordered arguments and increasing use-cases, we are moving all optiona
 
 ```java
 
-// activae API
+// activate API
 vwoInstance.activate(campaignKey, userId, customVariables);
 // getVariation API
 vwoInstance.getVariation(campaignKey, userId, customVariables);
