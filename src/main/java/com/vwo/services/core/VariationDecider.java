@@ -57,6 +57,8 @@ public class VariationDecider {
    * @param userId   - user id string
    * @param rawCustomVariables Pre Segmentation custom variables
    * @param rawVariationTargetingVariables User Whitelisting Targeting variables
+   * @param goalIdentifier Goal key
+   * @param shouldTrackReturningUser Boolean value to check if the goal should be tracked again or not.
    * @return variation name or null if not found.
    */
   public Variation getVariation(
@@ -375,6 +377,7 @@ public class VariationDecider {
   /**
    * set the goal in the user storage.
    *
+   * @param userStorageMap - User Storage
    * @param goalIdentifier - goalIdentifier String
    * @param userId         - userId string
    * @param campaign       - campaign object
