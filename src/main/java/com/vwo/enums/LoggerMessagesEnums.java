@@ -42,6 +42,7 @@ public class LoggerMessagesEnums {
 
   public enum DEBUG_MESSAGES {
     FETCHING_ACCOUNT_SETTINGS("Fetching  account settings for ID: {{accountID}}."),
+    REGISTERED_POLLING_INTERVAL("Polling of settings-file is registered with a periodic interval of {{pollingInterval}}ms."),
     VARIATION_RANGE_ALLOCATED("Variation '{{variation}}' with weight '{{weight}}' got range as: ({{startRange}} to {{endRange}})"),
     CAMPAIGN_KEY_FOUND("campaignKey found: '{{campaignKey}}'."),
     UUID_GENERATED("Uuid generated for userId '{{userId}}' and accountId '{{accountId}}' is '{{uuid}}'."),
@@ -82,6 +83,8 @@ public class LoggerMessagesEnums {
   }
 
   public enum INFO_MESSAGES {
+    POLLED_SETTINGS_FILE("Settings-file fetched successfully via polling for the accountId: {{accountID}}"),
+    VWO_SDK_INSTANCE_UPDATED("vwo-sdk instance is updated with the latest settings-file for the accountId: {{accountID}}"),
     NO_VARIATION_ALLOCATED("UserId '{{userId}}' of campaign '{{campaignKey}}' did not get any variation."),
     NO_DATA_USER_STORAGE_SERVICE("Unable to fetch data from user storage."),
     INITIATING_ACTIVATE("Initiating activation of user '{{userId}}' for campaign '{{campaignKey}}'."),
@@ -133,7 +136,9 @@ public class LoggerMessagesEnums {
 
   public enum ERROR_MESSAGES {
     GENERIC_ERROR("Unexpected Exception"),
+    MISSING_POLLING_SDK_KEY("sdkKey is required along with pollingInterval to poll the settings-file"),
     MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS("AccountId and sdkKey are required for fetching account settings. Aborting!"),
+    SETTINGS_FILE_POLLING_ERROR("Failed fetching of Settings-file via polling for the accountId: {{accountID}}"),
     ACTIVATE_API_MISSING_PARAMS("'activate' API got bad parameters. It expects campaignKey(String) as first, userId(String) as second and options(optional Object) as third argument"),
     GET_VARIATION_API_MISSING_PARAMS("'getVariation' API got bad parameters. It expects campaignKey(String) as first, userId(String) as second and options(optional Object) as third argument"),
     IS_FEATURE_ENABLED_API_MISSING_PARAMS("'isFeatureEnabled' API got bad parameters. It expects Campaign(String) as first, userId(String) as second and options(optional Object) as third argument"),

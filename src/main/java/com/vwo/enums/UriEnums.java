@@ -18,6 +18,8 @@ package com.vwo.enums;
 
 public enum UriEnums {
 
+  PROTOCOL("https"),
+  SDK_VERSION("1.8.2"),
   BASE_URL("dev.visualwebsiteoptimizer.com"),
   ACCOUNT_SETTINGS("/server-side/settings"),
   TRACK_USER("/server-side/track-user"),

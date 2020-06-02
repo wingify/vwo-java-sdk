@@ -32,6 +32,22 @@ public class SettingsFileUtil implements SettingFile {
   private static final double MAX_TRAFFIC_VALUE = 10000;
   private static final Logger LOGGER = Logger.getLogger(SettingsFileUtil.class);
 
+  public static SettingFile initializeSettingsFile(String settingFileString) {
+    if (settingFileString != null && !settingFileString.isEmpty()) {
+      try {
+        SettingFile settingFile = SettingsFileUtil.Builder.getInstance(settingFileString).build();
+        settingFile.processSettingsFile();
+        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SETTINGS_FILE_PROCESSED.value());
+
+        return settingFile;
+      } catch (Exception e) {
+        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      }
+    }
+
+    return null;
+  }
+
   public static void setVariationRange(List<Variation> variations) {
     double allocatedRange = 0;
 

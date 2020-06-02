@@ -16,6 +16,7 @@
 
 package com.vwo.utils;
 
+import com.vwo.enums.UriEnums;
 import com.vwo.services.http.HttpParams;
 import org.apache.http.client.utils.URIBuilder;
 
@@ -27,7 +28,7 @@ public class HttpUtils {
 
   public static URI getHttpUri(HttpParams httpParams) throws URISyntaxException {
     URIBuilder requestBuilder = new URIBuilder();
-    requestBuilder.setScheme("https")
+    requestBuilder.setScheme(UriEnums.PROTOCOL.toString())
             .setHost(httpParams.getDomain())
             .setPath(httpParams.getUrl());
 

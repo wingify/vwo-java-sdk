@@ -18,6 +18,7 @@ package com.vwo;
 
 import com.vwo.enums.GoalEnums;
 import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.models.Settings;
 import com.vwo.services.core.BucketingService;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
@@ -33,6 +34,7 @@ import com.vwo.logger.Logger;
 import com.vwo.logger.VWOLogger;
 import com.vwo.services.storage.Storage;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,10 +43,13 @@ import java.util.Map;
 public class VWO {
 
   final Storage.User userStorage;
-  final SettingFile settingFile;
   final VWOLogger customLogger;
   final VariationDecider variationDecider;
   final GoalEnums.GOAL_TYPES goalTypeToTrack;
+  final Integer pollingInterval;
+  final String sdkKey;
+  private String settingFileString;
+  private SettingFile settingFile;
   private boolean developmentMode;
 
   public static final class Enums extends VWOEnums {}
@@ -53,23 +58,75 @@ public class VWO {
 
   private static final Logger LOGGER = Logger.getLogger(VWO.class);
 
-  private VWO(SettingFile settingFile,
-              Storage.User userStorage,
-              VariationDecider variationDecider,
-              VWOLogger customLogger,
-              boolean developmentMode,
-              GoalEnums.GOAL_TYPES goalTypeToTrack) {
-
+  private VWO(
+      SettingFile settingFile,
+      String settingFileString,
+      Storage.User userStorage,
+      VariationDecider variationDecider,
+      VWOLogger customLogger,
+      boolean developmentMode,
+      GoalEnums.GOAL_TYPES goalTypeToTrack,
+      Integer pollingInterval,
+      String sdkKey
+  ) {
     this.userStorage = userStorage;
     this.settingFile = settingFile;
+    this.settingFileString = settingFileString;
     this.customLogger = customLogger;
     this.developmentMode = developmentMode;
     this.variationDecider = variationDecider;
     this.goalTypeToTrack = goalTypeToTrack;
+    this.pollingInterval = pollingInterval;
+    this.sdkKey = sdkKey;
+
+    if (this.pollingInterval != null && this.sdkKey != null) {
+      this.pollSettingsFile();
+    }
+  }
+
+  private void pollSettingsFile() {
+    (new Thread(() -> {
+      while (true) {
+        try {
+          fetchAndUpdateSettings();
+          Thread.sleep(this.pollingInterval);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    })).start();
+  }
+
+  private void fetchAndUpdateSettings() {
+    Settings settings = this.settingFile.getSettings();
+    String accountId = settings.getAccountId().toString();
+    Map<String, String> loggingParams = new HashMap<String, String>() {
+      {
+        put("accountID", accountId);
+      }
+    };
+
+    try {
+      String settingsFileString = this.getSettingsFile(accountId, this.sdkKey);
+
+      if (!settingsFileString.equals(this.settingFileString)) {
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.VWO_SDK_INSTANCE_UPDATED.value(loggingParams));
+        this.settingFileString = settingsFileString;
+        this.settingFile = SettingsFileUtil.initializeSettingsFile(settingsFileString);
+      }
+
+      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.POLLED_SETTINGS_FILE.value(loggingParams));
+    } catch (Exception e) {
+      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SETTINGS_FILE_POLLING_ERROR.value(loggingParams));
+    }
   }
 
   public SettingFile getSettingFile() {
     return this.settingFile;
+  }
+
+  public String getSettingFileString() {
+    return this.settingFileString;
   }
 
   public Storage.User getUserStorage() {
@@ -320,7 +377,6 @@ public class VWO {
   }
 
   public static class Builder {
-
     private SettingFile settingFile;
     private Storage.User userStorage;
     private VariationDecider variationDecider;
@@ -330,6 +386,8 @@ public class VWO {
     private boolean developmentMode;
     private GoalEnums.GOAL_TYPES goalTypeToTrack = GoalEnums.GOAL_TYPES.ALL;
     private Boolean shouldTrackReturningUser = false;
+    private Integer pollingInterval;
+    private String sdkKey;
 
 
     /**
@@ -340,6 +398,28 @@ public class VWO {
      */
     private Builder withSettingFile(String settingFileString) {
       this.settingFileString = settingFileString;
+      return this;
+    }
+
+    /**
+     * Add Polling Interval.
+     *
+     * @param pollingInterval Polling interval in ms
+     * @return Builder instance
+     */
+    public Builder withPollingInterval(Integer pollingInterval) {
+      this.pollingInterval = pollingInterval;
+      return this;
+    }
+
+    /**
+     * Add SDK key for polling.
+     *
+     * @param sdkKey SDK key used to fetch settings file incase of polling.
+     * @return Builder instance
+     */
+    public Builder withSdkKey(String sdkKey) {
+      this.sdkKey = sdkKey;
       return this;
     }
 
@@ -412,13 +492,17 @@ public class VWO {
     }
 
     private void initializeDefaults() {
-      if (this.settingFile == null && this.settingFileString != null && !this.settingFileString.isEmpty()) {
-        try {
-          this.settingFile = SettingsFileUtil.Builder.getInstance(this.settingFileString).build();
-          this.settingFile.processSettingsFile();
-          LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SETTINGS_FILE_PROCESSED.value());
-        } catch (Exception e) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      this.settingFile = SettingsFileUtil.initializeSettingsFile(this.settingFileString);
+
+      if (this.pollingInterval != null) {
+        if (this.sdkKey != null) {
+          LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.REGISTERED_POLLING_INTERVAL.value(new HashMap<String, String>() {
+            {
+              put("pollingInterval", pollingInterval.toString());
+            }
+          }));
+        } else {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_POLLING_SDK_KEY.value());
         }
       }
 
@@ -428,7 +512,17 @@ public class VWO {
     }
 
     private VWO createVWOInstance() {
-      VWO vwoInstance = new VWO(this.settingFile, this.userStorage, this.variationDecider, this.customLogger, this.developmentMode, this.goalTypeToTrack);
+      VWO vwoInstance = new VWO(
+          this.settingFile,
+          this.settingFileString,
+          this.userStorage,
+          this.variationDecider,
+          this.customLogger,
+          this.developmentMode,
+          this.goalTypeToTrack,
+          this.pollingInterval,
+          this.sdkKey
+      );
       if (vwoInstance != null) {
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SDK_INITIALIZED.value());
       }

@@ -322,7 +322,7 @@ public class HttpRequestBuilder {
       }
 
       public Builder withsdkVersion() {
-        this.sdk_v = "1.8.1";
+        this.sdk_v = UriEnums.SDK_VERSION.toString();
         return this;
       }
 

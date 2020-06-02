@@ -377,7 +377,7 @@ public class VariationDecider {
   /**
    * set the goal in the user storage.
    *
-   * @param userStorageMap - User Storage
+   * @param userStorageMap - User storage Map
    * @param goalIdentifier - goalIdentifier String
    * @param userId         - userId string
    * @param campaign       - campaign object
