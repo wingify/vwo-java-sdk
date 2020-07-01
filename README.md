@@ -30,7 +30,7 @@ Add below Maven dependency in your project.
 
 ## Documentation
 
-Refer [Official VWO Documentation](https://developers.vwo.com/reference#server-side-introduction)
+Refer [Official VWO Documentation](https://developers.vwo.com/reference#fullstack-introduction)
 
 ## Basic Usage
 
