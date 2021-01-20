@@ -84,6 +84,9 @@ public class VWO {
     }
   }
 
+  /**
+   * Poll settings file after every pollingInterval ms by spawning a new thread.
+   */
   private void pollSettingsFile() {
     (new Thread(() -> {
       while (true) {
@@ -97,6 +100,9 @@ public class VWO {
     })).start();
   }
 
+  /**
+   * Fetch settings file and update it on the instance in case settings differ from the previous fetched settings.
+   */
   private void fetchAndUpdateSettings() {
     Settings settings = this.settingFile.getSettings();
     String accountId = settings.getAccountId().toString();
