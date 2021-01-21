@@ -51,9 +51,10 @@ public class SettingsFileManager {
    *
    * @param accountID VWO application account-id.
    * @param sdkKey    Unique sdk-key
+   * @param isViaWebhook Webhook flag
    * @return campaign settings
    */
-  public static String getSettingsFile(String accountID, String sdkKey) {
+  public static String getSettingsFile(String accountID, String sdkKey, boolean isViaWebhook) {
     if (accountID == null || accountID.isEmpty() || sdkKey == null || sdkKey.isEmpty()) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS.toString());
       return null;
@@ -65,7 +66,7 @@ public class SettingsFileManager {
       }
     }));
 
-    HttpParams httpParams = HttpRequestBuilder.getSettingParams(accountID, sdkKey);
+    HttpParams httpParams = HttpRequestBuilder.getSettingParams(accountID, sdkKey, isViaWebhook);
     HttpClient httpClient = new HttpClient();
     JsonNode jsonNode = null;
 
@@ -97,6 +98,7 @@ public class SettingsFileManager {
       }
     } catch (Exception e) {
       LOGGER.error("Something went wrong:", e);
+      return null;
     }
 
     return String.valueOf(parseSettings(jsonNode));

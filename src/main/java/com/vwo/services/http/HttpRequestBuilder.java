@@ -42,13 +42,14 @@ public class HttpRequestBuilder {
   public static final String VWO_HOST = UriEnums.BASE_URL.toString();
   public static final String IMPRESSION_PATH = UriEnums.TRACK_USER.toString();
   public static final String GOAL_PATH = UriEnums.TRACK_GOAL.toString();
-  public static final String ACCOUNT_SETTINGS = UriEnums.ACCOUNT_SETTINGS.toString();
+  public static final String SETTINGS_URL = UriEnums.SETTINGS_URL.toString();
+  public static final String WEBHOOK_SETTINGS_URL = UriEnums.WEBHOOK_SETTINGS_URL.toString();
   public static final String PUSH = UriEnums.PUSH.toString();
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final Logger LOGGER = Logger.getLogger(HttpRequestBuilder.class);
 
-  public static HttpParams getSettingParams(String accountID, String sdkKey) {
+  public static HttpParams getSettingParams(String accountID, String sdkKey, boolean isViaWebhook) {
     BuildQueryParams requestParams =
             BuildQueryParams.Builder.getInstance()
                     .withSettingsAccountId(accountID)
@@ -67,7 +68,11 @@ public class HttpRequestBuilder {
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-    return new HttpParams(VWO_HOST, ACCOUNT_SETTINGS, map, HTTPEnums.Verbs.GET);
+    if (isViaWebhook) {
+      return new HttpParams(VWO_HOST, WEBHOOK_SETTINGS_URL, map, HTTPEnums.Verbs.GET);
+    } else {
+      return new HttpParams(VWO_HOST, SETTINGS_URL, map, HTTPEnums.Verbs.GET);
+    }
   }
 
   public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId, Variation variation) {

@@ -117,14 +117,24 @@ public class VWO {
 
       if (!settingsFileString.equals(this.settingFileString)) {
         LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.VWO_SDK_INSTANCE_UPDATED.value(loggingParams));
-        this.settingFileString = settingsFileString;
-        this.settingFile = SettingsFileUtil.initializeSettingsFile(settingsFileString);
+        updateSettingsFile(settingsFileString);
+      } else {
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SETTINGS_NOT_UPDATED.value());
       }
 
       LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.POLLED_SETTINGS_FILE.value(loggingParams));
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SETTINGS_FILE_POLLING_ERROR.value(loggingParams));
     }
+  }
+
+  /**
+   * Update the settings-file on the instance so that latest settings could be used from next hit onwards.
+   * @param settingsFileString Stringified settings file.
+   */
+  private void updateSettingsFile(String settingsFileString) {
+    this.settingFileString = settingsFileString;
+    this.settingFile = SettingsFileUtil.initializeSettingsFile(settingsFileString);
   }
 
   public SettingFile getSettingFile() {
@@ -163,7 +173,7 @@ public class VWO {
    * @return Campaign settings
    */
   public static String getSettingsFile(String accountID, String sdkKey) {
-    return SettingsFileManager.getSettingsFile(accountID, sdkKey);
+    return SettingsFileManager.getSettingsFile(accountID, sdkKey, false);
   }
 
   /**
@@ -355,6 +365,19 @@ public class VWO {
    */
   public boolean push(String tagKey, String tagValue, String userId) {
     return Segmentation.pushCustomDimension(this.getSettingFile(), tagKey, tagValue, userId, this.isDevelopmentMode());
+  }
+
+  /**
+   * Fetch latest settings-file and update so that vwoClientInstance could use latest settings.
+   * Helpful especially when using webhooks
+   * @param accountId VWO application account-id.
+   * @param sdkKey    Unique sdk-key
+   */
+  public void getAndUpdateSettingsFile(String accountId, String sdkKey) {
+    String updatedSettings = SettingsFileManager.getSettingsFile(accountId, sdkKey, true);
+    if (updatedSettings != null) {
+      this.updateSettingsFile(updatedSettings);
+    }
   }
 
   //  /**

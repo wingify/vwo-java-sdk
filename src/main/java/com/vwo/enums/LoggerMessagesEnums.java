@@ -97,6 +97,7 @@ public class LoggerMessagesEnums {
     FEATURE_NOT_ENABLED("isFeatureEnabled flag is false for variation '{{variation}}', hence retrieving variable from Control"),
     FEATURE_VARIABLE_FOUND("Value for variable '{{variableKey}}' of campaign '{{campaignKey}}' for user '{{userId}}' is: '{{variableValue}}'."),
     GOAL_ALREADY_TRACKED("Goal:{{goalIdentifer}} of Campaign:{{campaignKey}} for User ID:{{userId}} has already been tracked earlier. Skipping now."),
+    SETTINGS_NOT_UPDATED("Settings-file fetched are same as earlier fetched settings"),
 
     // Segmentation
     SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}");
