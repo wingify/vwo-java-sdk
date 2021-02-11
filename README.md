@@ -34,7 +34,7 @@ Refer [Official VWO Documentation](https://developers.vwo.com/reference#fullstac
 
 ## Basic Usage
 
-**GET SETTING FILE**
+**GET SETTINGS FILE**
 
 Each VWO SDK client corresponds to the settingsFIle representing the current state of the campaign settings, that is, a list of server-side running campaign settings.
 Setting File is a pre-requisite for initiating the VWO CLIENT INSTANCE.
@@ -53,6 +53,54 @@ The mandatory parameter for instantiating the SDK is settingsFile.
 import com.vwo.VWO;
 
 VWO vwoInstance = VWO.launch(settingsFile).build();
+```
+
+**Activate API**
+
+```java
+String variationName = vwoClientInstance.activate(campaignKey, userId, options);
+
+if (variationName.equals("Control")) {
+  // Write code for handling 'Control'
+} else if (variationName.equals("Variation-1")) {
+  // CODE: write code for Variation-1
+} else {
+  // CODE: When user does not become part of campaign.
+}
+```
+
+**Track API**
+
+```java
+// For CUSTOM goal type
+boolean isSuccessful = vwoClientInstance.track(campaignKey, userId, goalIdentifier, options);
+
+// For REVENUE goal type
+boolean isSuccessful = vwoClientInstance.track(campaignKey, userId, goalIdentifier, options);
+```
+
+**Feature Enabled API**
+
+```java
+Boolean isEnabled = vwoClientInstance.isFeatureEnabled(campaignKey, userId, options);
+
+if (isEnabled) {
+  // Write code for handling feature enabled
+} else {
+  // CODE: User is not qualified for the campaign. Would be due to configuring campaign's percent-traffic less than 100% while creating or updating a FullStack campaign.
+}
+```
+
+**Get Variable Value API**
+
+```java
+Object value = vwoClientInstance.getFeatureVariableValue(campaignKey, variableKey, userId, options);
+```
+
+**Push API**
+
+```java
+boolean isSuccessful = vwoClientInstance.push(customDimensionKey, customDimensionValue, userId);
 ```
 
 The VWO client class needs to be instantiated as an instance that exposes various API methods like activate, getVariation and track.
