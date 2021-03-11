@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package com.vwo.services.api;
 
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.enums.CampaignEnums;
 import com.vwo.services.http.HttpParams;
-import com.vwo.services.http.HttpRequest;
+import com.vwo.services.http.HttpGetRequest;
 import com.vwo.services.http.HttpRequestBuilder;
 import com.vwo.logger.Logger;
 import com.vwo.models.Campaign;
@@ -39,33 +40,36 @@ public class ActivateCampaign {
   /**
    * Get variation and track conversion on VWO server.
    *
-   * @param campaignKey       Campaign key
-   * @param userId            User ID
-   * @param settingFile Settings file Configuration
-   * @param variationDecider  Variation decider service
-   * @param isDevelopmentMode Development mode flag.
-   * @param CustomVariables Pre Segmentation custom variables
+   * @param campaignKey                 Campaign key
+   * @param userId                      User ID
+   * @param settingFile                 Settings file Configuration
+   * @param variationDecider            Variation decider service
+   * @param isDevelopmentMode           Development mode flag.
+   * @param batchEventQueue             Event Batching Queue.
+   * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public static String activate(
-      String campaignKey,
-      String userId,
-      SettingFile settingFile,
-      VariationDecider variationDecider,
-      boolean isDevelopmentMode,
-      Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables
+          String campaignKey,
+          String userId,
+          SettingFile settingFile,
+          VariationDecider variationDecider,
+          boolean isDevelopmentMode,
+          BatchEventQueue batchEventQueue,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables,
+          Boolean shouldTrackReturningUser
   ) {
     try {
       if (!ValidationUtils.isValidParams(
-          new HashMap<String, Object>() {
-            {
-              put("campaignKey", campaignKey);
-              put("userId", userId);
-            }
-          },
-          APIEnums.API_TYPES.ACTIVATE
+              new HashMap<String, Object>() {
+                {
+                  put("campaignKey", campaignKey);
+                  put("userId", userId);
+                }
+              },
+              APIEnums.API_TYPES.ACTIVATE
       )) {
         return null;
       }
@@ -82,23 +86,24 @@ public class ActivateCampaign {
       if (campaign == null) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
           {
-            put("campaignKey",campaignKey);
+            put("campaignKey", campaignKey);
           }
         }));
         return null;
       } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value()) || campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
           {
-            put("api","activate");
-            put("userId",userId);
-            put("campaignKey",campaignKey);
-            put("campaignType",campaign.getType());
+            put("api", "activate");
+            put("userId", userId);
+            put("campaignKey", campaignKey);
+            put("campaignType", campaign.getType());
           }
         }));
         return null;
       }
 
-      return ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables, variationTargetingVariables);
+      return ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode,
+              batchEventQueue, CustomVariables, variationTargetingVariables, shouldTrackReturningUser);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
@@ -106,27 +111,43 @@ public class ActivateCampaign {
   }
 
   public static String activateCampaign(
-      Campaign campaign,
-      String userId,
-      SettingFile settingFile,
-      VariationDecider variationDecider,
-      boolean isDevelopmentMode,
-      Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables
+          Campaign campaign,
+          String userId,
+          SettingFile settingFile,
+          VariationDecider variationDecider,
+          boolean isDevelopmentMode,
+          BatchEventQueue batchEventQueue,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables,
+          Boolean shouldTrackReturningUser
   ) {
-    String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
+    String variation = CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.ACTIVATE.value(), campaign, userId, variationDecider,
+            CustomVariables, variationTargetingVariables, shouldTrackReturningUser == null, null);
 
     if (variation != null) {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new HashMap<String, String>() {
-        {
-          put("userId", userId);
-          put("variation", variation);
-        }
-      }));
-
-
-      // Send Impression Call for Stats
-      ActivateCampaign.sendUserCall(settingFile, campaign, userId, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), isDevelopmentMode);
+      if (shouldTrackReturningUser == null) {
+        shouldTrackReturningUser = variationDecider.getShouldTrackReturningUser();
+      }
+      if (variationDecider.getIsStoredVariation() && !shouldTrackReturningUser) {
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.USER_ALREADY_TRACKED.value(new HashMap<String, String>() {
+          {
+            put("campaignKey", campaign.getKey());
+            put("userId", userId);
+            put("api", campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.VISUAL_AB.value())
+                    ? APIEnums.API_TYPES.ACTIVATE.value()
+                    : APIEnums.API_TYPES.IS_FEATURE_ENABLED.value());
+          }
+        }));
+      } else {
+        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("variation", variation);
+          }
+        }));
+        // Send Impression Call for Stats
+        ActivateCampaign.sendUserCall(settingFile, campaign, userId, batchEventQueue, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), isDevelopmentMode);
+      }
     } else {
       LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_VARIATION_ALLOCATED.value(new HashMap<String, String>() {
         {
@@ -139,11 +160,15 @@ public class ActivateCampaign {
     return variation;
   }
 
-  private static void sendUserCall(SettingFile settingFile, Campaign campaign, String userId, Variation variation, boolean isDevelopmentMode) {
-    HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation);
+  private static void sendUserCall(SettingFile settingFile, Campaign campaign, String userId, BatchEventQueue batchEventQueue, Variation variation, boolean isDevelopmentMode) {
     try {
-      if (!isDevelopmentMode) {
-        HttpRequest.send(httpParams);
+      if (batchEventQueue != null) {
+        batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingUser(settingFile, campaign, userId, variation));
+      } else {
+        HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation);
+        if (!isDevelopmentMode) {
+          HttpGetRequest.send(httpParams);
+        }
       }
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());

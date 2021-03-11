@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.vwo.services.core;
 
 import com.vwo.enums.CampaignEnums;
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.SegmentationTypeEnums;
 import com.vwo.enums.StatusEnums;
@@ -41,7 +42,8 @@ public class VariationDecider {
 
   private final BucketingService bucketingService;
   private final Storage.User userStorage;
-  private boolean shouldTrackReturningUser;
+  private final boolean shouldTrackReturningUser;
+  public boolean isStoredVariation;
   private static final Logger LOGGER = Logger.getLogger(VariationDecider.class);
 
   public VariationDecider(BucketingService bucketingService, Storage.User userStorage, boolean shouldTrackReturningUser) {
@@ -50,26 +52,37 @@ public class VariationDecider {
     this.shouldTrackReturningUser = shouldTrackReturningUser;
   }
 
+
+  public boolean getShouldTrackReturningUser() {
+    return shouldTrackReturningUser;
+  }
+
+  public boolean getIsStoredVariation() {
+    return isStoredVariation;
+  }
+
   /**
    * Determines the variation of a user for a campaign.
    *
-   * @param campaign - campaign instance
-   * @param userId   - user id string
-   * @param rawCustomVariables Pre Segmentation custom variables
+   * @param campaign                       - campaign instance
+   * @param userId                         - user id string
+   * @param rawCustomVariables             Pre Segmentation custom variables
    * @param rawVariationTargetingVariables User Whitelisting Targeting variables
-   * @param goalIdentifier Goal key
-   * @param shouldTrackReturningUser Boolean value to check if the goal should be tracked again or not.
+   * @param goalIdentifier                 Goal key
+   * @param shouldTrackReturningUser       Boolean value to check if the goal should be tracked again or not.
    * @return variation name or null if not found.
    */
   public Variation getVariation(
-      Campaign campaign,
-      String userId,
-      Map<String, ?> rawCustomVariables,
-      Map<String, ?> rawVariationTargetingVariables,
-      String goalIdentifier,
-      Boolean shouldTrackReturningUser
+          String apiName,
+          Campaign campaign,
+          String userId,
+          Map<String, ?> rawCustomVariables,
+          Map<String, ?> rawVariationTargetingVariables,
+          String goalIdentifier,
+          Boolean shouldTrackReturningUser
   ) {
     // Default initialization(s)
+    isStoredVariation = false;
     final Map<String, ?> customVariables = rawCustomVariables == null ? new HashMap<>() : rawCustomVariables;
     final Map<String, ?> variationTargetingVariables = rawVariationTargetingVariables == null ? new HashMap<>() : rawVariationTargetingVariables;
     ((Map<String, Object>) variationTargetingVariables).put(VWOAttributesEnum.USER_ID.value(), userId);
@@ -171,7 +184,11 @@ public class VariationDecider {
         Map<String, String> userStorageMap = this.userStorage.get(userId, campaign.getKey());
 
         if (userStorageMap == null) {
-          LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value());
+          if (!isCampaignActivated(apiName, userId, campaign)) {
+            return null;
+          } else {
+            LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value());
+          }
         } else if (StorageUtils.isValidUserStorageMap(userStorageMap)) {
           if (shouldTrackReturningUser == null) {
             shouldTrackReturningUser = this.shouldTrackReturningUser;
@@ -213,21 +230,30 @@ public class VariationDecider {
             if (goalIdentifier != null) {
               setGoalInUserStorage(userStorageMap, goalIdentifier, userId, campaign);
             }
+            isStoredVariation = true;
             return variation;
           } else {
-            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
+            if (!isCampaignActivated(apiName, userId, campaign)) {
+              return null;
+            } else {
+              LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
+                {
+                  put("campaignKey", campaign.getKey());
+                  put("userId", userId);
+                }
+              }));
+            }
+          }
+        } else {
+          if (!isCampaignActivated(apiName, userId, campaign)) {
+            return null;
+          } else {
+            LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_USER_STORAGE_MAP.value(new HashMap<String, String>() {
               {
-                put("campaignKey", campaign.getKey());
-                put("userId", userId);
+                put("map", userStorageMap.toString());
               }
             }));
           }
-        } else {
-          LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_USER_STORAGE_MAP.value(new HashMap<String, String>() {
-            {
-              put("map", userStorageMap.toString());
-            }
-          }));
         }
       } catch (Exception e) {
         LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.NO_DATA_IN_USER_STORAGE.value());
@@ -288,7 +314,7 @@ public class VariationDecider {
     }
 
     for (Variation variation : campaign.getVariations()) {
-      if (variation.getName().equalsIgnoreCase(variationName)) {
+      if (variation.getName().equalsIgnoreCase(variationName) && variation.getWeight() > 0.0) {
         return variation;
       }
     }
@@ -411,5 +437,37 @@ public class VariationDecider {
   private boolean checkGoalTracked(String goalIdentifier, Map<String, String> userStorageMap) {
     ArrayList<String> goalList = StorageUtils.stringToArray(userStorageMap.get(UserStorage.goalIdentifier));
     return goalList != null && goalList.contains(goalIdentifier);
+  }
+
+  /**
+   * Check if the campaign is activated before.
+   *
+   * @param apiName   - name of the API
+   * @param userId    - user id string
+   * @param campaign  - campaign instance
+   * @return true if campaign is activated, else false
+   */
+  private boolean isCampaignActivated(String apiName, String userId, Campaign campaign) {
+    if (!apiName.equalsIgnoreCase(APIEnums.API_TYPES.ACTIVATE.value())
+            && !apiName.equalsIgnoreCase(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value())
+            && !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
+
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.CAMPAIGN_NOT_ACTIVATED.value(new HashMap<String, String>() {
+        {
+          put("campaignKey", campaign.getKey());
+          put("userId", userId);
+          put("api", apiName);
+        }
+      }));
+      LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.CAMPAIGN_NOT_ACTIVATED.value(new HashMap<String, String>() {
+        {
+          put("campaignKey", campaign.getKey());
+          put("userId", userId);
+          put("reason", apiName.equalsIgnoreCase(APIEnums.API_TYPES.TRACK.value()) ? "track it" : "get the decision/value");
+        }
+      }));
+      return false;
+    }
+    return true;
   }
 }

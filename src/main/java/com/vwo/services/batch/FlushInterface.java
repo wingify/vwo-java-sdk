@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package com.vwo.services.segmentation.enums;
+package com.vwo.services.batch;
 
-public enum OperatorEnum {
-  AND("and"),
-  OR("or"),
-  NOT("not");
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-  String operator;
+import java.util.Map;
+import java.util.Queue;
 
-  OperatorEnum(String operator) {
-    this.operator = operator;
-  }
-
-  public String value() {
-    return this.operator;
-  }
+public interface FlushInterface {
+  public void onFlush(String error, JsonNode events);
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,31 +35,31 @@ public class CampaignVariation {
   /**
    * Get variation name.
    *
-   * @param campaignKey        Campaign key
-   * @param userId             User ID
-   * @param settingFile  Settings file Configuration
-   * @param variationDecider   Variation decider service
-   * @param CustomVariables Pre Segmentation custom variables
+   * @param campaignKey                 Campaign key
+   * @param userId                      User ID
+   * @param settingFile                 Settings file Configuration
+   * @param variationDecider            Variation decider service
+   * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
    * @return Variation name
    */
   public static String getVariationName(
-      String campaignKey,
-      String userId,
-      SettingFile settingFile,
-      VariationDecider variationDecider,
-      Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables
+          String campaignKey,
+          String userId,
+          SettingFile settingFile,
+          VariationDecider variationDecider,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables
   ) {
     try {
       if (!ValidationUtils.isValidParams(
-          new HashMap<String, Object>() {
-            {
-              put("campaignKey", campaignKey);
-              put("userId", userId);
-            }
-          },
-          APIEnums.API_TYPES.GET_VARIATION_NAME
+              new HashMap<String, Object>() {
+                {
+                  put("campaignKey", campaignKey);
+                  put("userId", userId);
+                }
+              },
+              APIEnums.API_TYPES.GET_VARIATION_NAME
       )) {
         return null;
       }
@@ -76,44 +76,53 @@ public class CampaignVariation {
       if (campaign == null) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
           {
-            put("campaignKey",campaignKey);
+            put("campaignKey", campaignKey);
           }
         }));
         return null;
       } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
           {
-            put("api","getVariation");
-            put("userId",userId);
-            put("campaignKey",campaignKey);
-            put("campaignType",campaign.getType());
+            put("api", "getVariation");
+            put("userId", userId);
+            put("campaignKey", campaignKey);
+            put("campaignType", campaign.getType());
           }
         }));
         return null;
       }
 
-      return CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
+      return CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.GET_VARIATION_NAME.value(), campaign, userId,
+              variationDecider, CustomVariables, variationTargetingVariables);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
   }
 
-  public static String getCampaignVariationName(Campaign campaign, String userId, VariationDecider variationDecider, Map<String, ?> CustomVariables, Map<String, ?> variationTargetingVariables) {
-    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables, variationTargetingVariables, null, null);
+  public static String getCampaignVariationName(
+          String apiName,
+          Campaign campaign,
+          String userId,
+          VariationDecider variationDecider,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables) {
+    Variation variation = variationDecider.getVariation(apiName, campaign, userId, CustomVariables,
+            variationTargetingVariables, null, null);
     return variation != null ? variation.getName() : null;
   }
 
   public static String getCampaignVariationName(
-      Campaign campaign,
-      String userId,
-      VariationDecider variationDecider,
-      Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables,
-      String goalIdentifier,
-      Boolean shouldTrackReturningUser
+          String apiName,
+          Campaign campaign,
+          String userId,
+          VariationDecider variationDecider,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables,
+          Boolean shouldTrackReturningUser,
+          String goalIdentifier
   ) {
-    Variation variation = variationDecider.getVariation(campaign, userId, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
+    Variation variation = variationDecider.getVariation(apiName, campaign, userId, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
     return variation != null ? variation.getName() : null;
   }
 }

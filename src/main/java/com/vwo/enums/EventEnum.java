@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package com.vwo.services.segmentation.enums;
+package com.vwo.enums;
 
-public enum OperatorEnum {
-  AND("and"),
-  OR("or"),
-  NOT("not");
+public class EventEnum {
+  public enum EVENT_TYPES {
+    TRACK_USER(1),
+    TRACK_GOAL(2),
+    PUSH(3);
 
-  String operator;
+    private final int value;
 
-  OperatorEnum(String operator) {
-    this.operator = operator;
-  }
+    EVENT_TYPES(final int value) {
+      this.value = value;
+    }
 
-  public String value() {
-    return this.operator;
+    public int getValue() {
+      return value;
+    }
   }
 }

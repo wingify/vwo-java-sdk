@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
-public class HttpRequest implements Runnable {
-  private static final Logger LOGGER = Logger.getLogger(HttpRequest.class);
+public class HttpGetRequest implements Runnable {
+  private static final Logger LOGGER = Logger.getLogger(HttpGetRequest.class);
 
   private final HttpClient httpClient = new HttpClient();
   private final HttpParams httpParams;
 
-  public HttpRequest(HttpParams httpParams) {
+  public HttpGetRequest(HttpParams httpParams) {
     this.httpParams = httpParams;
   }
 
@@ -47,7 +47,7 @@ public class HttpRequest implements Runnable {
   }
 
   private void getRequest(HttpParams httpParams) throws IOException, URISyntaxException {
-    URI httpUri = HttpUtils.getHttpUri(httpParams);
+    URI httpUri = HttpUtils.getRequestUri(httpParams);
     HttpRequestBase request = new HttpGet(httpUri);
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
@@ -56,14 +56,14 @@ public class HttpRequest implements Runnable {
       }
     }));
 
-    httpClient.send(request, new HttpResponseHandler());
+    httpClient.send(request, new HttpGetResponseHandler());
   }
 
-  public static HttpRequest send(HttpParams httpParams) {
+  public static HttpGetRequest send(HttpParams httpParams) {
     try {
-      HttpRequest httpRequest = new HttpRequest(httpParams);
-      new Thread(httpRequest).start();
-      return httpRequest;
+      HttpGetRequest httpGetRequest = new HttpGetRequest(httpParams);
+      new Thread(httpGetRequest).start();
+      return httpGetRequest;
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value(), e);
       return null;

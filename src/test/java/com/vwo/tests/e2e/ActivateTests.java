@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
 import com.vwo.VWOAdditionalParams;
+import com.vwo.models.BatchEventData;
 import com.vwo.models.Settings;
 import com.vwo.logger.Logger;
+import com.vwo.services.storage.Storage;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import java.io.IOException;
@@ -37,6 +39,7 @@ public class ActivateTests {
   private static VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
   private static String userId = TestUtils.getRandomUser();
   private static final Logger LOGGER = Logger.getLogger(ActivateTests.class);
+  BatchEventData batchEventData = new BatchEventData();
 
   @Test
   public void validationTests() throws IOException {
@@ -230,6 +233,62 @@ public class ActivateTests {
     };
 
     validateActivateMethod(com.vwo.tests.data.Settings.USER_WHITELISTING_AB_TEST_TRAFFIC_100, UserExpectations.ALL_VARIATION_2, new VWO.AdditionalParams().setCustomVariables(customVariables).setVariationTargetingVariables(variationTargetingVariables));
+  }
+
+  @Test
+  public void returningUserFlagPassedGloballyTest() throws IOException {
+    LOGGER.info("should be/not added to eventBatching queue depending upon the flag passed while launching VWO.");
+    batchEventData.setEventsPerRequest(50);
+
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+
+    //when shouldTrackReturningUser global value is set to true
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(true).withBatchEvents(batchEventData).build();
+    vwoInstance.activate(campaignKey, "Ashley");
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
+
+    //when shouldTrackReturningUser global value is set to false
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(false).withBatchEvents(batchEventData).build();
+    vwoInstance.activate(campaignKey, "Ashley");
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
+
+    //when the global value is not passed, by default false should be used.
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withBatchEvents(batchEventData).build();
+    vwoInstance.activate(campaignKey, "Ashley");
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
+  }
+
+  @Test
+  public void returningUserFlagPassedLocalTest() throws IOException {
+    LOGGER.info("should return variation track user call should be sent if userStorageService is not passed");
+
+    batchEventData.setEventsPerRequest(50);
+
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(true).withBatchEvents(batchEventData).build();
+
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    params.setShouldTrackReturningUser(false);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
+
+    //shouldTrackReturningUser set to true
+    params.setShouldTrackReturningUser(true);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 3);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 4);
+
+    //when shouldTrackReturningUser is not passed in API, global value should be used
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 5);
   }
 
   private static void validateActivateMethod(String settingsFile, ArrayList<UserExpectations.Variation> userVariation, VWOAdditionalParams additionalParams) throws IOException {

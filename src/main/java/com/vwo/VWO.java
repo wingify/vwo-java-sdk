@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package com.vwo;
 
 import com.vwo.enums.GoalEnums;
 import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.models.BatchEventData;
 import com.vwo.models.Settings;
+import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.BucketingService;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
@@ -50,24 +52,28 @@ public class VWO {
   final String sdkKey;
   private String settingFileString;
   private SettingFile settingFile;
+  private BatchEventQueue batchEventQueue;
   private boolean developmentMode;
 
-  public static final class Enums extends VWOEnums {}
+  public static final class Enums extends VWOEnums {
+  }
 
-  public static final class AdditionalParams extends VWOAdditionalParams {}
+  public static final class AdditionalParams extends VWOAdditionalParams {
+  }
 
   private static final Logger LOGGER = Logger.getLogger(VWO.class);
 
   private VWO(
-      SettingFile settingFile,
-      String settingFileString,
-      Storage.User userStorage,
-      VariationDecider variationDecider,
-      VWOLogger customLogger,
-      boolean developmentMode,
-      GoalEnums.GOAL_TYPES goalTypeToTrack,
-      Integer pollingInterval,
-      String sdkKey
+          SettingFile settingFile,
+          String settingFileString,
+          Storage.User userStorage,
+          VariationDecider variationDecider,
+          VWOLogger customLogger,
+          boolean developmentMode,
+          GoalEnums.GOAL_TYPES goalTypeToTrack,
+          Integer pollingInterval,
+          String sdkKey,
+          BatchEventQueue batchEventQueue
   ) {
     this.userStorage = userStorage;
     this.settingFile = settingFile;
@@ -78,6 +84,7 @@ public class VWO {
     this.goalTypeToTrack = goalTypeToTrack;
     this.pollingInterval = pollingInterval;
     this.sdkKey = sdkKey;
+    this.batchEventQueue = batchEventQueue;
 
     if (this.pollingInterval != null && this.sdkKey != null) {
       this.pollSettingsFile();
@@ -157,6 +164,10 @@ public class VWO {
     return this.customLogger;
   }
 
+  public BatchEventQueue getBatchEventQueue() {
+    return this.batchEventQueue;
+  }
+
   public boolean isDevelopmentMode() {
     return this.developmentMode;
   }
@@ -182,18 +193,20 @@ public class VWO {
    * @param campaignKey Campaign key
    * @param userId      User ID
    * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
-   * @return            String variation name, or null if the user doesn't qualify to become a part of the campaign.
+   * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
     return ActivateCampaign.activate(
-      campaignKey,
-      userId,
-      this.getSettingFile(),
-      this.getVariationDecider(),
-      this.isDevelopmentMode(),
-      additionalParams.getCustomVariables(),
-      additionalParams.getVariationTargetingVariables()
+            campaignKey,
+            userId,
+            this.getSettingFile(),
+            this.getVariationDecider(),
+            this.isDevelopmentMode(),
+            this.batchEventQueue,
+            additionalParams.getCustomVariables(),
+            additionalParams.getVariationTargetingVariables(),
+            additionalParams.getShouldTrackReturningUser()
     );
   }
 
@@ -202,10 +215,10 @@ public class VWO {
    *
    * @param campaignKey Campaign key
    * @param userId      User ID
-   * @return            String variation name, or null if the user doesn't qualify to become a part of the campaign.
+   * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignKey, String userId) {
-    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null, null);
+    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, null, null, null);
   }
 
   /**
@@ -214,18 +227,18 @@ public class VWO {
    * @param campaignKey  Campaign key
    * @param userId       User ID
    * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
-   * @return             Variation name
+   * @return Variation name
    */
   public String getVariationName(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
 
     return CampaignVariation.getVariationName(
-      campaignKey,
-      userId,
-      this.getSettingFile(),
-      this.getVariationDecider(),
-      additionalParams.getCustomVariables(),
-      additionalParams.getVariationTargetingVariables()
+            campaignKey,
+            userId,
+            this.getSettingFile(),
+            this.getVariationDecider(),
+            additionalParams.getCustomVariables(),
+            additionalParams.getVariationTargetingVariables()
     );
   }
 
@@ -234,7 +247,7 @@ public class VWO {
    *
    * @param campaignKey  Campaign key
    * @param userId       User ID
-   * @return             Variation name
+   * @return Variation name
    */
   public String getVariationName(String campaignKey, String userId) {
     return CampaignVariation.getVariationName(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), null, null);
@@ -247,42 +260,44 @@ public class VWO {
    * @param userId           User ID
    * @param goalIdentifier   Goal key
    * @param additionalParams Any Additional params (revenueValue, customVariables, variationTargetingVariables)
-   * @return                 Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
+   * @return Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
    */
   public Map<String, Boolean> track(Object campaignKey, String userId, String goalIdentifier, VWOAdditionalParams additionalParams) {
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
     GoalEnums.GOAL_TYPES goalsToTrack = additionalParams.getGoalTypeToTrack() == null
-        ? this.goalTypeToTrack
-        : additionalParams.getGoalTypeToTrack();
+            ? this.goalTypeToTrack
+            : additionalParams.getGoalTypeToTrack();
 
     return TrackCampaign.trackGoal(
-      campaignKey,
-      userId,
-      goalIdentifier,
-      additionalParams.getRevenueValue(),
-      this.getSettingFile(),
-      this.getVariationDecider(),
-      this.isDevelopmentMode(),
-      additionalParams.getCustomVariables(),
-      additionalParams.getVariationTargetingVariables(),
-      goalsToTrack,
-      additionalParams.getShouldTrackReturningUser()
+            campaignKey,
+            userId,
+            goalIdentifier,
+            additionalParams.getRevenueValue(),
+            this.getSettingFile(),
+            this.getVariationDecider(),
+            this.isDevelopmentMode(),
+            this.batchEventQueue,
+            additionalParams.getCustomVariables(),
+            additionalParams.getVariationTargetingVariables(),
+            goalsToTrack,
+            additionalParams.getShouldTrackReturningUser()
     );
   }
 
   public Map<String, Boolean> track(Object campaignKey, String userId, String goalIdentifier) {
     return TrackCampaign.trackGoal(
-      campaignKey,
-      userId,
-      goalIdentifier,
-      null,
-      this.getSettingFile(),
-      this.getVariationDecider(),
-      this.isDevelopmentMode(),
-      null,
-      null,
-      this.goalTypeToTrack,
-      null
+            campaignKey,
+            userId,
+            goalIdentifier,
+            null,
+            this.getSettingFile(),
+            this.getVariationDecider(),
+            this.isDevelopmentMode(),
+            this.batchEventQueue,
+            null,
+            null,
+            this.goalTypeToTrack,
+            null
     );
   }
 
@@ -298,13 +313,15 @@ public class VWO {
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
 
     return FeatureCampaign.isFeatureEnabled(
-      campaignKey,
-      userId,
-      this.getSettingFile(),
-      this.getVariationDecider(),
-      this.isDevelopmentMode(),
-      additionalParams.getCustomVariables(),
-      additionalParams.getVariationTargetingVariables()
+            campaignKey,
+            userId,
+            this.getSettingFile(),
+            this.getVariationDecider(),
+            this.isDevelopmentMode(),
+            this.batchEventQueue,
+            additionalParams.getCustomVariables(),
+            additionalParams.getVariationTargetingVariables(),
+            additionalParams.getShouldTrackReturningUser()
     );
   }
 
@@ -316,7 +333,7 @@ public class VWO {
    * @return Boolean corresponding to whether user became part of feature.
    */
   public boolean isFeatureEnabled(String campaignKey, String userId) {
-    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), null, null);
+    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, null, null, null);
   }
 
   /**
@@ -332,14 +349,14 @@ public class VWO {
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
 
     return FeatureCampaign.getFeatureVariable(
-      campaignKey,
-      userId,
-      variableKey,
-      null,
-      this.getSettingFile(),
-      this.getVariationDecider(),
-      additionalParams.getCustomVariables(),
-      additionalParams.getVariationTargetingVariables()
+            campaignKey,
+            userId,
+            variableKey,
+            null,
+            this.getSettingFile(),
+            this.getVariationDecider(),
+            additionalParams.getCustomVariables(),
+            additionalParams.getVariationTargetingVariables()
     );
   }
 
@@ -364,7 +381,25 @@ public class VWO {
    * @return Boolean representing if the tag was pushed or not
    */
   public boolean push(String tagKey, String tagValue, String userId) {
-    return Segmentation.pushCustomDimension(this.getSettingFile(), tagKey, tagValue, userId, this.isDevelopmentMode());
+    return Segmentation.pushCustomDimension(this.getSettingFile(), tagKey, tagValue, userId, this.batchEventQueue, this.isDevelopmentMode());
+  }
+
+  /**
+   * Manually flush impression events to VWO which are queued in batch queue as per batchEvents config.
+   * @return Boolean representing if the events are flushed or not
+   */
+  public boolean flushEvents() {
+    int accountId = this.settingFile.getSettings().getAccountId();
+    if (this.batchEventQueue != null) {
+      return this.batchEventQueue.flushAndClearInterval();
+    } else {
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_BATCH_QUEUE.value(new HashMap<String, String>() {
+        {
+          put("accountId", String.valueOf(accountId));
+        }
+      }));
+      return false;
+    }
   }
 
   /**
@@ -417,6 +452,8 @@ public class VWO {
     private Boolean shouldTrackReturningUser = false;
     private Integer pollingInterval;
     private String sdkKey;
+    private BatchEventData batchEvents;
+    private BatchEventQueue batchEventsQueue;
 
 
     /**
@@ -507,6 +544,11 @@ public class VWO {
       return this;
     }
 
+    public Builder withBatchEvents(BatchEventData batchEvents) {
+      this.batchEvents = batchEvents;
+      return this;
+    }
+
     /**
      * Creates a new VWO instance.
      *
@@ -538,19 +580,23 @@ public class VWO {
       this.bucketingService = new BucketingService();
       this.variationDecider = new VariationDecider(bucketingService, userStorage, shouldTrackReturningUser);
       this.developmentMode = this.developmentMode || false;
+      if (this.batchEvents != null) {
+        batchEventsQueue = new BatchEventQueue(this.batchEvents, settingFile.getSettings().getSdkKey(), settingFile.getSettings().getAccountId(), this.developmentMode);
+      }
     }
 
     private VWO createVWOInstance() {
       VWO vwoInstance = new VWO(
-          this.settingFile,
-          this.settingFileString,
-          this.userStorage,
-          this.variationDecider,
-          this.customLogger,
-          this.developmentMode,
-          this.goalTypeToTrack,
-          this.pollingInterval,
-          this.sdkKey
+              this.settingFile,
+              this.settingFileString,
+              this.userStorage,
+              this.variationDecider,
+              this.customLogger,
+              this.developmentMode,
+              this.goalTypeToTrack,
+              this.pollingInterval,
+              this.sdkKey,
+              this.batchEventsQueue
       );
       if (vwoInstance != null) {
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SDK_INITIALIZED.value());

@@ -243,4 +243,4 @@ Please go through our [contributing guidelines](https://github.com/wingify/vwo-j
 
 [Apache License, Version 2.0](https://github.com/wingify/vwo-java-sdk/blob/master/LICENSE)
 
-Copyright 2019-2020 Wingify Software Pvt. Ltd.
+Copyright 2019-2021 Wingify Software Pvt. Ltd.

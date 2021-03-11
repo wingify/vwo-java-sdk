@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,10 +56,10 @@ public class LoggerMessagesEnums {
     USER_HASH_BUCKET_VALUE("User '{{userId}}' having hash '{{hashValue}}' got bucket value '{{bucketValue}}'"),
     USER_NOT_PART_OF_CAMPAIGN("User '{{userId}}' did not become part of campaign '{{campaignKey}}'."),
     SAVED_IN_USER_STORAGE_SERVICE("Successfully saved variation '{{variation}}' of user {{userId}} in user storage."),
-    GET_SETTINGS_IMPRESSION_CREATED("Impression event built for get settings '{{requestParams}}'."),
-    TRACK_USER_IMPRESSION_CREATED("Impression event built for track-user '{{userId}}' - '{{requestParams}}'."),
-    TRACK_GOAL_IMPRESSION_CREATED("Impression event built for track-goal of user '{{userId}}' -  '{{requestParams}}'."),
-    POST_SEGMENTATION_REQUEST_CREATED("Request params build for post segmentation of user '{{userId}}' -  '{{requestParams}}'."),
+    GET_SETTINGS_IMPRESSION_CREATED("Impression event built for get settings."),
+    TRACK_USER_IMPRESSION_CREATED("Impression event built for track-user '{{userId}}'."),
+    TRACK_GOAL_IMPRESSION_CREATED("Impression event built for track-goal of user '{{userId}}'."),
+    POST_SEGMENTATION_REQUEST_CREATED("Request params build for post segmentation of user '{{userId}}'."),
     HTTP_REQUEST_EXECUTED("Dispatching request to \n URL: '{{url}}'."),
     SETTINGS_FILE_PROCESSED("Settings file processed successfully."),
     SDK_INITIALIZED("SDK properly initialized."),
@@ -69,7 +69,15 @@ public class LoggerMessagesEnums {
     // Segmentation
     SEGMENTATION_STATUS("For userId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),
     SEGMENTATION_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, segment was missing, hence skipping segmentation for {{variation}}"),
-    WHITELISTING_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, whitelisting was skipped");
+    WHITELISTING_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, whitelisting was skipped"),
+    BEFORE_FLUSHING("Flushing events queue {{manually}} having {{length}} events for account:{{accountId}}. {{timer}}, queue summary: {{queue_metadata}}"),
+    BATCH_EVENT_LIMIT_EXCEEDED("Impression event - {{endPoint}} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{{eventsPerRequest}} for accountId:{{accountId}}. Please read the official documentation for knowing the size limits."),
+    BULK_NOT_PROCESSED("Batch events couldn't be received by VWO. Calling Flush Callback with error and data."),
+    NO_BATCH_QUEUE("No batch queue present for account:{{accountId}} when calling flushEvents API. Check batchEvents config in launch API"),
+    CAMPAIGN_NOT_ACTIVATED("Campaign:{{campaignKey}} for User ID:{{userId}} is not yet activated for API:{{api}}. Use activate API to activate A/B test or isFeatureEnabled API to activate Feature Test."),
+    EVENT_QUEUE_EMPTY("Event Batching queue is empty"),
+    EVENTS_PER_REQUEST_OUT_OF_BOUNDS("eventsPerRequest should be > {{min_value}} and <= {{max_value}}. Assigning it the default value i.e {{default_value}}"),
+    REQUEST_TIME_INTERVAL_OUT_OF_BOUNDS("requestTimeInterval should be > {{min_value}}. Assigning it the default value i.e {{default_value}} seconds");
 
     private final String msg;
 
@@ -97,10 +105,15 @@ public class LoggerMessagesEnums {
     FEATURE_NOT_ENABLED("isFeatureEnabled flag is false for variation '{{variation}}', hence retrieving variable from Control"),
     FEATURE_VARIABLE_FOUND("Value for variable '{{variableKey}}' of campaign '{{campaignKey}}' for user '{{userId}}' is: '{{variableValue}}'."),
     GOAL_ALREADY_TRACKED("Goal:{{goalIdentifer}} of Campaign:{{campaignKey}} for User ID:{{userId}} has already been tracked earlier. Skipping now."),
+    USER_ALREADY_TRACKED("User ID:{{userId}} for Campaign:{{campaignKey}} has already been tracked earlier for {{api}} API. Skipping now."),
     SETTINGS_NOT_UPDATED("Settings-file fetched are same as earlier fetched settings"),
+    AFTER_FLUSHING("Events queue having {{length}} events has been flushed {{manually}}, queue summary: {{queue_metadata}}"),
 
     // Segmentation
-    SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}");
+    SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),
+    BULK_IMPRESSION_SUCCESS("Impression event - {{endPoint}} was successfully received by VWO having accountId:{{a}}"),
+    CAMPAIGN_NOT_ACTIVATED("Activate the campaign:{{campaignKey}} for User ID:{{userId}} to {{reason}}."),
+    IMPRESSION_SUCCESS_QUEUE("Impression event was successfully pushed in queue");
 
     private final String msg;
 
@@ -164,7 +177,8 @@ public class LoggerMessagesEnums {
     INVALID_API("API '{{api}}' is not valid for userId '{{userId}}' in campaign '{{campaignKey}}' having campaign type '{{campaignType}}'."),
     VARIABLE_NOT_FOUND("Variable '{{variableKey}}' not found for campaign '{{campaignKey}}' and type '{{campaignType}}' for userId '{{userId}}'."),
     VARIABLE_REQUESTED_WITH_WRONG_TYPE("Got variable type as '{{variableType}}', but expected '{{expectedVariableType}}. Please read docs and use correct API. Returning null."),
-    SEGMENTATION_ERROR("Error while segmenting the userId:{{userId}} of campaignKey:{{campaignKey}} for {{variation}} with customVariables:{{customVariables}}. Error message: {{err}}");
+    SEGMENTATION_ERROR("Error while segmenting the userId:{{userId}} of campaignKey:{{campaignKey}} for {{variation}} with customVariables:{{customVariables}}. Error message: {{err}}"),
+    IMPRESSION_FAILED("Impression event could not be sent to VWO - {{endPoint}}. Reason: {{err}}");
 
 
     private final String msg;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import org.apache.http.client.ResponseHandler;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class HttpResponseHandler implements ResponseHandler<Void> {
-  private static final Logger LOGGER = Logger.getLogger(HttpResponseHandler.class);
+public class HttpGetResponseHandler implements ResponseHandler<Void> {
+  private static final Logger LOGGER = Logger.getLogger(HttpGetResponseHandler.class);
 
   @Override
   public Void handleResponse(HttpResponse response) throws IOException {

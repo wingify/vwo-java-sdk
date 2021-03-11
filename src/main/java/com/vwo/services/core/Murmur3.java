@@ -23,11 +23,11 @@ public class Murmur3 {
 
   /**
    * Murmur3 is successor to Murmur2 fast non-crytographic hash algorithms.
-   * <p>
+   *
    * Murmur3 32 and 128 bit variants.
    * 32-bit Java port of https://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp#94
    * 128-bit Java port of https://code.google.com/p/smhasher/source/browse/trunk/MurmurHash3.cpp#255
-   * <p>
+   *
    * This is a public domain code with no copyrights.
    * From homepage of MurmurHash (https://code.google.com/p/smhasher/),
    * "All MurmurHash versions are public domain software, and the author disclaims all copyright
@@ -582,4 +582,3 @@ public class Murmur3 {
     return (b1 & 0xff) | ((b2 & 0xff) << 8) | ((b3 & 0xff) << 16) | ((b4 & 0xff) << 24);
   }
 }
-

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,28 +18,35 @@ package com.vwo.tests.e2e;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
+import com.vwo.VWOAdditionalParams;
 import com.vwo.logger.Logger;
+import com.vwo.models.BatchEventData;
 import com.vwo.models.Settings;
+import com.vwo.services.http.HttpRequestBuilder;
 import com.vwo.services.storage.Storage;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import com.vwo.utils.StorageUtils;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 
 public class UserStorageTests {
   private static final Logger LOGGER = Logger.getLogger(UserStorageTests.class);
+  BatchEventData batchEventData = new BatchEventData();
 
   @Test
   public void validMapValidationTest() {
@@ -120,14 +127,6 @@ public class UserStorageTests {
   }
 
   @Test
-  public void getMethodForNonMatchingMapTests() throws IOException {
-    LOGGER.info("Should ignore user storage's variation and find variation using murmur logic if non matching map found (user id or campaign key is different)");
-
-    Storage.User userStorage = this.getUserStorageWithNonMatchingUser();
-    getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_75_VARIATIONS_10, UserExpectations.AB_TRAFFIC_75_VARIATIONS_10, userStorage);
-  }
-
-  @Test
   public void getMethodThrowErrorTests() throws IOException {
     LOGGER.info("Should ignore user storage and find variation using murmur logic if getting any exception from customer defined functions");
 
@@ -154,6 +153,119 @@ public class UserStorageTests {
     getVariationTest(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, UserExpectations.AB_TRAFFIC_100_WEIGHT_33_33_33, userStorage);
   }
 
+  @Test
+  public void apisCalledBeforeActivateFalsyTests() throws IOException {
+    LOGGER.info("Should return null if getVariation/track API is called before activate API");
+
+    Storage.User userStorage = this.getUserStorage(new ArrayList<Map<String, String>>());
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withDevelopmentMode(true).withUserStorage(userStorage).build();
+    assertEquals(vwoInstance.getVariationName(campaignKey, "Ashley"), null);
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", "CUSTOM").get(campaignKey), false);
+
+    LOGGER.info("Should return false if getFeatureVariableValue/track API is called before isFeatureEnabled API for feature test");
+    settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100, Settings.class);
+    campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100).withDevelopmentMode(true).withUserStorage(userStorage).build();
+    assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), null);
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", "FEATURE_TEST_GOAL").get(campaignKey), false);
+
+    LOGGER.info("Should return value if getFeatureVariableValue/track API is called before isFeatureEnabled API for feature rollout");
+    settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100, Settings.class);
+    campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100).withDevelopmentMode(true).withUserStorage(userStorage).build();
+    assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), "this_is_a_string");
+  }
+
+  @Test
+  public void apisCalledBeforeActivateTruthyTests() throws IOException {
+    LOGGER.info("Should return variation if getVariation/track API is called after activate API");
+
+    Storage.User userStorage = this.getUserStorage(new ArrayList<Map<String, String>>());
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withDevelopmentMode(true).withUserStorage(userStorage).build();
+    assertEquals(vwoInstance.activate(campaignKey, "Ashley"), "Variation-1");
+    assertEquals(vwoInstance.getVariationName(campaignKey, "Ashley"), "Variation-1");
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", "CUSTOM").get(campaignKey), true);
+
+    LOGGER.info("Should return false if getFeatureVariableValue/track API is called before isFeatureEnabled API for feature test");
+    settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100, Settings.class);
+    campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100).withDevelopmentMode(true).withUserStorage(userStorage).build();
+    assertEquals(vwoInstance.isFeatureEnabled(campaignKey, "Ashley"), true);
+    assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), "Variation-2 string");
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", "FEATURE_TEST_GOAL").get(campaignKey), true);
+
+    LOGGER.info("Should return value if getFeatureVariableValue/track API is called before isFeatureEnabled API for feature rollout");
+    settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100, Settings.class);
+    campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100).withDevelopmentMode(true).withUserStorage(userStorage).build();
+    assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), "this_is_a_string");
+  }
+
+  @Test
+  public void returningUserFlagPassedGloballyTest() throws IOException {
+    LOGGER.info("should be/not added to eventBatching queue depending upon the flag passed while launching VWO.");
+    Storage.User userStorage = this.getUserStorage(new ArrayList<Map<String, String>>());
+    batchEventData.setEventsPerRequest(50);
+
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+
+    //when shouldTrackReturningUser global value is set to true
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(true).withUserStorage(userStorage).withBatchEvents(batchEventData).build();
+    vwoInstance.activate(campaignKey, "Ashley");
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
+
+    //when shouldTrackReturningUser global value is set to true
+    userStorage = this.getUserStorage(new ArrayList<Map<String, String>>());
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(false).withUserStorage(userStorage).withBatchEvents(batchEventData).build();
+    vwoInstance.activate(campaignKey, "Ashley");
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
+
+    //when the global value is not passed, by default false should be used.
+    userStorage = this.getUserStorage(new ArrayList<Map<String, String>>());
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withUserStorage(userStorage).withBatchEvents(batchEventData).build();
+    vwoInstance.activate(campaignKey, "Ashley");
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
+  }
+
+  @Test
+  public void returningUserFlagPassedLocalTest() throws IOException {
+    LOGGER.info("should return variation track user call should be sent if userStorageService is not passed");
+
+    ArrayList<Map<String, String>> campaignStorageArray = new ArrayList<>();
+    Storage.User userStorage = this.getUserStorage(campaignStorageArray);
+    batchEventData.setEventsPerRequest(50);
+
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(true).withUserStorage(userStorage).withBatchEvents(batchEventData).build();
+
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    params.setShouldTrackReturningUser(false);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
+
+    //shouldTrackReturningUser set to true
+    params.setShouldTrackReturningUser(true);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
+    vwoInstance.activate(campaignKey, "Ashley", params);
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 3);
+
+    //when shouldTrackReturningUser is not passed in API, global value should be used
+    vwoInstance.activate(campaignKey, "Ashley");
+    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 4);
+  }
+
 
   private void getVariationTest(String settingsFile, ArrayList<UserExpectations.Variation> userVariation, Storage.User userStorage) throws IOException {
     Settings settingsConfig = new ObjectMapper().readValue(settingsFile, Settings.class);
@@ -161,6 +273,7 @@ public class UserStorageTests {
     VWO vwoInstance = VWO.launch(settingsFile).withUserStorage(userStorage).build();
 
     for (int i = 0; i < userVariation.size(); i++) {
+      vwoInstance.activate(campaignKey, TestUtils.getUsers()[i]);
       String variationName = vwoInstance.getVariationName(campaignKey, TestUtils.getUsers()[i]);
       assertEquals(variationName, userVariation.get(i).getVariation());
     }
@@ -195,24 +308,6 @@ public class UserStorageTests {
       @Override
       public void set(Map<String, String> map) throws Exception {
         throw new Exception();
-      }
-    };
-  }
-
-  private Storage.User getUserStorageWithNonMatchingUser() {
-    return new Storage.User() {
-      @Override
-      public Map<String, String> get(String userId, String campaignName) throws Exception {
-        return new HashMap<String, String>(){{
-          put("userId", "punit");
-          put("campaignKey", "AB_TRAFFIC_100_WEIGHT_33_33_33");
-          put("variationName", "Variation-1");
-        }};
-      }
-
-      @Override
-      public void set(Map<String, String> map) {
-        // Not required for the case.
       }
     };
   }

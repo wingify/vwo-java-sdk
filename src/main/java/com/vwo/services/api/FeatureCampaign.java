@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.vwo.services.api;
 
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.enums.CampaignEnums;
@@ -33,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 public class FeatureCampaign {
-  private static final Logger LOGGER = Logger.getLogger(TrackCampaign.class);
+  private static final Logger LOGGER = Logger.getLogger(FeatureCampaign.class);
 
   /**
    * Identifies whether the user became part of feature rollout/test or not.
@@ -43,6 +44,7 @@ public class FeatureCampaign {
    * @param settingFile Settings File Configuration
    * @param variationDecider  Variation decider service
    * @param isDevelopmentMode Development mode flag.
+   * @param batchEventQueue   Event Batching Queue.
    * @param CustomVariables    Pre Segmentation custom variables
    * @param variationTargetingVariables    User Whitelisting Targeting variables
    * @return Boolean corresponding to whether user became part of feature.
@@ -53,8 +55,10 @@ public class FeatureCampaign {
       SettingFile settingFile,
       VariationDecider variationDecider,
       boolean isDevelopmentMode,
+      BatchEventQueue batchEventQueue,
       Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables
+      Map<String, ?> variationTargetingVariables,
+      Boolean shouldTrackReturningUser
   ) {
     try {
       if (!ValidationUtils.isValidParams(
@@ -102,8 +106,9 @@ public class FeatureCampaign {
       }
 
       String variation = campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
-          ? ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, CustomVariables, variationTargetingVariables)
-          : CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
+          ? ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
+              CustomVariables, variationTargetingVariables, shouldTrackReturningUser)
+          : CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
 
       if (variation == null) {
         return false;
@@ -192,7 +197,8 @@ public class FeatureCampaign {
         return null;
       }
 
-      String variation = CampaignVariation.getCampaignVariationName(campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
+      String variation = CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE.value(), campaign, userId, variationDecider,
+              CustomVariables, variationTargetingVariables);
 
       if (variation == null) {
         return null;

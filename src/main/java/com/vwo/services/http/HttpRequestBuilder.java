@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,30 @@ package com.vwo.services.http;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.vwo.enums.HTTPEnums;
-import com.vwo.enums.UriEnums;
-import com.vwo.models.Settings;
-import com.vwo.services.settings.SettingFile;
 import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
 import com.vwo.models.Campaign;
 import com.vwo.models.Goal;
+import com.vwo.models.Settings;
 import com.vwo.models.Variation;
+import com.vwo.services.batch.FlushInterface;
+import com.vwo.services.settings.SettingFile;
 import com.vwo.utils.UUIDUtils;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
 
 public class HttpRequestBuilder {
@@ -45,6 +52,7 @@ public class HttpRequestBuilder {
   public static final String SETTINGS_URL = UriEnums.SETTINGS_URL.toString();
   public static final String WEBHOOK_SETTINGS_URL = UriEnums.WEBHOOK_SETTINGS_URL.toString();
   public static final String PUSH = UriEnums.PUSH.toString();
+  public static final String BATCH_EVENTS = UriEnums.BATCH_EVENTS.toString();
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final Logger LOGGER = Logger.getLogger(HttpRequestBuilder.class);
@@ -60,11 +68,7 @@ public class HttpRequestBuilder {
                     .withPlatform()
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GET_SETTINGS_IMPRESSION_CREATED.value(new HashMap<String, String>() {
-      {
-        put("requestParams", requestParams.toString());
-      }
-    }));
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GET_SETTINGS_IMPRESSION_CREATED.value());
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -77,31 +81,51 @@ public class HttpRequestBuilder {
 
   public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId, Variation variation) {
     Settings settings = settingFile.getSettings();
-    BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withAccountId(settings.getAccountId())
-                    .withCampaignId(campaign.getId())
-                    .withRandom(Math.random())
-                    .withAp()
-                    .withEd()
-                    .withuId(userId)
-                    .withUuid(settings.getAccountId(), userId)
-                    .withSid(Instant.now().getEpochSecond())
-                    .withVariation(variation.getId())
-                    .withsdk()
-                    .withsdkVersion()
-                    .build();
+    BuildQueryParams requestParams = BuildQueryParams.Builder.getInstance()
+            .withAccountId(settings.getAccountId())
+            .withCampaignId(campaign.getId())
+            .withRandom(Math.random())
+            .withAp()
+            .withEd()
+            .withuId(userId)
+            .withUuid(settings.getAccountId(), userId)
+            .withSid(Instant.now().getEpochSecond())
+            .withVariation(variation.getId())
+            .withsdk()
+            .withsdkVersion()
+            .withEnvironment(settings.getSdkKey())
+            .build();
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new HashMap<String, String>() {
       {
         put("userId", userId);
-        put("requestParams", requestParams.toString());
       }
     }));
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     return new HttpParams(VWO_HOST, IMPRESSION_PATH, map, HTTPEnums.Verbs.GET);
+  }
+
+  public static Map<String, Object> getBatchEventForTrackingUser(SettingFile settingFile, Campaign campaign, String userId, Variation variation) {
+    Settings settings = settingFile.getSettings();
+
+    BuildQueryParams requestParams =
+            BuildQueryParams.Builder.getInstance()
+                    .withMinifiedCampaignId(campaign.getId())
+                    .withMinifiedVariationId(variation.getId())
+                    .withMinifiedEventType(1)
+                    .withSid(Instant.now().getEpochSecond())
+                    .withUuid(settings.getAccountId(), userId)
+                    .build();
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+      }
+    }));
+    Map<String, Object> map = requestParams.convertToMap();
+    return requestParams.removeNullValues(map);
   }
 
   public static HttpParams getGoalParams(SettingFile settingFile, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
@@ -120,12 +144,12 @@ public class HttpRequestBuilder {
                     .withVariation(variation.getId())
                     .withsdk()
                     .withsdkVersion()
+                    .withEnvironment(settings.getSdkKey())
                     .build();
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new HashMap<String, String>() {
       {
         put("userId", userId);
-        put("requestParams", requestParams.toString());
       }
     }));
 
@@ -134,7 +158,31 @@ public class HttpRequestBuilder {
     return new HttpParams(VWO_HOST, GOAL_PATH, map, HTTPEnums.Verbs.GET);
   }
 
-  public static HttpParams getPostCustomDimensionParams(SettingFile settingFile, String tagKey, String tagValue, String userId) {
+  public static Map<String, Object> getBatchEventForTrackingGoal(SettingFile settingFile, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
+    Settings settings = settingFile.getSettings();
+
+    BuildQueryParams requestParams =
+            BuildQueryParams.Builder.getInstance()
+                    .withMinifiedCampaignId(campaign.getId())
+                    .withMinifiedVariationId(variation.getId())
+                    .withMinifiedEventType(2)
+                    .withMinifiedGoalId(goal.getId())
+                    .withRevenue(revenueValue)
+                    .withSid(Instant.now().getEpochSecond())
+                    .withUuid(settings.getAccountId(), userId)
+                    .build();
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+      }
+    }));
+
+    Map<String, Object> map = requestParams.convertToMap();
+    return requestParams.removeNullValues(map);
+  }
+
+  public static HttpParams getCustomDimensionParams(SettingFile settingFile, String tagKey, String tagValue, String userId) {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams =
             BuildQueryParams.Builder.getInstance()
@@ -147,18 +195,64 @@ public class HttpRequestBuilder {
                     .withAp()
                     .withsdk()
                     .withsdkVersion()
+                    .withEnvironment(settings.getSdkKey())
                     .build();
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.POST_SEGMENTATION_REQUEST_CREATED.value(new HashMap<String, String>() {
       {
         put("userId", userId);
-        put("requestParams", requestParams.toString());
       }
     }));
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     return new HttpParams(VWO_HOST, PUSH, map, HTTPEnums.Verbs.GET);
+  }
+
+  public static Map<String, Object> getBatchEventForCustomDimension(SettingFile settingFile, String tagKey, String tagValue, String userId) {
+    Settings settings = settingFile.getSettings();
+
+    BuildQueryParams requestParams =
+            BuildQueryParams.Builder.getInstance()
+                    .withMinifiedEventType(3)
+                    .withMinifiedTags(tagKey, tagValue)
+                    .withSid(Instant.now().getEpochSecond())
+                    .withUuid(settings.getAccountId(), userId)
+                    .build();
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.POST_SEGMENTATION_REQUEST_CREATED.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+      }
+    }));
+
+    Map<String, Object> map = requestParams.convertToMap();
+    return requestParams.removeNullValues(map);
+  }
+
+  public static HttpParams getBatchEventPostCallParams(String accountId, String apiKey, Queue<Map<String, Object>> properties, FlushInterface flushCallback) throws JsonProcessingException {
+    BuildQueryParams requestParams =
+            BuildQueryParams.Builder.getInstance()
+                    .withMinifiedSDKVersion()
+                    .withMinifiedSDKName()
+                    .withSettingsAccountId(accountId)
+                    .withEnvironment(apiKey)
+                    .build();
+
+    Map<String, Object> map = requestParams.convertToMap();
+    objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+
+    HttpParams httpParams = new HttpParams(VWO_HOST, BATCH_EVENTS, map, HTTPEnums.Verbs.POST);
+    httpParams.setFlushCallback(flushCallback);
+    final Header[] headers = new Header[1];
+
+    headers[0] = new BasicHeader("Authorization", apiKey);
+    httpParams.setHeaders(headers);
+
+    JsonNode node = objectMapper.createObjectNode().set("ev", objectMapper.valueToTree(properties));
+    httpParams.setBody(objectMapper.writeValueAsString(node));
+
+    return httpParams;
   }
 
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -180,6 +274,14 @@ public class HttpRequestBuilder {
     private String sdk;
     private String sdk_v;
     private String tags;
+    private String t;
+    private String sv;
+    private String sd;
+    private String env;
+    private Integer e;
+    private Integer c;
+    private Integer eT;
+    private Integer g;
     private static final Logger LOGGER = Logger.getLogger(BuildQueryParams.class);
 
 
@@ -201,6 +303,14 @@ public class HttpRequestBuilder {
       this.sdk = builder.sdk;
       this.sdk_v = builder.sdk_v;
       this.tags = builder.tags;
+      this.e = builder.e;
+      this.c = builder.c;
+      this.eT = builder.eT;
+      this.g = builder.g;
+      this.t = builder.t;
+      this.sv = builder.sv;
+      this.sd = builder.sd;
+      this.env = builder.env;
     }
 
 
@@ -223,6 +333,14 @@ public class HttpRequestBuilder {
       private String sdk;
       private String sdk_v;
       private String tags;
+      private String t;
+      private String sv;
+      private String sd;
+      private String env;
+      private Integer e;
+      private Integer c;
+      private Integer eT;
+      private Integer g;
 
       private Builder() {
       }
@@ -261,14 +379,19 @@ public class HttpRequestBuilder {
         return this;
       }
 
+      public Builder withMinifiedCampaignId(Integer campaignId) {
+        this.e = campaignId;
+        return this;
+      }
+
       public Builder withuId(String uId) {
         this.uId = URLEncoder.encode(uId);
         return this;
       }
 
       public Builder withUuid(Integer account_id, String uId) {
-        UUID accountUuid = UUIDUtils.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, this.account_id.toString());
-        UUID userUuid = UUIDUtils.nameUUIDFromNamespaceAndString(accountUuid, this.uId);
+        UUID accountUuid = UUIDUtils.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, account_id.toString());
+        UUID userUuid = UUIDUtils.nameUUIDFromNamespaceAndString(accountUuid, uId);
         this.u = userUuid.toString().replace("-", "").toUpperCase();
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.UUID_GENERATED.value(new HashMap<String, String>() {
           {
@@ -286,6 +409,11 @@ public class HttpRequestBuilder {
 
       }
 
+      public Builder withMinifiedVariationId(Integer variationId) {
+        this.c = variationId;
+        return this;
+      }
+
       public Builder withRandom(Double random) {
         this.random = random;
         return this;
@@ -301,6 +429,11 @@ public class HttpRequestBuilder {
         return this;
       }
 
+      public Builder withMinifiedGoalId(Integer goal_id) {
+        this.g = goal_id;
+        return this;
+      }
+
       public Builder withRevenue(Object r) {
         this.r = r;
         return this;
@@ -308,6 +441,16 @@ public class HttpRequestBuilder {
 
       public Builder withTags(String tagKey, String tagValue) {
         this.tags = "{\"u\":{\"" + tagKey + "\":\"" + tagValue + "\"}}";
+        return this;
+      }
+
+      public Builder withMinifiedTags(String tagKey, String tagValue) {
+        try {
+          this.t = URLEncoder.encode("{\"u\":{\"" + tagKey + "\":\"" + tagValue + "\"}}", StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
+          e.printStackTrace();
+        }
         return this;
       }
 
@@ -331,6 +474,26 @@ public class HttpRequestBuilder {
         return this;
       }
 
+      public Builder withMinifiedSDKVersion() {
+        this.sv = UriEnums.SDK_VERSION.toString();
+        return this;
+      }
+
+      public Builder withMinifiedSDKName() {
+        this.sd = UriEnums.SDK_NAME.toString();
+        return this;
+      }
+
+      public Builder withMinifiedEventType(Integer eventType) {
+        this.eT = eventType;
+        return this;
+      }
+
+      public Builder withEnvironment(String sdkKey) {
+        this.env = sdkKey;
+        return this;
+      }
+
       public static Builder getInstance() {
         return new Builder();
       }
@@ -350,35 +513,14 @@ public class HttpRequestBuilder {
       return map;
     }
 
-    @Override
-    public String toString() {
-      String request = "Event{"
-              + this.a != null ? "a=" + this.a : ""
-              + this.i != null ? "i=" + this.i : ""
-              + this.platform != null ? "platform=" + this.platform : ""
-              + this.account_id != null ? "account_id=" + this.account_id : ""
-              + this.experiment_id != null ? ", experiment_id=" + this.experiment_id : ""
-              + this.uId != null ? ", uId='" + this.uId + '\'' : ""
-              + this.u != null ? ", u='" + this.u + '\'' : ""
-              + this.combination != null ? ", combination=" + this.combination : ""
-              + this.random != null ? ", random=" + this.random : ""
-              + this.sId != null ? ", sId=" + this.sId : ""
-              + this.ap != null ? ", ap='" + this.ap + '\'' : ""
-              + ", sdk=" + this.sdk
-              + ", sdk-v=" + this.sdk_v
-              + this.tags != null ? ", tags=" + this.tags : "";
-
-      if (this.goal_id != null) {
-        request += ", goal_id='" + this.goal_id + '\'';
-
-        if (this.r != null) {
-          request += ", r='" + this.r + '\'';
+    public Map<String, Object> removeNullValues(Map<String, Object> urlMap) {
+      Map<String, Object> requestMap = new HashMap<String, Object>();
+      for (Map.Entry<String, Object> query : urlMap.entrySet()) {
+        if (query.getValue() != null) {
+          requestMap.put(query.getKey(), query.getValue());
         }
-      } else if (this.ed != null) {
-        request += ", ed='" + this.ed + '\'';
       }
-
-      return request + '}';
+      return requestMap;
     }
   }
 }

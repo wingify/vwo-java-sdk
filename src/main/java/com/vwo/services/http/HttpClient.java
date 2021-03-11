@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2021 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public class HttpClient implements Closeable {
    * with it. If the stream is already closed then invoking this
    * method has no effect.
    *
-   * <p>As noted in {@link AutoCloseable#close()}, cases where the
+   * As noted in {@link AutoCloseable#close()}, cases where the
    * close may fail require careful attention. It is strongly advised
    * to relinquish the underlying resources and to internally
    * <em>mark</em> the {@code Closeable} as closed, prior to throwing
