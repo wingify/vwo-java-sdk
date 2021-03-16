@@ -21,9 +21,13 @@ import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.SegmentationTypeEnums;
 import com.vwo.enums.StatusEnums;
+import com.vwo.enums.HooksEnum;
+import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
 import com.vwo.models.Campaign;
 import com.vwo.models.Variation;
+import com.vwo.services.http.HttpRequestBuilder;
+import com.vwo.services.integrations.HooksManager;
 import com.vwo.services.segmentation.PreSegmentation;
 import com.vwo.services.segmentation.enums.VWOAttributesEnum;
 import com.vwo.services.settings.SettingsFileUtil;
@@ -31,6 +35,7 @@ import com.vwo.services.storage.Storage;
 import com.vwo.services.storage.UserStorage;
 import com.vwo.utils.CampaignUtils;
 import com.vwo.utils.StorageUtils;
+import com.vwo.utils.UUIDUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,12 +49,18 @@ public class VariationDecider {
   private final Storage.User userStorage;
   private final boolean shouldTrackReturningUser;
   public boolean isStoredVariation;
+  private final HooksManager hooksManager;
+  private final int accountId;
+  private Map<String, Object> integrationsMap;
   private static final Logger LOGGER = Logger.getLogger(VariationDecider.class);
 
-  public VariationDecider(BucketingService bucketingService, Storage.User userStorage, boolean shouldTrackReturningUser) {
+  public VariationDecider(BucketingService bucketingService, Storage.User userStorage, boolean shouldTrackReturningUser,
+                          HooksManager hooksManager, int accountId) {
     this.bucketingService = bucketingService;
     this.userStorage = userStorage;
     this.shouldTrackReturningUser = shouldTrackReturningUser;
+    this.hooksManager = hooksManager;
+    this.accountId = accountId;
   }
 
 
@@ -64,6 +75,7 @@ public class VariationDecider {
   /**
    * Determines the variation of a user for a campaign.
    *
+   * @param apiName                       -  name of the API
    * @param campaign                       - campaign instance
    * @param userId                         - user id string
    * @param rawCustomVariables             Pre Segmentation custom variables
@@ -83,10 +95,11 @@ public class VariationDecider {
   ) {
     // Default initialization(s)
     isStoredVariation = false;
+    integrationsMap = new HashMap<String, Object>();
+    initIntegrationMap(campaign, apiName, userId, goalIdentifier, rawCustomVariables, rawVariationTargetingVariables);
     final Map<String, ?> customVariables = rawCustomVariables == null ? new HashMap<>() : rawCustomVariables;
     final Map<String, ?> variationTargetingVariables = rawVariationTargetingVariables == null ? new HashMap<>() : rawVariationTargetingVariables;
     ((Map<String, Object>) variationTargetingVariables).put(VWOAttributesEnum.USER_ID.value(), userId);
-
 
     if (!campaign.getStatus().equalsIgnoreCase(CampaignEnums.STATUS.RUNNING.value())) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
@@ -155,7 +168,7 @@ public class VariationDecider {
             put("status", StatusEnums.PASSED.value());
           }
         }));
-
+        executeIntegrationsCallback(false, campaign, whiteListedVariation, true);
         return whiteListedVariation;
       } else {
         LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SEGMENTATION_STATUS.value(new HashMap<String, String>() {
@@ -231,6 +244,7 @@ public class VariationDecider {
               setGoalInUserStorage(userStorageMap, goalIdentifier, userId, campaign);
             }
             isStoredVariation = true;
+            executeIntegrationsCallback(true, campaign, variation, false);
             return variation;
           } else {
             if (!isCampaignActivated(apiName, userId, campaign)) {
@@ -292,6 +306,7 @@ public class VariationDecider {
     // Get variation using campaign settings for a user.
     variation = bucketingService.getUserVariation(campaign.getVariations(), campaign.getKey(), campaign.getPercentTraffic(), userId);
     this.setVariationInUserStorage(variation, campaign.getKey(), userId, goalIdentifier);
+    executeIntegrationsCallback(false, campaign, variation, false);
     return variation;
   }
 
@@ -330,9 +345,9 @@ public class VariationDecider {
   /**
    * Set variation info if user storage service is provided the the user.
    *
-   * @param userId    - user id
-   * @param campaignKey  - campaign key
-   * @param variation - variation instance
+   * @param userId      - user id
+   * @param campaignKey - campaign key
+   * @param variation   - variation instance
    */
   private void setVariation(String userId, String campaignKey, Variation variation, String goalIdentifier) {
     if (this.userStorage != null) {
@@ -366,9 +381,10 @@ public class VariationDecider {
 
   /**
    * Store variation info in user storage, if available.
-   * @param variation - variation instance
+   *
+   * @param variation   - variation instance
    * @param campaignKey - campaign key
-   * @param userId - user id
+   * @param userId      - user id
    */
   private void setVariationInUserStorage(Variation variation, String campaignKey, String userId, String goalIdentifier) {
     // Set variation in user storage service if defined by the customer.
@@ -430,7 +446,7 @@ public class VariationDecider {
   /**
    * check if the goal is already tracked.
    *
-   * @param goalIdentifier  - goalIdentifier string
+   * @param goalIdentifier - goalIdentifier string
    * @param userStorageMap - UserStorageData object
    * @return true if goal is found in user storage, else false.
    */
@@ -442,9 +458,9 @@ public class VariationDecider {
   /**
    * Check if the campaign is activated before.
    *
-   * @param apiName   - name of the API
-   * @param userId    - user id string
-   * @param campaign  - campaign instance
+   * @param apiName  - name of the API
+   * @param userId   - user id string
+   * @param campaign - campaign instance
    * @return true if campaign is activated, else false
    */
   private boolean isCampaignActivated(String apiName, String userId, Campaign campaign) {
@@ -469,5 +485,38 @@ public class VariationDecider {
       return false;
     }
     return true;
+  }
+
+  private void executeIntegrationsCallback(boolean fromUserStorage, Campaign campaign, Variation variation, boolean isUserWhitelisted) {
+    if (variation != null) {
+      integrationsMap.put("fromUserStorageService", fromUserStorage);
+      integrationsMap.put("isUserWhitelisted", isUserWhitelisted);
+      if (campaign.getType().equals(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
+        integrationsMap.put("isFeatureEnabled", true);
+      } else {
+        if (campaign.getType().equals(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())) {
+          integrationsMap.put("isFeatureEnabled", variation.getIsFeatureEnabled());
+        }
+        integrationsMap.put("variationName", variation.getName());
+        integrationsMap.put("variationId", variation.getId());
+      }
+      hooksManager.execute(integrationsMap);
+    }
+  }
+
+  private void initIntegrationMap(Campaign campaign, String apiName, String userId, String goalIdentifier,
+                                  Map<String, ?> customVariables, Map<String, ?> variationTargetingVariables) {
+    integrationsMap.put("campaignId", campaign.getId());
+    integrationsMap.put("campaignKey", campaign.getKey());
+    integrationsMap.put("campaignType", campaign.getType());
+    integrationsMap.put("customVariables", customVariables == null ? new HashMap<>() : customVariables);
+    integrationsMap.put("event", HooksEnum.DECISION_TYPES.CAMPAIGN_DECISION.value());
+    integrationsMap.put("goalIdentifier", goalIdentifier);
+    integrationsMap.put("isForcedVariationEnabled", campaign.getIsForcedVariationEnabled());
+    integrationsMap.put("sdkVersion", UriEnums.SDK_VERSION.toString());
+    integrationsMap.put("source", apiName);
+    integrationsMap.put("userId", userId);
+    integrationsMap.put("variationTargetingVariables", variationTargetingVariables == null ? new HashMap<>() : variationTargetingVariables);
+    integrationsMap.put("vwoUserId", UUIDUtils.getUUId(accountId, userId));
   }
 }

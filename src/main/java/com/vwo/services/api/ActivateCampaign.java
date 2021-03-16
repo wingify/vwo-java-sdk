@@ -48,6 +48,7 @@ public class ActivateCampaign {
    * @param batchEventQueue             Event Batching Queue.
    * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
+   * @param shouldTrackReturningUser    Boolean value to check if the goal should be tracked again or not.
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public static String activate(
@@ -102,7 +103,7 @@ public class ActivateCampaign {
         return null;
       }
 
-      return ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode,
+      return ActivateCampaign.activateCampaign(APIEnums.API_TYPES.ACTIVATE.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode,
               batchEventQueue, CustomVariables, variationTargetingVariables, shouldTrackReturningUser);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
@@ -111,6 +112,7 @@ public class ActivateCampaign {
   }
 
   public static String activateCampaign(
+          String apiName,
           Campaign campaign,
           String userId,
           SettingFile settingFile,
@@ -121,7 +123,7 @@ public class ActivateCampaign {
           Map<String, ?> variationTargetingVariables,
           Boolean shouldTrackReturningUser
   ) {
-    String variation = CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.ACTIVATE.value(), campaign, userId, variationDecider,
+    String variation = CampaignVariation.getCampaignVariationName(apiName, campaign, userId, variationDecider,
             CustomVariables, variationTargetingVariables, shouldTrackReturningUser == null, null);
 
     if (variation != null) {
@@ -133,9 +135,7 @@ public class ActivateCampaign {
           {
             put("campaignKey", campaign.getKey());
             put("userId", userId);
-            put("api", campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.VISUAL_AB.value())
-                    ? APIEnums.API_TYPES.ACTIVATE.value()
-                    : APIEnums.API_TYPES.IS_FEATURE_ENABLED.value());
+            put("api", apiName);
           }
         }));
       } else {

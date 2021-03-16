@@ -47,6 +47,7 @@ public class FeatureCampaign {
    * @param batchEventQueue   Event Batching Queue.
    * @param CustomVariables    Pre Segmentation custom variables
    * @param variationTargetingVariables    User Whitelisting Targeting variables
+   * @param shouldTrackReturningUser    Boolean value to check if the goal should be tracked again or not.
    * @return Boolean corresponding to whether user became part of feature.
    */
   public static boolean isFeatureEnabled(
@@ -106,7 +107,7 @@ public class FeatureCampaign {
       }
 
       String variation = campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
-          ? ActivateCampaign.activateCampaign(campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
+          ? ActivateCampaign.activateCampaign(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
               CustomVariables, variationTargetingVariables, shouldTrackReturningUser)
           : CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
 

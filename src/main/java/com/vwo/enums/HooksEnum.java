@@ -16,27 +16,20 @@
 
 package com.vwo.enums;
 
-public enum UriEnums {
+public class HooksEnum {
+  public enum DECISION_TYPES {
+    CAMPAIGN_DECISION("CAMPAIGN_DECISION");
 
-  PROTOCOL("https"),
-  SDK_VERSION("1.12.0"),
-  SDK_NAME("java"),
-  BASE_URL("dev.visualwebsiteoptimizer.com"),
-  SETTINGS_URL("/server-side/settings"),
-  WEBHOOK_SETTINGS_URL("/server-side/pull"),
-  TRACK_USER("/server-side/track-user"),
-  TRACK_GOAL("/server-side/track-goal"),
-  PUSH("/server-side/push"),
-  BATCH_EVENTS("/server-side/batch-events");
 
-  private final String uri;
+    private final String type;
 
-  UriEnums(String uri) {
-    this.uri = uri;
-  }
+    DECISION_TYPES(String type) {
+      this.type = type;
+    }
 
-  @Override
-  public String toString() {
-    return this.uri;
+    public String value() {
+      return this.type;
+    }
+
   }
 }

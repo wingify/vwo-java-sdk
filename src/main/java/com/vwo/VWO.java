@@ -23,6 +23,8 @@ import com.vwo.models.Settings;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.BucketingService;
 import com.vwo.services.core.VariationDecider;
+import com.vwo.services.integrations.HooksManager;
+import com.vwo.services.integrations.IntegrationEventListener;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.services.settings.SettingsFileUtil;
 import com.vwo.services.settings.SettingsFileManager;
@@ -137,6 +139,7 @@ public class VWO {
 
   /**
    * Update the settings-file on the instance so that latest settings could be used from next hit onwards.
+   *
    * @param settingsFileString Stringified settings file.
    */
   private void updateSettingsFile(String settingsFileString) {
@@ -190,8 +193,8 @@ public class VWO {
   /**
    * Get variation and track conversion on VWO server for users falling in provided pre-segmentation.
    *
-   * @param campaignKey Campaign key
-   * @param userId      User ID
+   * @param campaignKey      Campaign key
+   * @param userId           User ID
    * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
@@ -224,8 +227,8 @@ public class VWO {
   /**
    * Get variation name for users falling in provided pre-segmentation.
    *
-   * @param campaignKey  Campaign key
-   * @param userId       User ID
+   * @param campaignKey      Campaign key
+   * @param userId           User ID
    * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
    * @return Variation name
    */
@@ -304,8 +307,8 @@ public class VWO {
   /**
    * Identifies whether the user became part of feature rollout/test or not.
    *
-   * @param campaignKey Unique campaign test key
-   * @param userId ID assigned to a user
+   * @param campaignKey      Unique campaign test key
+   * @param userId           ID assigned to a user
    * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
    * @return Boolean corresponding to whether user became part of feature.
    */
@@ -329,7 +332,7 @@ public class VWO {
    * Identifies whether the user became part of feature rollout/test or not for users falling in provided pre-segmentation.
    *
    * @param campaignKey Unique campaign test key
-   * @param userId ID assigned to a user
+   * @param userId      ID assigned to a user
    * @return Boolean corresponding to whether user became part of feature.
    */
   public boolean isFeatureEnabled(String campaignKey, String userId) {
@@ -339,9 +342,9 @@ public class VWO {
   /**
    * Gets the feature variable corresponding to the variable_key passed.
    *
-   * @param campaignKey Unique campaign test key
-   * @param userId ID assigned to a user
-   * @param variableKey Variable name/key
+   * @param campaignKey      Unique campaign test key
+   * @param userId           ID assigned to a user
+   * @param variableKey      Variable name/key
    * @param additionalParams Any Additional params (customVariables, variationTargetingVariables)
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
@@ -365,7 +368,7 @@ public class VWO {
    *
    * @param campaignKey Unique campaign test key
    * @param variableKey Variable name/key
-   * @param userId ID assigned to a user
+   * @param userId      ID assigned to a user
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
   public Object getFeatureVariableValue(String campaignKey, String variableKey, String userId) {
@@ -375,9 +378,9 @@ public class VWO {
   /**
    * Pushes the tag key and value for a user to be used in post segmentation.
    *
-   * @param tagKey Tag name
+   * @param tagKey   Tag name
    * @param tagValue Tag value
-   * @param userId ID assigned to a user
+   * @param userId   ID assigned to a user
    * @return Boolean representing if the tag was pushed or not
    */
   public boolean push(String tagKey, String tagValue, String userId) {
@@ -386,6 +389,7 @@ public class VWO {
 
   /**
    * Manually flush impression events to VWO which are queued in batch queue as per batchEvents config.
+   *
    * @return Boolean representing if the events are flushed or not
    */
   public boolean flushEvents() {
@@ -405,6 +409,7 @@ public class VWO {
   /**
    * Fetch latest settings-file and update so that vwoClientInstance could use latest settings.
    * Helpful especially when using webhooks
+   *
    * @param accountId VWO application account-id.
    * @param sdkKey    Unique sdk-key
    */
@@ -454,6 +459,7 @@ public class VWO {
     private String sdkKey;
     private BatchEventData batchEvents;
     private BatchEventQueue batchEventsQueue;
+    private IntegrationEventListener integrations;
 
 
     /**
@@ -549,6 +555,11 @@ public class VWO {
       return this;
     }
 
+    public Builder withIntegrations(IntegrationEventListener integrations) {
+      this.integrations = integrations;
+      return this;
+    }
+
     /**
      * Creates a new VWO instance.
      *
@@ -578,7 +589,8 @@ public class VWO {
       }
 
       this.bucketingService = new BucketingService();
-      this.variationDecider = new VariationDecider(bucketingService, userStorage, shouldTrackReturningUser);
+      this.variationDecider = new VariationDecider(bucketingService, userStorage, shouldTrackReturningUser, new HooksManager(this.integrations),
+              settingFile.getSettings().getAccountId());
       this.developmentMode = this.developmentMode || false;
       if (this.batchEvents != null) {
         batchEventsQueue = new BatchEventQueue(this.batchEvents, settingFile.getSettings().getSdkKey(), settingFile.getSettings().getAccountId(), this.developmentMode);

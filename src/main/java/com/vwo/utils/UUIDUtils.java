@@ -16,9 +16,12 @@
 
 package com.vwo.utils;
 
+import com.vwo.enums.LoggerMessagesEnums;
+
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,6 +37,7 @@ public class UUIDUtils {
   public static final UUID NAMESPACE_URL = UUID.fromString("6ba7b811-9dad-11d1-80b4-00c04fd430c8");
   public static final UUID NAMESPACE_OID = UUID.fromString("6ba7b812-9dad-11d1-80b4-00c04fd430c8");
   public static final UUID NAMESPACE_X500 = UUID.fromString("6ba7b814-9dad-11d1-80b4-00c04fd430c8");
+  private static final UUID CONSTANT_NAMESPACE = UUIDUtils.nameUUIDFromNamespaceAndString(UUIDUtils.NAMESPACE_URL, "https://vwo.com");
 
   public static UUID nameUUIDFromNamespaceAndString(UUID namespace, String name) {
     return nameUUIDFromNamespaceAndBytes(namespace, Objects.requireNonNull(name, "name == null").getBytes(UTF8));
@@ -54,6 +58,12 @@ public class UUIDUtils {
     sha1Bytes[8] &= 0x3f;  /* clear variant        */
     sha1Bytes[8] |= 0x80;  /* set to IETF variant  */
     return fromBytes(sha1Bytes);
+  }
+
+  public static String getUUId(Integer account_id, String uId) {
+    UUID accountUuid = UUIDUtils.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, account_id.toString());
+    UUID userUuid = UUIDUtils.nameUUIDFromNamespaceAndString(accountUuid, uId);
+    return userUuid.toString().replace("-", "").toUpperCase();
   }
 
   private static UUID fromBytes(byte[] data) {

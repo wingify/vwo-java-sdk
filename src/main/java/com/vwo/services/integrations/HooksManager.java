@@ -14,29 +14,20 @@
  * limitations under the License.
  */
 
-package com.vwo.enums;
+package com.vwo.services.integrations;
 
-public enum UriEnums {
+import java.util.Map;
 
-  PROTOCOL("https"),
-  SDK_VERSION("1.12.0"),
-  SDK_NAME("java"),
-  BASE_URL("dev.visualwebsiteoptimizer.com"),
-  SETTINGS_URL("/server-side/settings"),
-  WEBHOOK_SETTINGS_URL("/server-side/pull"),
-  TRACK_USER("/server-side/track-user"),
-  TRACK_GOAL("/server-side/track-goal"),
-  PUSH("/server-side/push"),
-  BATCH_EVENTS("/server-side/batch-events");
+public class HooksManager {
+  private IntegrationEventListener integrations;
 
-  private final String uri;
-
-  UriEnums(String uri) {
-    this.uri = uri;
+  public HooksManager(IntegrationEventListener integrationsCallback) {
+    this.integrations = integrationsCallback;
   }
 
-  @Override
-  public String toString() {
-    return this.uri;
+  public void execute(Map<String, Object> properties) {
+    if (integrations != null) {
+      integrations.onEvent(properties);
+    }
   }
 }

@@ -22,11 +22,13 @@ import com.vwo.VWO;
 import com.vwo.logger.Logger;
 import com.vwo.logger.VWOLogger;
 import com.vwo.services.storage.Storage;
+import com.vwo.tests.data.Settings;
 import org.junit.jupiter.api.Test;
 
 
 public class APITests {
   private static final Logger LOGGER = Logger.getLogger(APITests.class);
+  private static int accountId = 123456;
 
 
   @Test
@@ -58,7 +60,7 @@ public class APITests {
     assertTrue(vwoClass.getMethod("withCustomLogger", customLoggerArg) != null);
     assertTrue(vwoClass.getMethod("build", null) != null);
 
-    Class vwoInstanceClass = VWO.launch("").build().getClass();
+    Class vwoInstanceClass = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50).build().getClass();
 
     Class[] variationArg = new Class[2];
     variationArg[0] = String.class;

@@ -327,7 +327,6 @@ public class HttpRequestBuilder {
       private Integer goal_id;
       private Object r;
       private Long sId;
-      private final UUID CONSTANT_NAMESPACE = UUIDUtils.nameUUIDFromNamespaceAndString(UUIDUtils.NAMESPACE_URL, "https://vwo.com");
       private String ap;
       private String ed;
       private String sdk;
@@ -390,9 +389,7 @@ public class HttpRequestBuilder {
       }
 
       public Builder withUuid(Integer account_id, String uId) {
-        UUID accountUuid = UUIDUtils.nameUUIDFromNamespaceAndString(CONSTANT_NAMESPACE, account_id.toString());
-        UUID userUuid = UUIDUtils.nameUUIDFromNamespaceAndString(accountUuid, uId);
-        this.u = userUuid.toString().replace("-", "").toUpperCase();
+        this.u = UUIDUtils.getUUId(account_id, uId);
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.UUID_GENERATED.value(new HashMap<String, String>() {
           {
             put("userId", uId);
