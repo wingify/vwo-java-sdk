@@ -329,7 +329,7 @@ public class VariationDecider {
     }
 
     for (Variation variation : campaign.getVariations()) {
-      if (variation.getName().equalsIgnoreCase(variationName) && variation.getWeight() > 0.0) {
+      if (variation.getName().equalsIgnoreCase(variationName)) {
         return variation;
       }
     }
