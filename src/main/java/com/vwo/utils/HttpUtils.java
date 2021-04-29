@@ -41,4 +41,8 @@ public class HttpUtils {
 
     return requestBuilder.build();
   }
+
+  public static String getModifiedLogRequest(String queryString) {
+    return queryString.replaceAll("(&env=.{32})", "");
+  }
 }

@@ -45,6 +45,7 @@ public class FeatureCampaign {
    * @param variationDecider  Variation decider service
    * @param isDevelopmentMode Development mode flag.
    * @param batchEventQueue   Event Batching Queue.
+   * @param usageStats        usage info collected at the time of VWO instantiation.
    * @param CustomVariables    Pre Segmentation custom variables
    * @param variationTargetingVariables    User Whitelisting Targeting variables
    * @param shouldTrackReturningUser    Boolean value to check if the goal should be tracked again or not.
@@ -57,6 +58,7 @@ public class FeatureCampaign {
       VariationDecider variationDecider,
       boolean isDevelopmentMode,
       BatchEventQueue batchEventQueue,
+      Map<String, Integer> usageStats,
       Map<String, ?> CustomVariables,
       Map<String, ?> variationTargetingVariables,
       Boolean shouldTrackReturningUser
@@ -108,7 +110,7 @@ public class FeatureCampaign {
 
       String variation = campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
           ? ActivateCampaign.activateCampaign(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
-              CustomVariables, variationTargetingVariables, shouldTrackReturningUser)
+              CustomVariables, variationTargetingVariables, shouldTrackReturningUser, usageStats)
           : CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, variationDecider, CustomVariables, variationTargetingVariables);
 
       if (variation == null) {

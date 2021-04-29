@@ -79,7 +79,7 @@ public class HttpRequestBuilder {
     }
   }
 
-  public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId, Variation variation) {
+  public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId, Variation variation, Map<String, Integer> usageStats) {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams = BuildQueryParams.Builder.getInstance()
             .withAccountId(settings.getAccountId())
@@ -87,12 +87,12 @@ public class HttpRequestBuilder {
             .withRandom(Math.random())
             .withAp()
             .withEd()
-            .withuId(userId)
             .withUuid(settings.getAccountId(), userId)
             .withSid(Instant.now().getEpochSecond())
             .withVariation(variation.getId())
             .withsdk()
             .withsdkVersion()
+            .withUsageStats(usageStats)
             .withEnvironment(settings.getSdkKey())
             .build();
 
@@ -135,7 +135,6 @@ public class HttpRequestBuilder {
                     .withAccountId(settings.getAccountId())
                     .withCampaignId(campaign.getId())
                     .withRandom(Math.random())
-                    .withuId(userId)
                     .withAp()
                     .withUuid(settings.getAccountId(), userId)
                     .withGoalId(goal.getId())
@@ -187,7 +186,6 @@ public class HttpRequestBuilder {
     BuildQueryParams requestParams =
             BuildQueryParams.Builder.getInstance()
                     .withAccountId(settings.getAccountId())
-                    .withuId(userId)
                     .withUuid(settings.getAccountId(), userId)
                     .withTags(tagKey, tagValue)
                     .withSid(Instant.now().getEpochSecond())
@@ -230,13 +228,15 @@ public class HttpRequestBuilder {
     return requestParams.removeNullValues(map);
   }
 
-  public static HttpParams getBatchEventPostCallParams(String accountId, String apiKey, Queue<Map<String, Object>> properties, FlushInterface flushCallback) throws JsonProcessingException {
+  public static HttpParams getBatchEventPostCallParams(String accountId, String apiKey, Queue<Map<String, Object>> properties,
+                                                       FlushInterface flushCallback, Map<String, Integer> usageStats) throws JsonProcessingException {
     BuildQueryParams requestParams =
             BuildQueryParams.Builder.getInstance()
                     .withMinifiedSDKVersion()
                     .withMinifiedSDKName()
                     .withSettingsAccountId(accountId)
                     .withEnvironment(apiKey)
+                    .withUsageStats(usageStats)
                     .build();
 
     Map<String, Object> map = requestParams.convertToMap();
@@ -262,7 +262,6 @@ public class HttpRequestBuilder {
     private String platform;
     private Integer account_id;
     private Integer experiment_id;
-    private String uId;
     private String u;
     private Integer combination;
     private Double random;
@@ -282,6 +281,7 @@ public class HttpRequestBuilder {
     private Integer c;
     private Integer eT;
     private Integer g;
+    private Map<String, Integer> usageStats;
     private static final Logger LOGGER = Logger.getLogger(BuildQueryParams.class);
 
 
@@ -291,7 +291,6 @@ public class HttpRequestBuilder {
       this.platform = builder.platform;
       this.account_id = builder.account_id;
       this.experiment_id = builder.campaignId;
-      this.uId = builder.uId;
       this.u = builder.u;
       this.combination = builder.combination;
       this.random = builder.random;
@@ -311,6 +310,7 @@ public class HttpRequestBuilder {
       this.sv = builder.sv;
       this.sd = builder.sd;
       this.env = builder.env;
+      this.usageStats = builder.usageStats;
     }
 
 
@@ -320,7 +320,6 @@ public class HttpRequestBuilder {
       private String platform;
       private Integer account_id;
       private Integer campaignId;
-      private String uId;
       private String u;
       private Integer combination;
       private Double random;
@@ -340,6 +339,7 @@ public class HttpRequestBuilder {
       private Integer c;
       private Integer eT;
       private Integer g;
+      private Map<String, Integer> usageStats;
 
       private Builder() {
       }
@@ -380,11 +380,6 @@ public class HttpRequestBuilder {
 
       public Builder withMinifiedCampaignId(Integer campaignId) {
         this.e = campaignId;
-        return this;
-      }
-
-      public Builder withuId(String uId) {
-        this.uId = URLEncoder.encode(uId);
         return this;
       }
 
@@ -491,6 +486,11 @@ public class HttpRequestBuilder {
         return this;
       }
 
+      public Builder withUsageStats(Map<String, Integer> usageStats) {
+        this.usageStats = usageStats;
+        return this;
+      }
+
       public static Builder getInstance() {
         return new Builder();
       }
@@ -503,9 +503,20 @@ public class HttpRequestBuilder {
     public Map<String, Object> convertToMap() {
       Map<String, Object> map = new ObjectMapper().convertValue(this, Map.class);
 
-      // Rename 'sdk_v' as 'sdk-v'
-      map.put("sdk-v", map.get("sdk_v"));
-      map.remove("sdk_v");
+      try {
+        // Rename 'sdk_v' as 'sdk-v'
+        map.put("sdk-v", map.get("sdk_v"));
+        map.remove("sdk_v");
+        Map<String, Integer> usageStatsEntry = new ObjectMapper().convertValue(map.get("usageStats"), Map.class);
+        if (usageStatsEntry != null && !usageStatsEntry.isEmpty()) {
+          for (Map.Entry<String, Integer> mapElement: usageStatsEntry.entrySet()) {
+            map.put(mapElement.getKey(), mapElement.getValue());
+          }
+        }
+        map.remove("usageStats");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
 
       return map;
     }

@@ -46,6 +46,7 @@ public class ActivateCampaign {
    * @param variationDecider            Variation decider service
    * @param isDevelopmentMode           Development mode flag.
    * @param batchEventQueue             Event Batching Queue.
+   * @param usageStats                  usage info collected at the time of VWO instantiation.
    * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
    * @param shouldTrackReturningUser    Boolean value to check if the goal should be tracked again or not.
@@ -58,6 +59,7 @@ public class ActivateCampaign {
           VariationDecider variationDecider,
           boolean isDevelopmentMode,
           BatchEventQueue batchEventQueue,
+          Map<String, Integer> usageStats,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
           Boolean shouldTrackReturningUser
@@ -104,7 +106,7 @@ public class ActivateCampaign {
       }
 
       return ActivateCampaign.activateCampaign(APIEnums.API_TYPES.ACTIVATE.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode,
-              batchEventQueue, CustomVariables, variationTargetingVariables, shouldTrackReturningUser);
+              batchEventQueue, CustomVariables, variationTargetingVariables, shouldTrackReturningUser, usageStats);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
@@ -121,7 +123,8 @@ public class ActivateCampaign {
           BatchEventQueue batchEventQueue,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
-          Boolean shouldTrackReturningUser
+          Boolean shouldTrackReturningUser,
+          Map<String, Integer> usageStats
   ) {
     String variation = CampaignVariation.getCampaignVariationName(apiName, campaign, userId, variationDecider,
             CustomVariables, variationTargetingVariables, shouldTrackReturningUser == null, null);
@@ -146,7 +149,7 @@ public class ActivateCampaign {
           }
         }));
         // Send Impression Call for Stats
-        ActivateCampaign.sendUserCall(settingFile, campaign, userId, batchEventQueue, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), isDevelopmentMode);
+        ActivateCampaign.sendUserCall(settingFile, campaign, userId, batchEventQueue, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), isDevelopmentMode, usageStats);
       }
     } else {
       LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_VARIATION_ALLOCATED.value(new HashMap<String, String>() {
@@ -160,12 +163,13 @@ public class ActivateCampaign {
     return variation;
   }
 
-  private static void sendUserCall(SettingFile settingFile, Campaign campaign, String userId, BatchEventQueue batchEventQueue, Variation variation, boolean isDevelopmentMode) {
+  private static void sendUserCall(SettingFile settingFile, Campaign campaign, String userId, BatchEventQueue batchEventQueue,
+                                   Variation variation, boolean isDevelopmentMode, Map<String, Integer> usageStats) {
     try {
       if (batchEventQueue != null) {
         batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingUser(settingFile, campaign, userId, variation));
       } else {
-        HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation);
+        HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation, usageStats);
         if (!isDevelopmentMode) {
           HttpGetRequest.send(httpParams);
         }

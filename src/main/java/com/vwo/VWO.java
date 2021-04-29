@@ -56,6 +56,7 @@ public class VWO {
   private SettingFile settingFile;
   private BatchEventQueue batchEventQueue;
   private boolean developmentMode;
+  private Map<String, Integer> usageStats;
 
   public static final class Enums extends VWOEnums {
   }
@@ -75,7 +76,8 @@ public class VWO {
           GoalEnums.GOAL_TYPES goalTypeToTrack,
           Integer pollingInterval,
           String sdkKey,
-          BatchEventQueue batchEventQueue
+          BatchEventQueue batchEventQueue,
+          Map<String, Integer> usageStats
   ) {
     this.userStorage = userStorage;
     this.settingFile = settingFile;
@@ -87,6 +89,7 @@ public class VWO {
     this.pollingInterval = pollingInterval;
     this.sdkKey = sdkKey;
     this.batchEventQueue = batchEventQueue;
+    this.usageStats = usageStats;
 
     if (this.pollingInterval != null && this.sdkKey != null) {
       this.pollSettingsFile();
@@ -175,6 +178,10 @@ public class VWO {
     return this.developmentMode;
   }
 
+  public Map<String, Integer> getUsageStats() {
+    return this.usageStats;
+  }
+
   public void setDevelopmentMode(boolean developmentMode) {
     this.developmentMode = developmentMode;
   }
@@ -207,6 +214,7 @@ public class VWO {
             this.getVariationDecider(),
             this.isDevelopmentMode(),
             this.batchEventQueue,
+            this.usageStats,
             additionalParams.getCustomVariables(),
             additionalParams.getVariationTargetingVariables(),
             additionalParams.getShouldTrackReturningUser()
@@ -221,7 +229,7 @@ public class VWO {
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignKey, String userId) {
-    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, null, null, null);
+    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null, null);
   }
 
   /**
@@ -322,6 +330,7 @@ public class VWO {
             this.getVariationDecider(),
             this.isDevelopmentMode(),
             this.batchEventQueue,
+            this.usageStats,
             additionalParams.getCustomVariables(),
             additionalParams.getVariationTargetingVariables(),
             additionalParams.getShouldTrackReturningUser()
@@ -336,7 +345,7 @@ public class VWO {
    * @return Boolean corresponding to whether user became part of feature.
    */
   public boolean isFeatureEnabled(String campaignKey, String userId) {
-    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, null, null, null);
+    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null, null);
   }
 
   /**
@@ -460,6 +469,7 @@ public class VWO {
     private BatchEventData batchEvents;
     private BatchEventQueue batchEventsQueue;
     private IntegrationEventListener integrations;
+    private Map<String, Integer> usageStats = new HashMap<String, Integer>(){};
 
 
     /**
@@ -481,6 +491,7 @@ public class VWO {
      */
     public Builder withPollingInterval(Integer pollingInterval) {
       this.pollingInterval = pollingInterval;
+      usageStats.put("poll", 1);
       return this;
     }
 
@@ -503,6 +514,7 @@ public class VWO {
      */
     public Builder withUserStorage(Storage.User userStorage) {
       this.userStorage = userStorage;
+      usageStats.put("is_ss", 1);
       return this;
     }
 
@@ -525,6 +537,11 @@ public class VWO {
      */
     public Builder withCustomLogger(VWOLogger customLogger) {
       this.customLogger = customLogger;
+      usageStats.put("is_cl", 1);
+      if (!VWOLogger.level.equals(VWOEnums.LOGGER_LEVEL.ERROR.value())) {
+        usageStats.put("is_ll", 1);
+      }
+
       return this;
     }
 
@@ -536,6 +553,7 @@ public class VWO {
      */
     public Builder withGoalTypeToTrack(GoalEnums.GOAL_TYPES value) {
       this.goalTypeToTrack = value;
+      usageStats.put("gt", 1);
       return this;
     }
 
@@ -547,16 +565,21 @@ public class VWO {
      */
     public Builder withShouldTrackReturningUser(boolean value) {
       this.shouldTrackReturningUser = value;
+      if (shouldTrackReturningUser) {
+        usageStats.put("tru", 1);
+      }
       return this;
     }
 
     public Builder withBatchEvents(BatchEventData batchEvents) {
       this.batchEvents = batchEvents;
+      usageStats.put("is_eb", 1);
       return this;
     }
 
     public Builder withIntegrations(IntegrationEventListener integrations) {
       this.integrations = integrations;
+      usageStats.put("is_i", 1);
       return this;
     }
 
@@ -592,8 +615,13 @@ public class VWO {
       this.variationDecider = new VariationDecider(bucketingService, userStorage, shouldTrackReturningUser, new HooksManager(this.integrations),
               settingFile.getSettings().getAccountId());
       this.developmentMode = this.developmentMode || false;
+
+      if (developmentMode) {
+        usageStats.clear();
+      }
+
       if (this.batchEvents != null) {
-        batchEventsQueue = new BatchEventQueue(this.batchEvents, settingFile.getSettings().getSdkKey(), settingFile.getSettings().getAccountId(), this.developmentMode);
+        batchEventsQueue = new BatchEventQueue(this.batchEvents, settingFile.getSettings().getSdkKey(), settingFile.getSettings().getAccountId(), this.developmentMode, this.usageStats);
       }
     }
 
@@ -608,7 +636,8 @@ public class VWO {
               this.goalTypeToTrack,
               this.pollingInterval,
               this.sdkKey,
-              this.batchEventsQueue
+              this.batchEventsQueue,
+              this.usageStats
       );
       if (vwoInstance != null) {
         LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SDK_INITIALIZED.value());

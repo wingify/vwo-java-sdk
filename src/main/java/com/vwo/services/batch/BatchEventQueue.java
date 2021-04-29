@@ -44,6 +44,7 @@ public class BatchEventQueue {
   private final String apikey;
   private boolean isDevelopmentMode;
   private boolean isBatchProcessing = false;
+  private Map<String, Integer> usageStats;
 
   /**
    * Init variables in BatchEventQueue.
@@ -52,8 +53,9 @@ public class BatchEventQueue {
    * @param apikey            VWO application apikey
    * @param accountId         VWO application accountId
    * @param isDevelopmentMode Boolean value specifying development mode is on ir off
+   * @param usageStats        usage info collected at the time of VWO instantiation.
    */
-  public BatchEventQueue(BatchEventData batchEvents, String apikey, int accountId, boolean isDevelopmentMode) {
+  public BatchEventQueue(BatchEventData batchEvents, String apikey, int accountId, boolean isDevelopmentMode, Map<String, Integer> usageStats) {
     if (batchEvents.getRequestTimeInterval() > 1) {
       this.requestTimeInterval = batchEvents.getRequestTimeInterval();
     } else {
@@ -84,6 +86,7 @@ public class BatchEventQueue {
     this.accountId = accountId;
     this.isDevelopmentMode = isDevelopmentMode;
     this.apikey = apikey;
+    this.usageStats = usageStats;
   }
 
   /**
@@ -178,7 +181,7 @@ public class BatchEventQueue {
    */
   private boolean sendPostCall(boolean sendSyncRequest) {
     try {
-      HttpParams httpParams = HttpRequestBuilder.getBatchEventPostCallParams(String.valueOf(accountId), apikey, batchQueue, flushCallback);
+      HttpParams httpParams = HttpRequestBuilder.getBatchEventPostCallParams(String.valueOf(accountId), apikey, batchQueue, flushCallback, this.usageStats);
       LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.AFTER_FLUSHING.value(new HashMap<String, String>() {
         {
           put("manually", sendSyncRequest ? "manually" : "");

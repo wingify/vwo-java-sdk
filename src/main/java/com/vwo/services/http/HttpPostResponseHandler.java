@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
 import com.vwo.services.batch.FlushInterface;
+import com.vwo.utils.HttpUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
@@ -51,7 +52,7 @@ public class HttpPostResponseHandler implements ResponseHandler<Void> {
       LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.BULK_IMPRESSION_SUCCESS.value(new HashMap<String, String>() {
         {
           put("a", String.valueOf(accountId));
-          put("endPoint", endpoint);
+          put("endPoint", HttpUtils.getModifiedLogRequest(endpoint));
         }
       }));
       if (flushCallback != null) {

@@ -65,7 +65,7 @@ public class HttpPostRequest implements Runnable {
     request.setHeaders(httpParams.getHeaders());
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
       {
-        put("url", request.getURI().toString());
+        put("url", HttpUtils.getModifiedLogRequest(request.getURI().toString()));
       }
     }));
 
