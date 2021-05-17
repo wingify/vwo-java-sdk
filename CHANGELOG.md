@@ -4,9 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.17.0] - 2021-05-18
+
+## Added
+
+- Campaign name will be available in settings and hence, changed settings-schema validations.
+
+
 ## [1.13.0] - 2021-04-29
 ### Added
-- Sending stats which are used for launching the SDK like storage service, logger, and integrations, etc. in tracking calls(track-user and batch-event). 
+- Sending stats which are used for launching the SDK like storage service, logger, and integrations, etc. in tracking calls(track-user and batch-event).
   This is solely for debugging purpose. We are only sending whether a particular key is used not the actual value of the key.
 
 ### Changed
@@ -16,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.12.1] - 2021-04-14
 
 ### Changed
-- Consistent variation will be allotted to the user when the traffic for that variation is reduced to 0 and userStorageService is provided.  
+- Consistent variation will be allotted to the user when the traffic for that variation is reduced to 0 and userStorageService is provided.
 
 ## [1.12.0] - 2021-03-16
 

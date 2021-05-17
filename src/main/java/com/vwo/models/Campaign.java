@@ -38,6 +38,7 @@ import java.util.Map;
         "type",
         "variables",
         "segments",
+        "name",
         "isForcedVariationEnabled"
 })
 public class Campaign {
@@ -60,8 +61,13 @@ public class Campaign {
   private List<Variable> variables;
   @JsonProperty("segments")
   private Object segments;
+  @JsonProperty("name")
+  private String name;
   @JsonProperty("isForcedVariationEnabled")
   private boolean isForcedVariationEnabled;
+
+  @JsonIgnore
+  private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
   @JsonProperty("goals")
   public List<Goal> getGoals() {
@@ -158,4 +164,23 @@ public class Campaign {
     return isForcedVariationEnabled;
   }
 
+  @JsonProperty("name")
+  public String getName() {
+    return name;
+  }
+
+  @JsonProperty("name")
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @JsonAnyGetter
+  public Map<String, Object> getAdditionalProperties() {
+    return this.additionalProperties;
+  }
+
+  @JsonAnySetter
+  public void setAdditionalProperty(String name, Object value) {
+    this.additionalProperties.put(name, value);
+  }
 }
