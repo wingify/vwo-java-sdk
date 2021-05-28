@@ -5,15 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.17.1] - 2021-05-28
+
+### Changed
+
+- `campaignName` will be available in integrations callback, if callback is defined.
+
 ## [1.17.0] - 2021-05-18
 
-## Added
+### Added
 
 - Campaign name will be available in settings and hence, changed settings-schema validations.
 
 
 ## [1.13.0] - 2021-04-29
+
 ### Added
+
 - Sending stats which are used for launching the SDK like storage service, logger, and integrations, etc. in tracking calls(track-user and batch-event).
   This is solely for debugging purpose. We are only sending whether a particular key is used not the actual value of the key.
 
@@ -46,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     String settingsFile = VWOHelper.getSettingsFile(accountId, sdkKey);
     VWO vwoInstance = VWO.launch(settingsFile).withIntegrations(getEventData()).build();
 ```
+
 ## [1.11.0] - 2021-03-10
 
 ### Changed

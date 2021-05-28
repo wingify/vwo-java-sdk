@@ -518,5 +518,8 @@ public class VariationDecider {
     integrationsMap.put("userId", userId);
     integrationsMap.put("variationTargetingVariables", variationTargetingVariables == null ? new HashMap<>() : variationTargetingVariables);
     integrationsMap.put("vwoUserId", UUIDUtils.getUUId(accountId, userId));
+    if (campaign.getName() != null) {
+      integrationsMap.put("campaignName", campaign.getName());
+    }
   }
 }
