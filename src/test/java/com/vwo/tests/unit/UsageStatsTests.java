@@ -22,7 +22,11 @@ import com.vwo.enums.GoalEnums;
 import com.vwo.enums.VWOEnums;
 import com.vwo.logger.VWOLogger;
 import com.vwo.models.BatchEventData;
+import com.vwo.models.Campaign;
+import com.vwo.models.Variation;
 import com.vwo.services.batch.FlushInterface;
+import com.vwo.services.http.HttpParams;
+import com.vwo.services.http.HttpRequestBuilder;
 import com.vwo.services.integrations.IntegrationEventListener;
 import com.vwo.services.storage.Storage;
 import com.vwo.tests.data.Settings;
@@ -45,28 +49,28 @@ public class UsageStatsTests {
   public void withStorageServiceOnly() {
     VWO vwo = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50).withUserStorage(getUSerStorage()).build();
     assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("is_ss"), 1);
-    assertNull(vwo.getUsageStats().get("is_i"));
-    assertNull(vwo.getUsageStats().get("is_eb"));
-    assertNull(vwo.getUsageStats().get("is_cl"));
-    assertNull(vwo.getUsageStats().get("is_ll"));
+    assertEquals(vwo.getUsageStats().get("ss"), 1);
+    assertNull(vwo.getUsageStats().get("ig"));
+    assertNull(vwo.getUsageStats().get("eb"));
+    assertNull(vwo.getUsageStats().get("cl"));
+    assertNull(vwo.getUsageStats().get("ll"));
     assertNull(vwo.getUsageStats().get("gt"));
-    assertNull(vwo.getUsageStats().get("tru"));
-    assertNull(vwo.getUsageStats().get("poll"));
+    assertNull(vwo.getUsageStats().get("tr"));
+    assertNull(vwo.getUsageStats().get("pi"));
   }
 
   @Test
   public void alongWithCustomLogger() {
     VWO vwo = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50).withUserStorage(getUSerStorage()).withCustomLogger(getCustomLogger()).build();
     assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("is_ss"), 1);
-    assertEquals(vwo.getUsageStats().get("is_cl"), 1);
-    assertEquals(vwo.getUsageStats().get("is_ll"), 1);
-    assertNull(vwo.getUsageStats().get("is_i"));
-    assertNull(vwo.getUsageStats().get("is_eb"));
+    assertEquals(vwo.getUsageStats().get("ss"), 1);
+    assertEquals(vwo.getUsageStats().get("cl"), 1);
+    assertEquals(vwo.getUsageStats().get("ll"), 1);
+    assertNull(vwo.getUsageStats().get("ig"));
+    assertNull(vwo.getUsageStats().get("eb"));
     assertNull(vwo.getUsageStats().get("gt"));
-    assertNull(vwo.getUsageStats().get("tru"));
-    assertNull(vwo.getUsageStats().get("poll"));
+    assertNull(vwo.getUsageStats().get("tr"));
+    assertNull(vwo.getUsageStats().get("pi"));
   }
 
   @Test
@@ -77,14 +81,14 @@ public class UsageStatsTests {
             .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.ALL)
             .build();
     assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("is_ss"), 1);
-    assertEquals(vwo.getUsageStats().get("is_cl"), 1);
-    assertEquals(vwo.getUsageStats().get("is_ll"), 1);
+    assertEquals(vwo.getUsageStats().get("ss"), 1);
+    assertEquals(vwo.getUsageStats().get("cl"), 1);
+    assertEquals(vwo.getUsageStats().get("ll"), 1);
     assertEquals(vwo.getUsageStats().get("gt"), 1);
-    assertNull(vwo.getUsageStats().get("is_i"));
-    assertNull(vwo.getUsageStats().get("is_eb"));
-    assertNull(vwo.getUsageStats().get("tru"));
-    assertNull(vwo.getUsageStats().get("poll"));
+    assertNull(vwo.getUsageStats().get("ig"));
+    assertNull(vwo.getUsageStats().get("eb"));
+    assertNull(vwo.getUsageStats().get("tr"));
+    assertNull(vwo.getUsageStats().get("pi"));
   }
 
   @Test
@@ -97,14 +101,14 @@ public class UsageStatsTests {
             .withSdkKey("sdk_key")
             .build();
     assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("is_ss"), 1);
-    assertEquals(vwo.getUsageStats().get("is_cl"), 1);
-    assertEquals(vwo.getUsageStats().get("is_ll"), 1);
+    assertEquals(vwo.getUsageStats().get("ss"), 1);
+    assertEquals(vwo.getUsageStats().get("cl"), 1);
+    assertEquals(vwo.getUsageStats().get("ll"), 1);
     assertEquals(vwo.getUsageStats().get("gt"), 1);
-    assertEquals(vwo.getUsageStats().get("poll"), 1);
-    assertNull(vwo.getUsageStats().get("is_i"));
-    assertNull(vwo.getUsageStats().get("is_eb"));
-    assertNull(vwo.getUsageStats().get("tru"));
+    assertEquals(vwo.getUsageStats().get("pi"), 1);
+    assertNull(vwo.getUsageStats().get("ig"));
+    assertNull(vwo.getUsageStats().get("eb"));
+    assertNull(vwo.getUsageStats().get("tr"));
   }
 
   @Test
@@ -119,14 +123,14 @@ public class UsageStatsTests {
             .build();
 
     assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("is_ss"), 1);
-    assertEquals(vwo.getUsageStats().get("is_cl"), 1);
-    assertEquals(vwo.getUsageStats().get("is_ll"), 1);
+    assertEquals(vwo.getUsageStats().get("ss"), 1);
+    assertEquals(vwo.getUsageStats().get("cl"), 1);
+    assertEquals(vwo.getUsageStats().get("ll"), 1);
     assertEquals(vwo.getUsageStats().get("gt"), 1);
-    assertEquals(vwo.getUsageStats().get("poll"), 1);
-    assertEquals(vwo.getUsageStats().get("is_i"), 1);
-    assertNull(vwo.getUsageStats().get("is_eb"));
-    assertNull(vwo.getUsageStats().get("tru"));
+    assertEquals(vwo.getUsageStats().get("pi"), 1);
+    assertEquals(vwo.getUsageStats().get("ig"), 1);
+    assertNull(vwo.getUsageStats().get("eb"));
+    assertNull(vwo.getUsageStats().get("tr"));
   }
 
   @Test
@@ -142,14 +146,14 @@ public class UsageStatsTests {
             .build();
 
     assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("is_ss"), 1);
-    assertEquals(vwo.getUsageStats().get("is_cl"), 1);
-    assertEquals(vwo.getUsageStats().get("is_ll"), 1);
+    assertEquals(vwo.getUsageStats().get("ss"), 1);
+    assertEquals(vwo.getUsageStats().get("cl"), 1);
+    assertEquals(vwo.getUsageStats().get("ll"), 1);
     assertEquals(vwo.getUsageStats().get("gt"), 1);
-    assertEquals(vwo.getUsageStats().get("poll"), 1);
-    assertEquals(vwo.getUsageStats().get("is_i"), 1);
-    assertEquals(vwo.getUsageStats().get("tru"), 1);
-    assertNull(vwo.getUsageStats().get("is_eb"));
+    assertEquals(vwo.getUsageStats().get("pi"), 1);
+    assertEquals(vwo.getUsageStats().get("ig"), 1);
+    assertEquals(vwo.getUsageStats().get("tr"), 1);
+    assertNull(vwo.getUsageStats().get("eb"));
   }
 
   @Test
@@ -166,14 +170,14 @@ public class UsageStatsTests {
             .build();
 
     assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("is_ss"), 1);
-    assertEquals(vwo.getUsageStats().get("is_cl"), 1);
-    assertEquals(vwo.getUsageStats().get("is_ll"), 1);
+    assertEquals(vwo.getUsageStats().get("ss"), 1);
+    assertEquals(vwo.getUsageStats().get("cl"), 1);
+    assertEquals(vwo.getUsageStats().get("ll"), 1);
     assertEquals(vwo.getUsageStats().get("gt"), 1);
-    assertEquals(vwo.getUsageStats().get("poll"), 1);
-    assertEquals(vwo.getUsageStats().get("is_i"), 1);
-    assertEquals(vwo.getUsageStats().get("tru"), 1);
-    assertEquals(vwo.getUsageStats().get("is_eb"), 1);
+    assertEquals(vwo.getUsageStats().get("pi"), 1);
+    assertEquals(vwo.getUsageStats().get("ig"), 1);
+    assertEquals(vwo.getUsageStats().get("tr"), 1);
+    assertEquals(vwo.getUsageStats().get("eb"), 1);
   }
 
   @Test
@@ -191,14 +195,44 @@ public class UsageStatsTests {
             .build();
 
     assertTrue(vwo.getUsageStats().isEmpty());
-    assertNull(vwo.getUsageStats().get("is_ss"));
-    assertNull(vwo.getUsageStats().get("is_cl"));
-    assertNull(vwo.getUsageStats().get("is_ll"));
+    assertNull(vwo.getUsageStats().get("ss"));
+    assertNull(vwo.getUsageStats().get("cl"));
+    assertNull(vwo.getUsageStats().get("ll"));
     assertNull(vwo.getUsageStats().get("gt"));
-    assertNull(vwo.getUsageStats().get("poll"));
-    assertNull(vwo.getUsageStats().get("is_i"));
-    assertNull(vwo.getUsageStats().get("tru"));
-    assertNull(vwo.getUsageStats().get("is_eb"));
+    assertNull(vwo.getUsageStats().get("pi"));
+    assertNull(vwo.getUsageStats().get("ig"));
+    assertNull(vwo.getUsageStats().get("tr"));
+    assertNull(vwo.getUsageStats().get("eb"));
+  }
+
+  @Test
+  public void dacdnFlagTruthyTest() {
+    VWO vwo = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50)
+            .withUserStorage(getUSerStorage())
+            .withCustomLogger(getCustomLogger())
+            .withSdkKey("sdk_key")
+            .build();
+
+    Campaign campaign = new Campaign();
+    campaign.setId(231);
+    Variation variation = new Variation();
+    variation.setId(1);
+    HttpParams httpParams =  HttpRequestBuilder.getUserParams(vwo.getSettingFile(), campaign, "userId", variation, vwo.getUsageStats());
+    assertTrue(httpParams.getQueryParams().containsKey("_l"));
+  }
+
+  @Test
+  public void dacdnFlagFalsyTest() {
+    VWO vwo = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50)
+            .withSdkKey("sdk_key")
+            .build();
+
+    Campaign campaign = new Campaign();
+    campaign.setId(231);
+    Variation variation = new Variation();
+    variation.setId(1);
+    HttpParams httpParams =  HttpRequestBuilder.getUserParams(vwo.getSettingFile(), campaign, "userId", variation, vwo.getUsageStats());
+    assertFalse(httpParams.getQueryParams().containsKey("_l"));
   }
 
   public static BatchEventData getBatchingData() {

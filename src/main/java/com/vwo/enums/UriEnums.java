@@ -19,7 +19,7 @@ package com.vwo.enums;
 public enum UriEnums {
 
   PROTOCOL("https"),
-  SDK_VERSION("1.17.1"),
+  SDK_VERSION("1.17.2"),
   SDK_NAME("java"),
   BASE_URL("dev.visualwebsiteoptimizer.com"),
   SETTINGS_URL("/server-side/settings"),

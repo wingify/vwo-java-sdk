@@ -488,6 +488,9 @@ public class HttpRequestBuilder {
 
       public Builder withUsageStats(Map<String, Integer> usageStats) {
         this.usageStats = usageStats;
+        if (!this.usageStats.isEmpty()) {
+          this.usageStats.put("_l", 1);
+        }
         return this;
       }
 

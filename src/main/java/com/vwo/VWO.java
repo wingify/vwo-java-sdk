@@ -491,7 +491,7 @@ public class VWO {
      */
     public Builder withPollingInterval(Integer pollingInterval) {
       this.pollingInterval = pollingInterval;
-      usageStats.put("poll", 1);
+      usageStats.put("pi", 1);
       return this;
     }
 
@@ -514,7 +514,7 @@ public class VWO {
      */
     public Builder withUserStorage(Storage.User userStorage) {
       this.userStorage = userStorage;
-      usageStats.put("is_ss", 1);
+      usageStats.put("ss", 1);
       return this;
     }
 
@@ -537,9 +537,9 @@ public class VWO {
      */
     public Builder withCustomLogger(VWOLogger customLogger) {
       this.customLogger = customLogger;
-      usageStats.put("is_cl", 1);
+      usageStats.put("cl", 1);
       if (!VWOLogger.level.equals(VWOEnums.LOGGER_LEVEL.ERROR.value())) {
-        usageStats.put("is_ll", 1);
+        usageStats.put("ll", 1);
       }
 
       return this;
@@ -566,20 +566,20 @@ public class VWO {
     public Builder withShouldTrackReturningUser(boolean value) {
       this.shouldTrackReturningUser = value;
       if (shouldTrackReturningUser) {
-        usageStats.put("tru", 1);
+        usageStats.put("tr", 1);
       }
       return this;
     }
 
     public Builder withBatchEvents(BatchEventData batchEvents) {
       this.batchEvents = batchEvents;
-      usageStats.put("is_eb", 1);
+      usageStats.put("eb", 1);
       return this;
     }
 
     public Builder withIntegrations(IntegrationEventListener integrations) {
       this.integrations = integrations;
-      usageStats.put("is_i", 1);
+      usageStats.put("ig", 1);
       return this;
     }
 
