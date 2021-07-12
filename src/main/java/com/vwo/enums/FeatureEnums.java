@@ -22,7 +22,8 @@ public class FeatureEnums {
     STRING("string"),
     INTEGER("integer"),
     DOUBLE("double"),
-    BOOLEAN("boolean");
+    BOOLEAN("boolean"),
+    JSON("json");
 
     private final String variableType;
 

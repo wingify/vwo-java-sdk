@@ -136,31 +136,6 @@ public class FeatureVariableTests {
     }
   }
 
-//  @Test
-//  public void featureRolloutInvalidVariableTypeTests() throws IOException {
-//    LOGGER.info("Should test against a integer feature variable");
-//
-//    vwoInstance = VWO.launch(Settings.FEATURE_ROLLOUT_TRAFFIC_100).build();
-//    Settings featureRolloutSettingsConfig = new ObjectMapper().readValue(Settings.FEATURE_ROLLOUT_TRAFFIC_100, Settings.class);
-//    String campaignKey = featureRolloutSettingsConfig.getCampaigns().get(0).getKey();
-//
-//    String[] variableTypes = {"string", "double", "integer", "boolean"};
-//    for (String variableType: variableTypes) {
-//
-//      for (Variable variableInfo: featureRolloutSettingsConfig.getCampaigns().get(0).getVariables()) {
-//        if (!variableInfo.getType().equalsIgnoreCase(variableType)) {
-//
-//          ArrayList<UserExpectations.Variation> userExpectations = UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40;
-//
-//          for (int i = 0; i < userExpectations.size(); i++) {
-//            Object variableValue = vwoInstance.getFeatureVariableValue(campaignKey, variableInfo.getKey(), TestUtils.getUsers()[i]);
-//            assertNull(variableValue);
-//          }
-//        }
-//      }
-//    }
-//  }
-
   @Test
   public void featureRolloutInvalidTypeCastingTests() throws IOException {
     LOGGER.info("Should test against a integer feature variable");
@@ -281,6 +256,38 @@ public class FeatureVariableTests {
     LOGGER.info("Should test against a feature test campaign settings with traffic 100");
 
     featureTestTests(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100, UserExpectations.FEATURE_ROLLOUT_TEST_TRAFFIC_100_WEIGHT_10_20_30_40, null);
+  }
+
+  @Test
+  public void featureTestJSONTests() throws IOException {
+    LOGGER.info("Should test against a feature test campaign settings with JSON variables");
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_JSON_100).withDevelopmentMode(true).build();
+    vwoInstance.isFeatureEnabled("FT_T_JSON_100_W_50_50", "Faizan");
+    Map variableValue = (Map) vwoInstance.getFeatureVariableValue("FT_T_JSON_100_W_50_50", "JSON_VARIABLE1", "Faizan");
+    assertEquals("json", variableValue.get("type"));
+    assertEquals("json", variableValue.get("value"));
+
+    variableValue = (Map) vwoInstance.getFeatureVariableValue("FT_T_JSON_100_W_50_50", "JSON_VARIABLE2", "Faizan");
+    assertTrue(variableValue.get("json") instanceof Map);
+    assertTrue(variableValue.get("json1") instanceof Map);
+
+
+    vwoInstance.isFeatureEnabled("FT_T_JSON_100_W_50_50", "Chris");
+    variableValue = (Map) vwoInstance.getFeatureVariableValue("FT_T_JSON_100_W_50_50", "JSON_VARIABLE1", "Chris");
+    assertTrue(variableValue.get("jsonArray") instanceof ArrayList);
+
+    variableValue = (Map) vwoInstance.getFeatureVariableValue("FT_T_JSON_100_W_50_50", "JSON_VARIABLE2", "Chris");
+    assertTrue(variableValue.get("jsonArray") instanceof ArrayList);
+    assertTrue(variableValue.get("jsonObject") instanceof Map);
+
+    Object variableValue1 = vwoInstance.getFeatureVariableValue("FT_T_JSON_100_W_50_50", "JSON_VARIABLE3", "Chris");
+    assertNull(variableValue1);
+
+    variableValue1 = vwoInstance.getFeatureVariableValue("FT_T_JSON_100_W_50_50", "JSON_VARIABLE4", "Chris");
+    assertNull(variableValue1);
+
+    variableValue1 = vwoInstance.getFeatureVariableValue("FT_T_JSON_100_W_50_50", "JSON_VARIABLE5", "Chris");
+    assertNull(variableValue1);
   }
 
   @Test

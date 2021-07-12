@@ -16,6 +16,8 @@
 
 package com.vwo.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
@@ -136,5 +138,21 @@ public class ValidationUtils {
 
   private static boolean isEmptyValue(Object value) {
     return value == null || value.toString().isEmpty();
+  }
+
+  /**
+   * Validate the Json Passed.
+   * @param json Json in string format
+   * @return True if json is valid, else false.
+   */
+  public static boolean isValidJSON(final String json) {
+    boolean valid = false;
+    try {
+      new ObjectMapper().readValue(json, Map.class);
+      valid = true;
+    } catch (JsonProcessingException e) {
+      valid = false;
+    }
+    return valid;
   }
 }

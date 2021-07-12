@@ -16,6 +16,8 @@
 
 package com.vwo.services.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.services.batch.BatchEventQueue;
@@ -270,58 +272,6 @@ public class FeatureCampaign {
     }
   }
 
-  //  /**
-  //   * Gets the feature details for a campaign.
-  //   *
-  //   * @param campaignKey Unique campaign test key
-  //   * @param settingFileConfig Settings File Configuration
-  //   *
-  //   * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
-  //   */
-  //  public static List<Variable> getFeatureDetails(String campaignKey, SettingFile settingFileConfig) {
-  //
-  //    try {
-  //      if (!ValidationUtils.isValidParams(new HashMap<String, Object>() {
-  //        {
-  //          put("campaignKey", campaignKey);
-  //        }
-  //      })) {
-  //        return null;
-  //      }
-  //
-  //      Campaign campaign = settingFileConfig.getCampaign(campaignKey);
-  //
-  //      if (campaign == null) {
-  //        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
-  //          {
-  //            put("campaignKey",campaignKey);
-  //          }
-  //        }));
-  //        return null;
-  //      }
-  //
-  //      if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
-  //        return campaign.getVariables();
-  //      }
-  //
-  //      if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())) {
-  //        return campaign.getVariations().stream().filter(variationObj -> variationObj.getId() == 1).findFirst().get().getVariables();
-  //      }
-  //
-  //      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
-  //        {
-  //          put("api", "getFeatureDetails");
-  //          put("campaignKey", campaignKey);
-  //        }
-  //      }));
-  //      return null;
-  //
-  //    } catch (Exception e) {
-  //      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
-  //      return null;
-  //    }
-  //  }
-
   private static Object getTypeCastedValue(Object value, String type) {
     if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.STRING.value())) {
       return value.toString();
@@ -335,6 +285,16 @@ public class FeatureCampaign {
       return Double.valueOf(value.toString());
     } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.BOOLEAN.value())) {
       return Boolean.valueOf(value.toString());
+    } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.JSON.value())) {
+      try {
+        if (ValidationUtils.isValidJSON(new ObjectMapper().writeValueAsString(value))) {
+          return value;
+        } else {
+          return null;
+        }
+      } catch (JsonProcessingException e) {
+        return null;
+      }
     } else {
       return value;
     }

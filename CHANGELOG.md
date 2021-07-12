@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update name of usage metrics keys. Start sending `_l` flag to notify VWO server whether to log or not.
 
+## [1.18.0] - 2021-07-12
+
+### Added
+
+- Feature Rollout and Feature Test campaigns now supports `JSON` type variable which can be created inside VWO Application. This will help in storing grouped and structured data.
+
 ## [1.17.1] - 2021-05-28
 
 ### Changed
