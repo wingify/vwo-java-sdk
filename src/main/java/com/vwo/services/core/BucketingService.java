@@ -29,7 +29,7 @@ public class BucketingService {
 
   private static final Logger LOGGER = Logger.getLogger(BucketingService.class);
 
-  private static final int MAX_TRAFFIC_VALUE = 10000;
+  public static final int MAX_TRAFFIC_VALUE = 10000;
   private static final int MAX_PERCENT_TRAFFIC = 100;
   private static final int SEED_VALUE = 1;
 
@@ -63,7 +63,7 @@ public class BucketingService {
     return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
   }
 
-  public Variation getUserVariation(List<Variation> variations, String campaignKey, int campaignTraffic, String userId) {
+  public Object getUserVariation(Object variations, String campaignKey, int campaignTraffic, String userId) {
     long murmurHash = BucketingService.getUserHashForCampaign(userId, campaignTraffic);
 
     if (murmurHash != -1) {
@@ -100,7 +100,7 @@ public class BucketingService {
    * @param multiplier Multiplier constant
    * @return multiplied hash value
    */
-  private static int getMultipliedHashValue(long murmurHash, int maxTrafficValue, double multiplier) {
+  public static int getMultipliedHashValue(long murmurHash, int maxTrafficValue, double multiplier) {
     double ratio = (double) murmurHash / Math.pow(2, 32);
     int multipliedValue = (int) (ratio * maxTrafficValue * multiplier);
     return multipliedValue + 1;
@@ -113,11 +113,19 @@ public class BucketingService {
    * @param variationHashValue Variation hash value
    * @return variation object
    */
-  private Variation getVariation(List<Variation> variations, int variationHashValue) {
-    for (Variation variation: variations) {
-      if (variationHashValue >= variation.getStartRangeVariation() && variationHashValue <= variation.getEndRangeVariation()) {
-        return variation;
+  public Object getVariation(Object variations, int variationHashValue) {
+
+    for (Object variation: (List<Object>) variations) {
+      if (variation instanceof Variation) {
+        if (variationHashValue >= ((Variation) variation).getStartRangeVariation() && variationHashValue <= ((Variation) variation).getEndRangeVariation()) {
+          return variation;
+        }
+      } else {
+        if (variationHashValue >= ((Campaign) variation).getStartRangeVariation() && variationHashValue <= ((Campaign) variation).getEndRangeVariation()) {
+          return variation;
+        }
       }
+
     }
     return null;
   }

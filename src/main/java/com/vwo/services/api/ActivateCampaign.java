@@ -126,8 +126,8 @@ public class ActivateCampaign {
           Boolean shouldTrackReturningUser,
           Map<String, Integer> usageStats
   ) {
-    String variation = CampaignVariation.getCampaignVariationName(apiName, campaign, userId, variationDecider,
-            CustomVariables, variationTargetingVariables, shouldTrackReturningUser == null, null);
+    String variation = CampaignVariation.getCampaignVariationName(settingFile.getSettings(), apiName, campaign, userId, variationDecider,
+            CustomVariables, variationTargetingVariables, shouldTrackReturningUser, null);
 
     if (variation != null) {
       if (shouldTrackReturningUser == null) {

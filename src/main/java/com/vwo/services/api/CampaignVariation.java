@@ -18,6 +18,7 @@ package com.vwo.services.api;
 
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.models.Settings;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.enums.CampaignEnums;
@@ -92,7 +93,7 @@ public class CampaignVariation {
         return null;
       }
 
-      return CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.GET_VARIATION_NAME.value(), campaign, userId,
+      return CampaignVariation.getCampaignVariationName(settingFile.getSettings(), APIEnums.API_TYPES.GET_VARIATION_NAME.value(), campaign, userId,
               variationDecider, CustomVariables, variationTargetingVariables);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
@@ -101,18 +102,20 @@ public class CampaignVariation {
   }
 
   public static String getCampaignVariationName(
+          Settings settings,
           String apiName,
           Campaign campaign,
           String userId,
           VariationDecider variationDecider,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables) {
-    Variation variation = variationDecider.getVariation(apiName, campaign, userId, CustomVariables,
+    Variation variation = variationDecider.getVariation(settings, apiName, campaign, userId, CustomVariables,
             variationTargetingVariables, null, null);
     return variation != null ? variation.getName() : null;
   }
 
   public static String getCampaignVariationName(
+          Settings settings,
           String apiName,
           Campaign campaign,
           String userId,
@@ -122,7 +125,7 @@ public class CampaignVariation {
           Boolean shouldTrackReturningUser,
           String goalIdentifier
   ) {
-    Variation variation = variationDecider.getVariation(apiName, campaign, userId, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
+    Variation variation = variationDecider.getVariation(settings, apiName, campaign, userId, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
     return variation != null ? variation.getName() : null;
   }
 }

@@ -32,6 +32,8 @@ import java.util.Map;
         "sdkKey",
         "campaigns",
         "accountId",
+        "campaignGroups",
+        "groups",
         "version"
 })
 public class Settings {
@@ -44,6 +46,10 @@ public class Settings {
   private Integer accountId;
   @JsonProperty("version")
   private Integer version;
+  @JsonProperty("campaignGroups")
+  private Map<String, Integer> campaignGroups;
+  @JsonProperty("groups")
+  private Map<String, Groups> groups;
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -97,4 +103,23 @@ public class Settings {
     this.additionalProperties.put(name, value);
   }
 
+  @JsonProperty("campaignGroups")
+  public Map<String, Integer> getCampaignGroups() {
+    return campaignGroups;
+  }
+
+  @JsonProperty("campaignGroups")
+  public void setCampaignGroups(Map<String, Integer> campaignGroups) {
+    this.campaignGroups = campaignGroups;
+  }
+
+  @JsonProperty("groups")
+  public Map<String, Groups> getGroups() {
+    return groups;
+  }
+
+  @JsonProperty("groups")
+  public void setGroups(Map<String, Groups> groups) {
+    this.groups = groups;
+  }
 }

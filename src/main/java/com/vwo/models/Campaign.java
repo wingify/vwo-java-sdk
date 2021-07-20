@@ -41,7 +41,7 @@ import java.util.Map;
         "name",
         "isForcedVariationEnabled"
 })
-public class Campaign {
+public class Campaign implements  Cloneable {
 
   @JsonProperty("goals")
   private List<Goal> goals = null;
@@ -65,6 +65,10 @@ public class Campaign {
   private String name;
   @JsonProperty("isForcedVariationEnabled")
   private boolean isForcedVariationEnabled;
+
+  private Integer startRangeVariation;
+  private Integer endRangeVariation;
+  private double weight;
 
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -182,5 +186,37 @@ public class Campaign {
   @JsonAnySetter
   public void setAdditionalProperty(String name, Object value) {
     this.additionalProperties.put(name, value);
+  }
+
+  public Campaign clone() {
+    try {
+      return (Campaign) super.clone();
+    } catch (CloneNotSupportedException e) {
+      return this;
+    }
+  }
+
+  public Integer getStartRangeVariation() {
+    return startRangeVariation;
+  }
+
+  public void setStartRangeVariation(Integer startRangeVariation) {
+    this.startRangeVariation = startRangeVariation;
+  }
+
+  public Integer getEndRangeVariation() {
+    return endRangeVariation;
+  }
+
+  public void setEndRangeVariation(Integer endRangeVariation) {
+    this.endRangeVariation = endRangeVariation;
+  }
+
+  public double getWeight() {
+    return weight;
+  }
+
+  public void setWeight(double weight) {
+    this.weight = weight;
   }
 }
