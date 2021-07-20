@@ -40,7 +40,7 @@ public class BucketingService {
    * @param traffic - Campaign traffic
    * @return signed murmur hash value
    */
-  public static long getUserHashForCampaign(String userId, int traffic) {
+  public static long getUserHashForCampaign(String userId, int traffic, boolean disableLogs) {
     int murmurHash = Murmur3.hash32(userId.getBytes(), 0, userId.length(), SEED_VALUE);
 
     /**
@@ -58,13 +58,13 @@ public class BucketingService {
         put("userId", userId);
         put("hashValue", String.valueOf(murmurHash));
       }
-    }));
+    }), disableLogs);
 
     return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
   }
 
   public Object getUserVariation(Object variations, String campaignKey, int campaignTraffic, String userId) {
-    long murmurHash = BucketingService.getUserHashForCampaign(userId, campaignTraffic);
+    long murmurHash = BucketingService.getUserHashForCampaign(userId, campaignTraffic, false);
 
     if (murmurHash != -1) {
       double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
@@ -80,7 +80,7 @@ public class BucketingService {
         }
       }));
 
-      return getVariation(variations, variationHashValue);
+      return getAllocatedItem(variations, variationHashValue);
     }
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
@@ -109,20 +109,20 @@ public class BucketingService {
   /**
    * Get the variation according to traffic and user hash value.
    *
-   * @param variations Campaign Variations
-   * @param variationHashValue Variation hash value
+   * @param itemList Campaign/Variations list
+   * @param hashValue hash value
    * @return variation object
    */
-  public Object getVariation(Object variations, int variationHashValue) {
+  public Object getAllocatedItem(Object itemList, int hashValue) {
 
-    for (Object variation: (List<Object>) variations) {
-      if (variation instanceof Variation) {
-        if (variationHashValue >= ((Variation) variation).getStartRangeVariation() && variationHashValue <= ((Variation) variation).getEndRangeVariation()) {
-          return variation;
+    for (Object item: (List<Object>) itemList) {
+      if (item instanceof Variation) {
+        if (hashValue >= ((Variation) item).getStartRangeVariation() && hashValue <= ((Variation) item).getEndRangeVariation()) {
+          return item;
         }
       } else {
-        if (variationHashValue >= ((Campaign) variation).getStartRangeVariation() && variationHashValue <= ((Campaign) variation).getEndRangeVariation()) {
-          return variation;
+        if (hashValue >= ((Campaign) item).getStartRange() && hashValue <= ((Campaign) item).getEndRange()) {
+          return item;
         }
       }
 

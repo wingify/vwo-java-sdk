@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.vwo.services.core;
 
 import com.vwo.enums.CampaignEnums;
@@ -123,19 +124,19 @@ public class VariationDecider {
     }
 
 
-    Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables);
+    Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables, false);
     if (whitelistedVariation != null) {
       return whitelistedVariation;
     }
 
-    Variation userVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, shouldTrackReturningUser);
+    Variation userVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, shouldTrackReturningUser, false);
     if (userVariation == null || userVariation.getId() != -1) {
       return userVariation;
     }
 
     // Check if user satisfies pre segmentation. If not, return null.
-    Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables);
-    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(userId, campaign.getPercentTraffic()) != -1)) {
+    Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, false);
+    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(userId, campaign.getPercentTraffic(), true) != -1)) {
       return null;
     }
 
@@ -200,7 +201,7 @@ public class VariationDecider {
    * @param variationTargetingVariables - User Whitelisting Targeting variables
    * @return whitelisted variation.
    */
-  private Variation checkForWhitelisting(Campaign campaign, String userId, Map<String, ?> variationTargetingVariables) {
+  private Variation checkForWhitelisting(Campaign campaign, String userId, Map<String, ?> variationTargetingVariables, boolean disableLogs) {
     if (campaign.getIsForcedVariationEnabled() == true) {
       List<Variation> whiteListedVariations = new ArrayList<>();
       campaign.getVariations().forEach(variationObj -> {
@@ -211,7 +212,7 @@ public class VariationDecider {
               put("campaignKey", campaign.getKey());
               put("variation", variationObj.getName());
             }
-          }));
+          }), disableLogs);
         } else {
           String status = StatusEnums.FAILED.value();
           if (PreSegmentation.isPresegmentValid(variationObj.getSegments(), variationTargetingVariables, userId, campaign.getKey())) {
@@ -229,7 +230,7 @@ public class VariationDecider {
               put("variation", variationObj.getName());
               put("status", newStatus);
             }
-          }));
+          }), disableLogs);
         }
       });
 
@@ -255,8 +256,10 @@ public class VariationDecider {
             put("variation", variationName);
             put("status", StatusEnums.PASSED.value());
           }
-        }));
-        executeIntegrationsCallback(false, campaign, whiteListedVariation, true);
+        }), disableLogs);
+        if (!disableLogs) {
+          executeIntegrationsCallback(false, campaign, whiteListedVariation, true);
+        }
         return whiteListedVariation;
       } else {
         LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SEGMENTATION_STATUS.value(new HashMap<String, String>() {
@@ -268,7 +271,7 @@ public class VariationDecider {
             put("variation", "");
             put("status", StatusEnums.FAILED.value());
           }
-        }));
+        }), disableLogs);
       }
       return null;
     } else {
@@ -277,7 +280,7 @@ public class VariationDecider {
           put("campaignKey", campaign.getKey());
           put("userId", userId);
         }
-      }));
+      }), disableLogs);
     }
     return null;
   }
@@ -293,7 +296,7 @@ public class VariationDecider {
    * @param shouldTrackReturningUser - Boolean value to check if the goal should be tracked again or not
    * @return Stored variation.
    */
-  private Variation checkForUserStorage(String apiName, Campaign campaign, String userId, String goalIdentifier, Boolean shouldTrackReturningUser) {
+  private Variation checkForUserStorage(String apiName, Campaign campaign, String userId, String goalIdentifier, Boolean shouldTrackReturningUser, boolean disableLogs) {
     Variation variation = new Variation();
     variation.setId(-1);
     // Try to lookup in user storage service to get variation.
@@ -305,7 +308,7 @@ public class VariationDecider {
           if (!isCampaignActivated(apiName, userId, campaign)) {
             return null;
           } else {
-            LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value());
+            LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value(), disableLogs);
           }
         } else if (StorageUtils.isValidUserStorageMap(userStorageMap)) {
           if (shouldTrackReturningUser == null) {
@@ -320,7 +323,7 @@ public class VariationDecider {
                   put("campaignKey", campaign.getKey());
                   put("userId", userId);
                 }
-              }));
+              }), disableLogs);
               return null;
             }
           } else if (goalIdentifier != null && shouldTrackReturningUser) {
@@ -330,7 +333,7 @@ public class VariationDecider {
                 put("campaignKey", campaign.getKey());
                 put("userId", userId);
               }
-            }));
+            }), disableLogs);
           }
 
           variation = getStoredVariation(userStorageMap, userId, campaign);
@@ -343,16 +346,18 @@ public class VariationDecider {
                 put("campaignKey", campaign.getKey());
                 put("userId", userId);
               }
-            }));
+            }), disableLogs);
 
             if (goalIdentifier != null) {
               setGoalInUserStorage(userStorageMap, goalIdentifier, userId, campaign);
             }
             isStoredVariation = true;
-            executeIntegrationsCallback(true, campaign, variation, false);
+            if (!disableLogs) {
+              executeIntegrationsCallback(true, campaign, variation, false);
+            }
             return variation;
           } else {
-            if (isCampaignActivated(apiName, userId, campaign)) {
+            if (!isCampaignActivated(apiName, userId, campaign)) {
               return null;
             } else {
               LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
@@ -360,7 +365,7 @@ public class VariationDecider {
                   put("campaignKey", campaign.getKey());
                   put("userId", userId);
                 }
-              }));
+              }), disableLogs);
             }
           }
         } else {
@@ -371,14 +376,14 @@ public class VariationDecider {
               {
                 put("map", userStorageMap.toString());
               }
-            }));
+            }), disableLogs);
           }
         }
       } catch (Exception e) {
-        LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.NO_DATA_IN_USER_STORAGE.value());
+        LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.NO_DATA_IN_USER_STORAGE.value(), disableLogs);
       }
     } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_USER_STORAGE_DEFINED.value());
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_USER_STORAGE_DEFINED.value(), disableLogs);
     }
     return variation;
   }
@@ -391,7 +396,7 @@ public class VariationDecider {
    * @param customVariables - Pre Segmentation custom variables
    * @return true, if the pre-segmentation is satisfied.
    */
-  private Boolean checkForPreSegmentation(Campaign campaign, String userId, Map<String, ?> customVariables) {
+  private Boolean checkForPreSegmentation(Campaign campaign, String userId, Map<String, ?> customVariables, boolean disableLogs) {
     if (campaign.getSegments() != null && !((LinkedHashMap) campaign.getSegments()).isEmpty()) {
       boolean isPresegmentValid = PreSegmentation.isPresegmentValid(campaign.getSegments(), customVariables, userId, campaign.getKey());
       LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SEGMENTATION_STATUS.value(new HashMap<String, String>() {
@@ -403,7 +408,7 @@ public class VariationDecider {
           put("variation", "(No variation i.e. Presegment)");
           put("status", isPresegmentValid ? StatusEnums.PASSED.value() : StatusEnums.FAILED.value());
         }
-      }));
+      }), disableLogs);
 
       return isPresegmentValid;
     } else {
@@ -413,7 +418,7 @@ public class VariationDecider {
           put("userId", userId);
           put("variation", "(No variation i.e. Presegment)");
         }
-      }));
+      }), disableLogs);
       return true;
     }
   }
@@ -438,13 +443,13 @@ public class VariationDecider {
       if (campaign.getId().equals(calledCampaign.getId())) {
         continue;
       }
-      Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables);
+      Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables, true);
       if (whitelistedVariation != null) {
         otherCampaignWinner = true;
         break;
       }
 
-      Variation storedVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, shouldTrackReturningUser);
+      Variation storedVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, shouldTrackReturningUser, true);
       if (storedVariation != null && storedVariation.getId() != -1) {
         otherCampaignWinner = true;
         break;
@@ -466,7 +471,7 @@ public class VariationDecider {
     List<Campaign> eligibleCampaigns = new ArrayList<>();
     List<Campaign> inEligibleCampaigns = new ArrayList<>();
     for (Campaign campaign : campaignList) {
-      if (checkForPreSegmentation(campaign, userId, customVariables) && BucketingService.getUserHashForCampaign(userId, campaign.getPercentTraffic()) != -1) {
+      if (checkForPreSegmentation(campaign, userId, customVariables, true) && BucketingService.getUserHashForCampaign(userId, campaign.getPercentTraffic(), true) != -1) {
         eligibleCampaigns.add(campaign.clone());
       } else {
         inEligibleCampaigns.add(campaign);
@@ -516,9 +521,9 @@ public class VariationDecider {
       campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
     }
     SettingsFileUtil.setCampaignRange(shortlistedCampaigns);
-    Long bucketHash = BucketingService.getUserHashForCampaign(userId, 100);
+    Long bucketHash = BucketingService.getUserHashForCampaign(userId, 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
-    Campaign winnerCampaign = (Campaign) bucketingService.getVariation(shortlistedCampaigns, variationHashValue);
+    Campaign winnerCampaign = (Campaign) bucketingService.getAllocatedItem(shortlistedCampaigns, variationHashValue);
 
     LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.GOT_WINNER_CAMPAIGN.value(new HashMap<String, String>() {
       {

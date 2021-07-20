@@ -66,8 +66,8 @@ public class Campaign implements  Cloneable {
   @JsonProperty("isForcedVariationEnabled")
   private boolean isForcedVariationEnabled;
 
-  private Integer startRangeVariation;
-  private Integer endRangeVariation;
+  private Integer startRange;
+  private Integer endRange;
   private double weight;
 
   @JsonIgnore
@@ -196,20 +196,20 @@ public class Campaign implements  Cloneable {
     }
   }
 
-  public Integer getStartRangeVariation() {
-    return startRangeVariation;
+  public Integer getStartRange() {
+    return startRange;
   }
 
-  public void setStartRangeVariation(Integer startRangeVariation) {
-    this.startRangeVariation = startRangeVariation;
+  public void setStartRange(Integer startRange) {
+    this.startRange = startRange;
   }
 
-  public Integer getEndRangeVariation() {
-    return endRangeVariation;
+  public Integer getEndRange() {
+    return endRange;
   }
 
-  public void setEndRangeVariation(Integer endRangeVariation) {
-    this.endRangeVariation = endRangeVariation;
+  public void setEndRange(Integer endRange) {
+    this.endRange = endRange;
   }
 
   public double getWeight() {
