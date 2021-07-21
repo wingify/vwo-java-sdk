@@ -73,21 +73,6 @@ public class SettingsFileUtil implements SettingFile {
     }
   }
 
-  public static void setCampaignRange(List<Campaign> campaigns) {
-    double allocatedRange = 0;
-
-    for (Campaign campaign : campaigns) {
-      Double stepFactor = getVariationBucketRange(campaign.getWeight());
-      if (stepFactor != null && stepFactor != -1) {
-        campaign.setStartRange((int) allocatedRange + 1);
-        allocatedRange = (Math.ceil(allocatedRange + stepFactor));
-        campaign.setEndRange((int) allocatedRange);
-      } else {
-        campaign.setStartRange(-1);
-        campaign.setEndRange(-1);
-      }
-    }
-  }
 
   public static Double getVariationBucketRange(double variationWeight) {
     double startRange = variationWeight * 100;

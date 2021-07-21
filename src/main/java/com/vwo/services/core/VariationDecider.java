@@ -543,7 +543,7 @@ public class VariationDecider {
     for (Campaign campaign : shortlistedCampaigns) {
       campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
     }
-    SettingsFileUtil.setCampaignRange(shortlistedCampaigns);
+    CampaignUtils.setCampaignRange(shortlistedCampaigns);
     Long bucketHash = BucketingService.getUserHashForCampaign(userId, 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     Campaign winnerCampaign = (Campaign) bucketingService.getAllocatedItem(shortlistedCampaigns, variationHashValue);

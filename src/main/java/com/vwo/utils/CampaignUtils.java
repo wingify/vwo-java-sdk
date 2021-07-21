@@ -21,6 +21,7 @@ import com.vwo.models.Campaign;
 import com.vwo.models.Goal;
 import com.vwo.models.Settings;
 import com.vwo.models.Variation;
+import com.vwo.services.settings.SettingsFileUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,6 +126,13 @@ public class CampaignUtils {
     return campaignList;
   }
 
+  /**
+   * Get the campaign on the basis of campaign id.
+   *
+   * @param settings      - Settings instance
+   * @param campaignId    - Campaign id
+   * @return Campaign object.
+   */
   private static Campaign getCampaignBasedOnId(Settings settings, int campaignId) {
     Campaign campaign = null;
     for (Campaign eachCampaign: settings.getCampaigns()) {
@@ -135,4 +143,26 @@ public class CampaignUtils {
     }
     return campaign;
   }
+
+  /**
+   * Allocate range to each campaign in the list.
+   *
+   * @param campaigns list of campaigns.
+   */
+  public static void setCampaignRange(List<Campaign> campaigns) {
+    double allocatedRange = 0;
+
+    for (Campaign campaign : campaigns) {
+      Double stepFactor = SettingsFileUtil.getVariationBucketRange(campaign.getWeight());
+      if (stepFactor != null && stepFactor != -1) {
+        campaign.setStartRange((int) allocatedRange + 1);
+        allocatedRange = (Math.ceil(allocatedRange + stepFactor));
+        campaign.setEndRange((int) allocatedRange);
+      } else {
+        campaign.setStartRange(-1);
+        campaign.setEndRange(-1);
+      }
+    }
+  }
+
 }
