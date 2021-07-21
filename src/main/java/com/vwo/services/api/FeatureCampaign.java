@@ -110,11 +110,8 @@ public class FeatureCampaign {
         return false;
       }
 
-      String variation = campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
-              ? ActivateCampaign.activateCampaign(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
-              CustomVariables, variationTargetingVariables, shouldTrackReturningUser, usageStats)
-              : CampaignVariation.getCampaignVariationName(settingFile.getSettings(), APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, variationDecider,
-              CustomVariables, variationTargetingVariables);
+      String variation = ActivateCampaign.activateCampaign(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
+              CustomVariables, variationTargetingVariables, shouldTrackReturningUser, usageStats);
 
       if (variation == null) {
         return false;

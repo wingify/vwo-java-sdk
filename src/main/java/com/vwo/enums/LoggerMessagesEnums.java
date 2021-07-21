@@ -74,7 +74,7 @@ public class LoggerMessagesEnums {
     BATCH_EVENT_LIMIT_EXCEEDED("Impression event - {{endPoint}} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{{eventsPerRequest}} for accountId:{{accountId}}. Please read the official documentation for knowing the size limits."),
     BULK_NOT_PROCESSED("Batch events couldn't be received by VWO. Calling Flush Callback with error and data."),
     NO_BATCH_QUEUE("No batch queue present for account:{{accountId}} when calling flushEvents API. Check batchEvents config in launch API"),
-    CAMPAIGN_NOT_ACTIVATED("Campaign:{{campaignKey}} for User ID:{{userId}} is not yet activated for API:{{api}}. Use activate API to activate A/B test or isFeatureEnabled API to activate Feature Test."),
+    CAMPAIGN_NOT_ACTIVATED("Campaign:{{campaignKey}} for User ID:{{userId}} is not yet activated for API:{{api}}. Use activate API to activate A/B test or isFeatureEnabled API to activate Feature Test/Rollout."),
     EVENT_QUEUE_EMPTY("Event Batching queue is empty"),
     EVENTS_PER_REQUEST_OUT_OF_BOUNDS("eventsPerRequest should be > {{min_value}} and <= {{max_value}}. Assigning it the default value i.e {{default_value}}"),
     REQUEST_TIME_INTERVAL_OUT_OF_BOUNDS("requestTimeInterval should be > {{min_value}}. Assigning it the default value i.e {{default_value}} seconds"),
