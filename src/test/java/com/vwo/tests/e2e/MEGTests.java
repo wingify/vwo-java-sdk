@@ -19,6 +19,7 @@ package com.vwo.tests.e2e;
 import com.vwo.VWO;
 import com.vwo.VWOAdditionalParams;
 import com.vwo.logger.Logger;
+import com.vwo.logger.VWOLogger;
 import com.vwo.services.storage.Storage;
 import com.vwo.tests.data.Settings;
 import org.junit.jupiter.api.Test;
@@ -28,8 +29,8 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MEGTests {
-  private static VWO vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_100).withDevelopmentMode(true).build();
-  private static final Logger LOGGER = Logger.getLogger(ActivateTests.class);
+  private static final Logger LOGGER = Logger.getLogger(MEGTests.class);
+  private static VWO vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_100).withCustomLogger(getCustomLogger()).withDevelopmentMode(true).build();
   ArrayList<Map<String, String>> campaignStorageArray = new ArrayList<>();
 
   @Test
@@ -237,7 +238,7 @@ public class MEGTests {
   @Test
   public void calledCampaignWinner() {
     LOGGER.debug("should return true/variationName as called campaign is the winner campaign after traffic normalization");
-    vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_100).withDevelopmentMode(true).build();
+    vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_100).withCustomLogger(getCustomLogger()).withDevelopmentMode(true).build();
     String calledCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getKey();
     String otherCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(1).getKey();
 
@@ -362,5 +363,38 @@ public class MEGTests {
     segments.put("or", or);
 
     return new LinkedHashMap(segments);
+  }
+
+  public static VWOLogger getCustomLogger() {
+    return new VWOLogger(VWO.Enums.LOGGER_LEVEL.DEBUG.value()) {
+
+      @Override
+      public void trace(String message, Object... params) {
+          System.out.println(message);
+      }
+
+      @Override
+      public void debug(String message, Object... params) {
+        System.out.println(message);
+
+      }
+
+      @Override
+      public void info(String message, Object... params) {
+        System.out.println(message);
+
+      }
+
+      @Override
+      public void warn(String message, Object... params) {
+        System.out.println(message);
+
+      }
+
+      @Override
+      public void error(String message, Object... params) {
+        System.out.println(message);
+      }
+    };
   }
 }

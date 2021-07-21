@@ -147,7 +147,14 @@ public class VariationDecider {
         return null;
       }
 
-      if (checkForStorageAndWhitelisting(apiName, campaignList, campaign, userId, goalIdentifier, shouldTrackReturningUser, variationTargetingVariables)) {
+      if (checkForStorageAndWhitelisting(apiName, campaignList, (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, shouldTrackReturningUser, variationTargetingVariables)) {
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.CALLED_CAMPAIGN_NOT_WINNER.value(new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("campaignKey", campaign.getKey());
+            put("groupName", String.valueOf(groupDetails.get("groupName")));
+          }
+        }));
         return null;
       }
 
@@ -169,8 +176,8 @@ public class VariationDecider {
         {
           put("userId", userId);
           put("groupName", (String) groupDetails.get("groupName"));
-          put("eligibleCampaignsKey", finalEligibleCampaignKeys);
-          put("nonEligibleCampaignsKey", finalInEligibleCampaignKeys);
+          put("eligibleText", finalEligibleCampaignKeys.isEmpty() ? "" : "Campaigns: " + eligibleCampaignKeys + " are eligible,");
+          put("inEligibleText", finalInEligibleCampaignKeys.isEmpty() ? "" : "campaigns: " + inEligibleCampaignKeys + " are not eligible");
         }
       }));
 
@@ -436,7 +443,7 @@ public class VariationDecider {
    * @param variationTargetingVariables - User Whitelisting Targeting variables
    * @return true, if whitelisting/storage is satisfied for any campaign.
    */
-  private boolean checkForStorageAndWhitelisting(String apiName, List<Campaign> campaignList, Campaign calledCampaign, String userId, String goalIdentifier,
+  private boolean checkForStorageAndWhitelisting(String apiName, List<Campaign> campaignList, String groupName, Campaign calledCampaign, String userId, String goalIdentifier,
                                                  Boolean shouldTrackReturningUser, Map<String, ?> variationTargetingVariables) {
     boolean otherCampaignWinner = false;
     for (Campaign campaign : campaignList) {
@@ -446,12 +453,28 @@ public class VariationDecider {
       Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables, true);
       if (whitelistedVariation != null) {
         otherCampaignWinner = true;
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE.value(new HashMap<String, String>() {
+          {
+            put("campaignKey", campaign.getKey());
+            put("userId", userId);
+            put("groupName", groupName);
+            put("type", "whitelisting");
+          }
+        }));
         break;
       }
 
       Variation storedVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, shouldTrackReturningUser, true);
       if (storedVariation != null && storedVariation.getId() != -1) {
         otherCampaignWinner = true;
+        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE.value(new HashMap<String, String>() {
+          {
+            put("campaignKey", campaign.getKey());
+            put("userId", userId);
+            put("groupName", groupName);
+            put("type", "user storage");
+          }
+        }));
         break;
       }
     }
