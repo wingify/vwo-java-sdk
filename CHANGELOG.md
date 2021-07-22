@@ -4,17 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.17.2] - 2021-06-10
+## [1.18.1] - 2021-07-22
 
 ### Changed
 
-- Update name of usage metrics keys. Start sending `_l` flag to notify VWO server whether to log or not.
+- Sending visitor tracking call for Feature Rollout campaign when `isFeatureEnabled` API is used. This will help in visualizing the overall traffic for the respective campaign's report in the VWO application.
 
 ## [1.18.0] - 2021-07-12
 
 ### Added
 
 - Feature Rollout and Feature Test campaigns now supports `JSON` type variable which can be created inside VWO Application. This will help in storing grouped and structured data.
+
+## [1.17.2] - 2021-06-10
+
+### Changed
+
+- Update name of usage metrics keys. Start sending `_l` flag to notify VWO server whether to log or not.
 
 ## [1.17.1] - 2021-05-28
 
