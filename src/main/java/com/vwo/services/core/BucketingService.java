@@ -1,12 +1,12 @@
 /**
  * Copyright 2019-2021 Wingify Software Pvt. Ltd.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,8 +40,10 @@ public class BucketingService {
    * @param traffic - Campaign traffic
    * @return signed murmur hash value
    */
-  public static long getUserHashForCampaign(String userId, int traffic, boolean disableLogs) {
-    int murmurHash = Murmur3.hash32(userId.getBytes(), 0, userId.length(), SEED_VALUE);
+
+  public static long getUserHashForCampaign(String seed, String userId, int traffic, boolean disableLogs) {
+
+    int murmurHash = Murmur3.hash32(seed.getBytes(), 0, userId.length(), SEED_VALUE);
 
     /**
      * Took reference from StackOverflow (https://stackoverflow.com/) to:
@@ -63,8 +65,9 @@ public class BucketingService {
     return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
   }
 
-  public Object getUserVariation(Object variations, String campaignKey, int campaignTraffic, String userId) {
-    long murmurHash = BucketingService.getUserHashForCampaign(userId, campaignTraffic, false);
+  public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic, String userId) {
+    long murmurHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + userId)  : userId, userId, campaignTraffic, false);
+
 
     if (murmurHash != -1) {
       double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
@@ -72,7 +75,7 @@ public class BucketingService {
 
       LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_HASH_VALUE.value(new HashMap<String, String>() {
         {
-          put("campaignKey", campaignKey);
+          put("campaignKey", campaign.getKey().toString());
           put("variationHashValue", String.valueOf(variationHashValue));
           put("userId", userId);
           put("traffic", String.valueOf(campaignTraffic));
@@ -85,7 +88,7 @@ public class BucketingService {
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
       {
-        put("campaignKey", campaignKey);
+        put("campaignKey", campaign.getKey().toString());
         put("userId", userId);
       }
     }));
@@ -114,7 +117,6 @@ public class BucketingService {
    * @return variation object
    */
   public Object getAllocatedItem(Object itemList, int hashValue) {
-
     for (Object item: (List<Object>) itemList) {
       if (item instanceof Variation) {
         if (hashValue >= ((Variation) item).getStartRangeVariation() && hashValue <= ((Variation) item).getEndRangeVariation()) {
@@ -125,7 +127,6 @@ public class BucketingService {
           return item;
         }
       }
-
     }
     return null;
   }
