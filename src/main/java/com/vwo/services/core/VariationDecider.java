@@ -136,7 +136,7 @@ public class VariationDecider {
 
     // Check if user satisfies pre segmentation. If not, return null.
     Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, false);
-    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + userId) : userId,
+    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null),
             userId, campaign.getPercentTraffic(), true) != -1)) {
       return null;
     }
@@ -497,7 +497,7 @@ public class VariationDecider {
     List<Campaign> inEligibleCampaigns = new ArrayList<>();
     for (Campaign campaign: campaignList) {
       if (checkForPreSegmentation(campaign, userId, customVariables, true)
-              && BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + userId) : userId, userId, campaign.getPercentTraffic(), true) != -1) {
+              && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), userId, campaign.getPercentTraffic(), true) != -1) {
         eligibleCampaigns.add(campaign.clone());
       } else {
         inEligibleCampaigns.add(campaign);
@@ -548,7 +548,7 @@ public class VariationDecider {
       campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
     }
     CampaignUtils.setCampaignRange(shortlistedCampaigns);
-    Long bucketHash = BucketingService.getUserHashForCampaign(groupId + "_" + userId, userId, 100, true);
+    Long bucketHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, null, groupId), userId, 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     Campaign winnerCampaign = (Campaign) bucketingService.getAllocatedItem(shortlistedCampaigns, variationHashValue);
 

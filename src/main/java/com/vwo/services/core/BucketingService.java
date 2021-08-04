@@ -21,6 +21,7 @@ import com.vwo.logger.Logger;
 import com.vwo.models.Campaign;
 import com.vwo.models.Variable;
 import com.vwo.models.Variation;
+import com.vwo.utils.CampaignUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ public class BucketingService {
   }
 
   public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic, String userId) {
-    long murmurHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + userId)  : userId, userId, campaignTraffic, false);
+    long murmurHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), userId, campaignTraffic, false);
 
 
     if (murmurHash != -1) {
