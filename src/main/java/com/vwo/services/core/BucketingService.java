@@ -43,7 +43,7 @@ public class BucketingService {
 
   public static long getUserHashForCampaign(String seed, String userId, int traffic, boolean disableLogs) {
 
-    int murmurHash = Murmur3.hash32(seed.getBytes(), 0, userId.length(), SEED_VALUE);
+    int murmurHash = Murmur3.hash32(seed.getBytes(), 0, seed.length(), SEED_VALUE);
 
     /**
      * Took reference from StackOverflow (https://stackoverflow.com/) to:
