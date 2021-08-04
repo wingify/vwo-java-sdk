@@ -39,7 +39,8 @@ import java.util.Map;
         "variables",
         "segments",
         "name",
-        "isForcedVariationEnabled"
+        "isForcedVariationEnabled",
+        "isBucketingSeedEnabled"
 })
 public class Campaign {
 
@@ -65,6 +66,8 @@ public class Campaign {
   private String name;
   @JsonProperty("isForcedVariationEnabled")
   private boolean isForcedVariationEnabled;
+  @JsonProperty("isBucketingSeedEnabled")
+  private boolean isBucketingSeedEnabled;
 
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -182,5 +185,13 @@ public class Campaign {
   @JsonAnySetter
   public void setAdditionalProperty(String name, Object value) {
     this.additionalProperties.put(name, value);
+  }
+
+  public boolean isBucketingSeedEnabled() {
+    return isBucketingSeedEnabled;
+  }
+
+  public void setBucketingSeedEnabled(boolean bucketingSeedEnabled) {
+    isBucketingSeedEnabled = bucketingSeedEnabled;
   }
 }

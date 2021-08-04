@@ -151,7 +151,7 @@ public class VariationDecider {
         if (whiteListedVariations.size() > 1) {
           CampaignUtils.rationalizeVariationsWeights(whiteListedVariations);
           SettingsFileUtil.setVariationRange(whiteListedVariations);
-          whiteListedVariation = bucketingService.getUserVariation(whiteListedVariations, campaign.getKey(), 100, userId);
+          whiteListedVariation = bucketingService.getUserVariation(whiteListedVariations, campaign, 100, userId);
         }
 
         // this.setVariationInUserStorage(whiteListedVariation, campaign.getKey(), userId);
@@ -304,7 +304,7 @@ public class VariationDecider {
     }
 
     // Get variation using campaign settings for a user.
-    variation = bucketingService.getUserVariation(campaign.getVariations(), campaign.getKey(), campaign.getPercentTraffic(), userId);
+    variation = bucketingService.getUserVariation(campaign.getVariations(), campaign, campaign.getPercentTraffic(), userId);
     this.setVariationInUserStorage(variation, campaign.getKey(), userId, goalIdentifier);
     executeIntegrationsCallback(false, campaign, variation, false);
     return variation;
