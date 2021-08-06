@@ -171,11 +171,11 @@ public class UserStorageTests {
     assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), null);
     assertEquals(vwoInstance.track(campaignKey, "Ashley", "FEATURE_TEST_GOAL").get(campaignKey), false);
 
-    LOGGER.info("Should return value if getFeatureVariableValue/track API is called before isFeatureEnabled API for feature rollout");
+    LOGGER.info("Should return null if getFeatureVariableValue/track API is called before isFeatureEnabled API for feature rollout");
     settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100, Settings.class);
     campaignKey = settingsConfig.getCampaigns().get(0).getKey();
     vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100).withDevelopmentMode(true).withUserStorage(userStorage).build();
-    assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), "this_is_a_string");
+    assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), null);
   }
 
   @Test
@@ -198,10 +198,11 @@ public class UserStorageTests {
     assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), "Variation-2 string");
     assertEquals(vwoInstance.track(campaignKey, "Ashley", "FEATURE_TEST_GOAL").get(campaignKey), true);
 
-    LOGGER.info("Should return value if getFeatureVariableValue/track API is called before isFeatureEnabled API for feature rollout");
+    LOGGER.info("Should return value if getFeatureVariableValue/track API is called after isFeatureEnabled API for feature rollout");
     settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100, Settings.class);
     campaignKey = settingsConfig.getCampaigns().get(0).getKey();
     vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100).withDevelopmentMode(true).withUserStorage(userStorage).build();
+    assertEquals(vwoInstance.isFeatureEnabled(campaignKey, "Ashley"), true);
     assertEquals(vwoInstance.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley"), "this_is_a_string");
   }
 

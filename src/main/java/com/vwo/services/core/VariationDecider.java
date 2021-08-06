@@ -465,8 +465,7 @@ public class VariationDecider {
    */
   private boolean isCampaignActivated(String apiName, String userId, Campaign campaign) {
     if (!apiName.equalsIgnoreCase(APIEnums.API_TYPES.ACTIVATE.value())
-            && !apiName.equalsIgnoreCase(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value())
-            && !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
+            && !apiName.equalsIgnoreCase(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value())) {
 
       LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.CAMPAIGN_NOT_ACTIVATED.value(new HashMap<String, String>() {
         {

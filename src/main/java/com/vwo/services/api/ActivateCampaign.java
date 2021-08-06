@@ -127,7 +127,7 @@ public class ActivateCampaign {
           Map<String, Integer> usageStats
   ) {
     String variation = CampaignVariation.getCampaignVariationName(apiName, campaign, userId, variationDecider,
-            CustomVariables, variationTargetingVariables, shouldTrackReturningUser == null, null);
+            CustomVariables, variationTargetingVariables, shouldTrackReturningUser, null);
 
     if (variation != null) {
       if (shouldTrackReturningUser == null) {
