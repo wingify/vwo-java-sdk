@@ -19,7 +19,7 @@ limitations under the License. -->
 
     <groupId>com.vwo.sdk</groupId>
     <artifactId>vwo-java-sdk</artifactId>
-    <version>1.21.1</version>
+    <version>1.22.0</version>
     <packaging>jar</packaging>
 
     <name>VWO Java Server Side SDK</name>
