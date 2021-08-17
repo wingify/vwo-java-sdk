@@ -19,10 +19,14 @@ package com.vwo.utils;
 import com.vwo.enums.CampaignEnums;
 import com.vwo.models.Campaign;
 import com.vwo.models.Goal;
+import com.vwo.models.Settings;
 import com.vwo.models.Variation;
+import com.vwo.services.settings.SettingsFileUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CampaignUtils {
 
@@ -83,4 +87,82 @@ public class CampaignUtils {
     }
     return null;
   }
+
+  /**
+   * Check if the campaign is a part of mutually exclusive group.
+   *
+   * @param settings      - Settings instance
+   * @param campaignId    - campaign id
+   * @return group id and name for the campaign.
+   */
+  public static Map<String, Object> isPartOfGroup(Settings settings, int campaignId) {
+    Map<String, Object> groupDetails = new HashMap<String, Object>();
+    if (settings.getCampaignGroups() != null && settings.getCampaignGroups().containsKey(String.valueOf(campaignId))) {
+      int groupId = settings.getCampaignGroups().get(String.valueOf(campaignId));
+      groupDetails.put("groupId", groupId);
+      groupDetails.put("groupName", settings.getGroups().get(String.valueOf(groupId)).getName());
+      return groupDetails;
+    }
+    return groupDetails;
+  }
+
+  /**
+   * Get the list of campaigns on the basis of their id.
+   *
+   * @param settings    - Settings instance
+   * @param groupId     - group id
+   * @return list of campaigns
+   */
+  public static ArrayList<Campaign> getGroupCampaigns(Settings settings, int groupId) {
+    ArrayList<Campaign> campaignList = new ArrayList<>();
+    if (settings.getGroups().containsKey(String.valueOf(groupId))) {
+      for (int campaignId: settings.getGroups().get(String.valueOf(groupId)).getCampaigns()) {
+        Campaign campaign = getCampaignBasedOnId(settings, campaignId);
+        if (campaign != null) {
+          campaignList.add(campaign);
+        }
+      }
+    }
+    return campaignList;
+  }
+
+  /**
+   * Get the campaign on the basis of campaign id.
+   *
+   * @param settings      - Settings instance
+   * @param campaignId    - Campaign id
+   * @return Campaign object.
+   */
+  private static Campaign getCampaignBasedOnId(Settings settings, int campaignId) {
+    Campaign campaign = null;
+    for (Campaign eachCampaign: settings.getCampaigns()) {
+      if (eachCampaign.getId() == campaignId) {
+        campaign = eachCampaign;
+        break;
+      }
+    }
+    return campaign;
+  }
+
+  /**
+   * Allocate range to each campaign in the list.
+   *
+   * @param campaigns list of campaigns.
+   */
+  public static void setCampaignRange(List<Campaign> campaigns) {
+    double allocatedRange = 0;
+
+    for (Campaign campaign : campaigns) {
+      Double stepFactor = SettingsFileUtil.getVariationBucketRange(campaign.getWeight());
+      if (stepFactor != null && stepFactor != -1) {
+        campaign.setStartRange((int) allocatedRange + 1);
+        allocatedRange = (Math.ceil(allocatedRange + stepFactor));
+        campaign.setEndRange((int) allocatedRange);
+      } else {
+        campaign.setStartRange(-1);
+        campaign.setEndRange(-1);
+      }
+    }
+  }
+
 }

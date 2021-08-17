@@ -73,6 +73,7 @@ public class SettingsFileUtil implements SettingFile {
     }
   }
 
+
   public static Double getVariationBucketRange(double variationWeight) {
     double startRange = variationWeight * 100;
     if (startRange == 0) {

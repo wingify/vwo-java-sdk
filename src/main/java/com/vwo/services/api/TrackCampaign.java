@@ -141,7 +141,7 @@ public class TrackCampaign {
             } else {
               Object revenue = goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.CUSTOM.value()) ? null : revenueValue;
 
-              String variation = CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.TRACK.value(), campaign, userId, variationDecider, CustomVariables,
+              String variation = CampaignVariation.getCampaignVariationName(settingFile.getSettings(), APIEnums.API_TYPES.TRACK.value(), campaign, userId, variationDecider, CustomVariables,
                       variationTargetingVariables, shouldTrackReturningUser, goalIdentifier);
 
               if (variation != null) {

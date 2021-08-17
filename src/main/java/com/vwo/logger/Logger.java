@@ -67,6 +67,16 @@ public class Logger {
     }
   }
 
+  public void trace(String var1, boolean disableLogs) {
+    if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.TRACE.value()) && disableLogs) {
+      if (Logger.customLogger != null) {
+        Logger.customLogger.trace(var1);
+      } else {
+        this.logger.trace(var1);
+      }
+    }
+  }
+
   public void trace(String var1, Object... var2) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.TRACE.value())) {
       if (Logger.customLogger != null) {
@@ -79,6 +89,16 @@ public class Logger {
 
   public void debug(String var1) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.DEBUG.value())) {
+      if (Logger.customLogger != null) {
+        Logger.customLogger.debug(var1);
+      } else {
+        this.logger.debug(var1);
+      }
+    }
+  }
+
+  public void debug(String var1, boolean disableLogs) {
+    if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.DEBUG.value()) && !disableLogs) {
       if (Logger.customLogger != null) {
         Logger.customLogger.debug(var1);
       } else {
@@ -108,6 +128,16 @@ public class Logger {
     }
   }
 
+  public void info(String var1, boolean disableLogs) {
+    if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.INFO.value()) && !disableLogs) {
+      if (Logger.customLogger != null) {
+        Logger.customLogger.info(var1);
+      } else {
+        this.logger.info(var1);
+      }
+    }
+  }
+
   public void info(String var1, Object... var2) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.INFO.value())) {
       if (Logger.customLogger != null) {
@@ -128,6 +158,16 @@ public class Logger {
     }
   }
 
+  public void warn(String var1, boolean disableLogs) {
+    if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.WARN.value()) && !disableLogs) {
+      if (Logger.customLogger != null) {
+        Logger.customLogger.warn(var1);
+      } else {
+        this.logger.warn(var1);
+      }
+    }
+  }
+
   public void warn(String var1, Object... var2) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.WARN.value())) {
       if (Logger.customLogger != null) {
@@ -140,6 +180,16 @@ public class Logger {
 
   public void error(String var1) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.ERROR.value())) {
+      if (Logger.customLogger != null) {
+        Logger.customLogger.error(var1);
+      } else {
+        this.logger.error(var1);
+      }
+    }
+  }
+
+  public void error(String var1, boolean disableLogs) {
+    if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.ERROR.value()) && !disableLogs) {
       if (Logger.customLogger != null) {
         Logger.customLogger.error(var1);
       } else {

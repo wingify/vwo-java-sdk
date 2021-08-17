@@ -54,26 +54,26 @@ public class FeatureCampaign {
    * @return Boolean corresponding to whether user became part of feature.
    */
   public static boolean isFeatureEnabled(
-      String campaignKey,
-      String userId,
-      SettingFile settingFile,
-      VariationDecider variationDecider,
-      boolean isDevelopmentMode,
-      BatchEventQueue batchEventQueue,
-      Map<String, Integer> usageStats,
-      Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables,
-      Boolean shouldTrackReturningUser
+          String campaignKey,
+          String userId,
+          SettingFile settingFile,
+          VariationDecider variationDecider,
+          boolean isDevelopmentMode,
+          BatchEventQueue batchEventQueue,
+          Map<String, Integer> usageStats,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables,
+          Boolean shouldTrackReturningUser
   ) {
     try {
       if (!ValidationUtils.isValidParams(
-          new HashMap<String, Object>() {
-            {
-              put("campaignKey", campaignKey);
-              put("userId", userId);
-            }
-          },
-          APIEnums.API_TYPES.IS_FEATURE_ENABLED
+              new HashMap<String, Object>() {
+                {
+                  put("campaignKey", campaignKey);
+                  put("userId", userId);
+                }
+              },
+              APIEnums.API_TYPES.IS_FEATURE_ENABLED
       )) {
         return false;
       }
@@ -90,20 +90,20 @@ public class FeatureCampaign {
       if (campaign == null) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
           {
-            put("campaignKey",campaignKey);
+            put("campaignKey", campaignKey);
           }
         }));
         return false;
       } else if (
-          !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())
-          && !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
+              !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())
+                      && !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
       ) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
           {
-            put("api","isFeatureEnabled");
-            put("userId",userId);
-            put("campaignKey",campaignKey);
-            put("campaignType",campaign.getType());
+            put("api", "isFeatureEnabled");
+            put("userId", userId);
+            put("campaignKey", campaignKey);
+            put("campaignType", campaign.getType());
           }
         }));
 
@@ -145,25 +145,25 @@ public class FeatureCampaign {
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
   public static Object getFeatureVariable(
-      String campaignKey,
-      String userId,
-      String variableKey,
-      String variableType,
-      SettingFile settingFile,
-      VariationDecider variationDecider,
-      Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables
+          String campaignKey,
+          String userId,
+          String variableKey,
+          String variableType,
+          SettingFile settingFile,
+          VariationDecider variationDecider,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables
   ) {
     try {
       if (!ValidationUtils.isValidParams(
-          new HashMap<String, Object>() {
-            {
-              put("campaignKey", campaignKey);
-              put("userId", userId);
-              put("variableKey", variableKey);
-            }
-          },
-          APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE
+              new HashMap<String, Object>() {
+                {
+                  put("campaignKey", campaignKey);
+                  put("userId", userId);
+                  put("variableKey", variableKey);
+                }
+              },
+              APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE
       )) {
         return null;
       }
@@ -181,7 +181,7 @@ public class FeatureCampaign {
       if (campaign == null) {
         LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
           {
-            put("campaignKey",campaignKey);
+            put("campaignKey", campaignKey);
           }
         }));
         return null;
@@ -200,7 +200,7 @@ public class FeatureCampaign {
         return null;
       }
 
-      String variation = CampaignVariation.getCampaignVariationName(APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE.value(), campaign, userId, variationDecider,
+      String variation = CampaignVariation.getCampaignVariationName(settingFile.getSettings(), APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE.value(), campaign, userId, variationDecider,
               CustomVariables, variationTargetingVariables);
 
       if (variation == null) {

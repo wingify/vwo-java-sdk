@@ -77,7 +77,8 @@ public class LoggerMessagesEnums {
     CAMPAIGN_NOT_ACTIVATED("Campaign:{{campaignKey}} for User ID:{{userId}} is not yet activated for API:{{api}}. Use activate API to activate A/B test or isFeatureEnabled API to activate Feature Test/Rollout."),
     EVENT_QUEUE_EMPTY("Event Batching queue is empty"),
     EVENTS_PER_REQUEST_OUT_OF_BOUNDS("eventsPerRequest should be > {{min_value}} and <= {{max_value}}. Assigning it the default value i.e {{default_value}}"),
-    REQUEST_TIME_INTERVAL_OUT_OF_BOUNDS("requestTimeInterval should be > {{min_value}}. Assigning it the default value i.e {{default_value}} seconds");
+    REQUEST_TIME_INTERVAL_OUT_OF_BOUNDS("requestTimeInterval should be > {{min_value}}. Assigning it the default value i.e {{default_value}} seconds"),
+    GOT_ELIGIBLE_CAMPAIGNS("{{eligibleText}} {{inEligibleText}} from the Group:{{groupName}} for the User Id:{{userId}}");
 
     private final String msg;
 
@@ -113,7 +114,11 @@ public class LoggerMessagesEnums {
     SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),
     BULK_IMPRESSION_SUCCESS("Impression event - {{endPoint}} was successfully received by VWO having accountId:{{a}}"),
     CAMPAIGN_NOT_ACTIVATED("Activate the campaign:{{campaignKey}} for User ID:{{userId}} to {{reason}}."),
-    IMPRESSION_SUCCESS_QUEUE("Impression event was successfully pushed in queue");
+    IMPRESSION_SUCCESS_QUEUE("Impression event was successfully pushed in queue"),
+    GOT_WINNER_CAMPAIGN("Campaign:{{campaignKey}} is selected from the mutually exclusive group:{{groupName}} for the User ID:{{userId}}."),
+    GOT_ELIGIBLE_CAMPAIGNS("Got {{noOfEligibleCampaigns}} eligible winners out of {{noOfGroupCampaigns}} campaigns from the Group:{{groupName}} and for User ID:{{userId}}"),
+    CALLED_CAMPAIGN_NOT_WINNER("Campaign:{{campaignKey}} does not qualify from the mutually exclusive group:{{groupName}} for User ID:{{userId}}"),
+    OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE("Campaign:{{campaignKey}} of Group:{{groupName}} satisfies {{type}} for User ID:{{userId}}");
 
     private final String msg;
 
