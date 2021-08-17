@@ -76,7 +76,7 @@ public class BucketingService {
 
       LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_HASH_VALUE.value(new HashMap<String, String>() {
         {
-          put("campaignKey", campaign.getKey().toString());
+          put("campaignKey", campaign.getKey());
           put("variationHashValue", String.valueOf(variationHashValue));
           put("userId", userId);
           put("traffic", String.valueOf(campaignTraffic));
@@ -128,6 +128,7 @@ public class BucketingService {
           return item;
         }
       }
+
     }
     return null;
   }
