@@ -39,7 +39,8 @@ import java.util.Map;
         "variables",
         "segments",
         "name",
-        "isForcedVariationEnabled"
+        "isForcedVariationEnabled",
+        "isBucketingSeedEnabled"
 })
 public class Campaign implements  Cloneable {
 
@@ -65,6 +66,8 @@ public class Campaign implements  Cloneable {
   private String name;
   @JsonProperty("isForcedVariationEnabled")
   private boolean isForcedVariationEnabled;
+  @JsonProperty("isBucketingSeedEnabled")
+  private boolean isBucketingSeedEnabled;
 
   private Integer startRange;
   private Integer endRange;
@@ -218,5 +221,13 @@ public class Campaign implements  Cloneable {
 
   public void setWeight(double weight) {
     this.weight = weight;
+  }
+
+  public boolean isBucketingSeedEnabled() {
+    return isBucketingSeedEnabled;
+  }
+
+  public void setBucketingSeedEnabled(boolean bucketingSeedEnabled) {
+    isBucketingSeedEnabled = bucketingSeedEnabled;
   }
 }

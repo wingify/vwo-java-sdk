@@ -165,4 +165,23 @@ public class CampaignUtils {
     }
   }
 
+  /**
+   * Decide the Seed for murmurhash to bucket user.
+   * @param userId       - String userId
+   * @param campaign     - Campaign instance
+   * @param groupId      - Group id
+   * @return Seed value
+   */
+  public static String getBucketingSeed(String userId, Campaign campaign, Integer groupId) {
+    if (groupId != null) {
+      return groupId + "_" + userId;
+    }
+
+    if (campaign != null && campaign.isBucketingSeedEnabled()) {
+      return campaign.getId() + "_" + userId;
+    } else {
+      return userId;
+    }
+  }
+
 }

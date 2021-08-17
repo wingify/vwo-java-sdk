@@ -136,7 +136,8 @@ public class VariationDecider {
 
     // Check if user satisfies pre segmentation. If not, return null.
     Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, false);
-    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(userId, campaign.getPercentTraffic(), true) != -1)) {
+    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null),
+            userId, campaign.getPercentTraffic(), true) != -1)) {
       return null;
     }
 
@@ -176,8 +177,8 @@ public class VariationDecider {
         {
           put("userId", userId);
           put("groupName", (String) groupDetails.get("groupName"));
-          put("eligibleText", finalEligibleCampaignKeys.isEmpty() ? "" : "Campaigns: " + eligibleCampaignKeys.substring(0, eligibleCampaignKeys.length() - 2) + " are eligible,");
-          put("inEligibleText", finalInEligibleCampaignKeys.isEmpty() ? "" : "campaigns: " + inEligibleCampaignKeys.substring(0, inEligibleCampaignKeys.length() - 2) + " are not eligible");
+          put("eligibleText", eligibleCampaignKeys.substring(0, eligibleCampaignKeys.length() - 2));
+          put("inEligibleText", finalInEligibleCampaignKeys.isEmpty() ? "no campaigns" : "campaigns: " + inEligibleCampaignKeys.substring(0, inEligibleCampaignKeys.length() - 2));
         }
       }));
 
@@ -193,7 +194,8 @@ public class VariationDecider {
       if (processedCampaigns.get("eligibleCampaigns").size() == 1) {
         return evaluateTrafficAndGetVariation(processedCampaigns.get("eligibleCampaigns").get(0), userId, goalIdentifier);
       } else {
-        return normalizeAndFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"), campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"));
+        return normalizeAndFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"), campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"),
+                (int) groupDetails.get("groupId"));
       }
     } else {
       return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier);
@@ -247,7 +249,7 @@ public class VariationDecider {
         if (whiteListedVariations.size() > 1) {
           CampaignUtils.rationalizeVariationsWeights(whiteListedVariations);
           SettingsFileUtil.setVariationRange(whiteListedVariations);
-          whiteListedVariation = (Variation) bucketingService.getUserVariation(whiteListedVariations, campaign.getKey(), 100, userId);
+          whiteListedVariation = (Variation) bucketingService.getUserVariation(whiteListedVariations, campaign, 100, userId);
         }
 
         // this.setVariationInUserStorage(whiteListedVariation, campaign.getKey(), userId);
@@ -493,8 +495,9 @@ public class VariationDecider {
   private Map<String, List<Campaign>> getEligibleCampaigns(List<Campaign> campaignList, String userId, Map<String, ?> customVariables) {
     List<Campaign> eligibleCampaigns = new ArrayList<>();
     List<Campaign> inEligibleCampaigns = new ArrayList<>();
-    for (Campaign campaign : campaignList) {
-      if (checkForPreSegmentation(campaign, userId, customVariables, true) && BucketingService.getUserHashForCampaign(userId, campaign.getPercentTraffic(), true) != -1) {
+    for (Campaign campaign: campaignList) {
+      if (checkForPreSegmentation(campaign, userId, customVariables, true)
+              && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), userId, campaign.getPercentTraffic(), true) != -1) {
         eligibleCampaigns.add(campaign.clone());
       } else {
         inEligibleCampaigns.add(campaign);
@@ -520,11 +523,12 @@ public class VariationDecider {
   private Variation evaluateTrafficAndGetVariation(Campaign campaign, String userId, String goalIdentifier) {
     // Get variation using campaign settings for a user.
     Variation variation = null;
-    variation = (Variation) bucketingService.getUserVariation(campaign.getVariations(), campaign.getKey(), campaign.getPercentTraffic(), userId);
+    variation = (Variation) bucketingService.getUserVariation(campaign.getVariations(), campaign, campaign.getPercentTraffic(), userId);
     if (variation != null) {
       this.setVariationInUserStorage(variation, campaign.getKey(), userId, goalIdentifier);
       executeIntegrationsCallback(false, campaign, variation, false);
     }
+
     return variation;
   }
 
@@ -538,13 +542,13 @@ public class VariationDecider {
    * @param groupName            - Name of the group
    * @return variation of the winner campaign.
    */
-  private Variation normalizeAndFindWinningCampaign(List<Campaign> shortlistedCampaigns, Campaign calledCampaign, String userId, String goalIdentifier, String groupName) {
+  private Variation normalizeAndFindWinningCampaign(List<Campaign> shortlistedCampaigns, Campaign calledCampaign, String userId, String goalIdentifier, String groupName, int groupId) {
 
     for (Campaign campaign : shortlistedCampaigns) {
       campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
     }
     CampaignUtils.setCampaignRange(shortlistedCampaigns);
-    Long bucketHash = BucketingService.getUserHashForCampaign(userId, 100, true);
+    Long bucketHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, null, groupId), userId, 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     Campaign winnerCampaign = (Campaign) bucketingService.getAllocatedItem(shortlistedCampaigns, variationHashValue);
 

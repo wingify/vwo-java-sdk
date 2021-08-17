@@ -16,7 +16,11 @@
 
 package com.vwo.tests.data;
 
+import com.vwo.models.Campaign;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserExpectations {
   public static ArrayList<Variation> AB_TRAFFIC_50_WEIGHT_50_50 = new ArrayList<>();
@@ -42,6 +46,7 @@ public class UserExpectations {
   public static ArrayList<FeatureEnabled> FEATURE_TEST_TRAFFIC_100_WEIGHT_10_20_30_40 = new ArrayList<>();
 
   public static ArrayList<Variation> ALL_VARIATION_2 = new ArrayList<>();
+  public static ArrayList<Bucketing> bucketingData = new ArrayList<>();
 
   static {
     AB_TRAFFIC_50_WEIGHT_50_50.add(getVariation("Ashley", "Variation-1"));
@@ -623,6 +628,219 @@ public class UserExpectations {
     FEATURE_TEST_TRAFFIC_100_WEIGHT_10_20_30_40.add(getFeatureEnabled("Zeba", true));
   }
 
+  static {
+    bucketingData.add(getBucketingData("Ashley", 4986, new HashMap() {
+      {
+        put("id", 1);
+        put("isBucketingSeedEnabled", false);
+      }
+    }));
+    bucketingData.add(getBucketingData("Ashley", 4539, new HashMap() {{
+      put("id", 1);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Bill", 2379, new HashMap() {{
+      put("id", 11);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Bill", 7425, new HashMap() {{
+      put("id", 11);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Chris", 9285, new HashMap() {{
+      put("id", 132);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Chris", 2691, new HashMap() {{
+      put("id", 132);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Dominic", 7505, new HashMap() {{
+      put("id", 21);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Dominic", 1025, new HashMap() {{
+      put("id", 21);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Emma", 4394, new HashMap() {{
+      put("id", 21);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Emma", 5169, new HashMap() {{
+      put("id", 21);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Faizan", 4218, new HashMap() {{
+      put("id", 13);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Faizan", 2322, new HashMap() {{
+      put("id", 13);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Gimmy", 9572, new HashMap() {{
+      put("id", 14);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Gimmy", 1802, new HashMap() {{
+      put("id", 14);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Harry", 2511, new HashMap() {{
+      put("id", 54);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Harry", 6380, new HashMap() {{
+      put("id", 54);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Ian", 4715, new HashMap() {{
+      put("id", 98);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Ian", 150, new HashMap() {{
+      put("id", 98);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("John", 216, new HashMap() {{
+      put("id", 14);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("John", 2176, new HashMap() {{
+      put("id", 14);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("King", 8198, new HashMap() {{
+      put("id", 331);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("King", 2269, new HashMap() {{
+      put("id", 331);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Lisa", 394, new HashMap() {{
+      put("id", 14);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Lisa", 5223, new HashMap() {{
+      put("id", 14);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Mona", 2599, new HashMap() {{
+      put("id", 15);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Mona", 1722, new HashMap() {{
+      put("id", 15);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Nina", 6932, new HashMap() {{
+      put("id", 241);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Nina", 271, new HashMap() {{
+      put("id", 241);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Olivia", 3203, new HashMap() {{
+      put("id", 93);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Olivia", 7638, new HashMap() {{
+      put("id", 93);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Pete", 6457, new HashMap() {{
+      put("id", 87);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Pete", 9957, new HashMap() {{
+      put("id", 87);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Queen", 5379, new HashMap() {{
+      put("id", 34);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Queen", 9242, new HashMap() {{
+      put("id", 34);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Robert", 2679, new HashMap() {{
+      put("id", 45);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Robert", 3515, new HashMap() {{
+      put("id", 45);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Sarah", 163, new HashMap() {{
+      put("id", 54);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Sarah", 4499, new HashMap() {{
+      put("id", 54);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Tierra", 7022, new HashMap() {{
+      put("id", 566);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Tierra", 431, new HashMap() {{
+      put("id", 566);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Una", 1545, new HashMap() {{
+      put("id", 545);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Una", 8964, new HashMap() {{
+      put("id", 545);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Varun", 4716, new HashMap() {{
+      put("id", 34);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Varun", 9556, new HashMap() {{
+      put("id", 34);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Will", 9731, new HashMap() {{
+      put("id", 431);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Will", 7363, new HashMap() {{
+      put("id", 431);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Xin", 4342, new HashMap() {{
+      put("id", 566);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Xin", 7431, new HashMap() {{
+      put("id", 566);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("You", 5321, new HashMap() {{
+      put("id", 65);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("You", 2899, new HashMap() {{
+      put("id", 65);
+      put("isBucketingSeedEnabled", true);
+    }}));
+    bucketingData.add(getBucketingData("Zeba", 3730, new HashMap() {{
+      put("id", 109);
+      put("isBucketingSeedEnabled", false);
+    }}));
+    bucketingData.add(getBucketingData("Zeba", 9441, new HashMap() {{
+      put("id", 109);
+      put("isBucketingSeedEnabled", true);
+    }}));
+  }
+
 
   public static Object getVariableValueForVariation(String variation, String variableType, boolean isFeatureEnabled) {
     switch (variableType.toLowerCase()) {
@@ -643,12 +861,12 @@ public class UserExpectations {
     switch (variation.toLowerCase()) {
       case "control":
         return "Control string";
-       case "variation-1":
-         return "Variation-1 string";
-       case "variation-2":
-         return "Variation-2 string";
-       case "variation-3":
-         return "Variation-3 string";
+      case "variation-1":
+        return "Variation-1 string";
+      case "variation-2":
+        return "Variation-2 string";
+      case "variation-3":
+        return "Variation-3 string";
       default:
         return null;
     }
@@ -709,11 +927,55 @@ public class UserExpectations {
     }
   }
 
-  private static Variation getVariation (String user, String variation) {
+  public static class Bucketing {
+    String user;
+    int bucketValue;
+    Map<String, Object> campaignData;
+    Campaign campaign;
+
+    Bucketing(String user, int bucketValue, Map<String, Object> campaignData) {
+      this.user = user;
+      this.bucketValue = bucketValue;
+      campaign = new Campaign();
+      campaign.setId((int) campaignData.get("id"));
+      campaign.setBucketingSeedEnabled((boolean) campaignData.get("isBucketingSeedEnabled"));
+    }
+
+    public String getUser() {
+      return user;
+    }
+
+    public void setUser(String user) {
+      this.user = user;
+    }
+
+    public int getBucketValue() {
+      return bucketValue;
+    }
+
+    public void setBucketValue(int bucketValue) {
+      this.bucketValue = bucketValue;
+    }
+
+    public Campaign getCampaign() {
+      return campaign;
+    }
+
+    public void setCampaign(Campaign campaign) {
+      this.campaign = campaign;
+    }
+  }
+
+  private static Variation getVariation(String user, String variation) {
     return new UserExpectations.Variation(user, variation);
   }
 
-  private static FeatureEnabled getFeatureEnabled (String user, boolean isFeatureEnabled) {
+  private static FeatureEnabled getFeatureEnabled(String user, boolean isFeatureEnabled) {
     return new UserExpectations.FeatureEnabled(user, isFeatureEnabled);
+  }
+
+
+  private static Bucketing getBucketingData(String user, int bucketValue, Map<String, Object> campaign) {
+    return new UserExpectations.Bucketing(user, bucketValue, campaign);
   }
 }

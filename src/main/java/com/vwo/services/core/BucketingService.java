@@ -21,6 +21,7 @@ import com.vwo.logger.Logger;
 import com.vwo.models.Campaign;
 import com.vwo.models.Variable;
 import com.vwo.models.Variation;
+import com.vwo.utils.CampaignUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,8 +41,10 @@ public class BucketingService {
    * @param traffic - Campaign traffic
    * @return signed murmur hash value
    */
-  public static long getUserHashForCampaign(String userId, int traffic, boolean disableLogs) {
-    int murmurHash = Murmur3.hash32(userId.getBytes(), 0, userId.length(), SEED_VALUE);
+
+  public static long getUserHashForCampaign(String seed, String userId, int traffic, boolean disableLogs) {
+
+    int murmurHash = Murmur3.hash32(seed.getBytes(), 0, seed.length(), SEED_VALUE);
 
     /**
      * Took reference from StackOverflow (https://stackoverflow.com/) to:
@@ -63,8 +66,9 @@ public class BucketingService {
     return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
   }
 
-  public Object getUserVariation(Object variations, String campaignKey, int campaignTraffic, String userId) {
-    long murmurHash = BucketingService.getUserHashForCampaign(userId, campaignTraffic, false);
+  public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic, String userId) {
+    long murmurHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), userId, campaignTraffic, false);
+
 
     if (murmurHash != -1) {
       double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
@@ -72,7 +76,7 @@ public class BucketingService {
 
       LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_HASH_VALUE.value(new HashMap<String, String>() {
         {
-          put("campaignKey", campaignKey);
+          put("campaignKey", campaign.getKey());
           put("variationHashValue", String.valueOf(variationHashValue));
           put("userId", userId);
           put("traffic", String.valueOf(campaignTraffic));
@@ -85,7 +89,7 @@ public class BucketingService {
 
     LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
       {
-        put("campaignKey", campaignKey);
+        put("campaignKey", campaign.getKey().toString());
         put("userId", userId);
       }
     }));
@@ -114,7 +118,6 @@ public class BucketingService {
    * @return variation object
    */
   public Object getAllocatedItem(Object itemList, int hashValue) {
-
     for (Object item: (List<Object>) itemList) {
       if (item instanceof Variation) {
         if (hashValue >= ((Variation) item).getStartRangeVariation() && hashValue <= ((Variation) item).getEndRangeVariation()) {
