@@ -177,8 +177,8 @@ public class VariationDecider {
         {
           put("userId", userId);
           put("groupName", (String) groupDetails.get("groupName"));
-          put("eligibleText", finalEligibleCampaignKeys.isEmpty() ? "" : "Campaigns: " + eligibleCampaignKeys.substring(0, eligibleCampaignKeys.length() - 2) + " are eligible,");
-          put("inEligibleText", finalInEligibleCampaignKeys.isEmpty() ? "" : "campaigns: " + inEligibleCampaignKeys.substring(0, inEligibleCampaignKeys.length() - 2) + " are not eligible");
+          put("eligibleText", eligibleCampaignKeys.substring(0, eligibleCampaignKeys.length() - 2));
+          put("inEligibleText", finalInEligibleCampaignKeys.isEmpty() ? "no campaigns" : "campaigns: " + inEligibleCampaignKeys.substring(0, inEligibleCampaignKeys.length() - 2));
         }
       }));
 

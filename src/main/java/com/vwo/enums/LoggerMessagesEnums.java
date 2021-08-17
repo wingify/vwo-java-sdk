@@ -78,7 +78,7 @@ public class LoggerMessagesEnums {
     EVENT_QUEUE_EMPTY("Event Batching queue is empty"),
     EVENTS_PER_REQUEST_OUT_OF_BOUNDS("eventsPerRequest should be > {{min_value}} and <= {{max_value}}. Assigning it the default value i.e {{default_value}}"),
     REQUEST_TIME_INTERVAL_OUT_OF_BOUNDS("requestTimeInterval should be > {{min_value}}. Assigning it the default value i.e {{default_value}} seconds"),
-    GOT_ELIGIBLE_CAMPAIGNS("{{eligibleText}} {{inEligibleText}} from the Group:{{groupName}} for the User Id:{{userId}}");
+    GOT_ELIGIBLE_CAMPAIGNS("Campaigns: {{eligibleText}} are eligible, {{inEligibleText}} are ineligible from the Group:{{groupName}} for the User Id:{{userId}}");
 
     private final String msg;
 
