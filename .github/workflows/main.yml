@@ -43,7 +43,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          flag-name: ${{matrix.os}}-node-${{ matrix.node }}
+          flag-name: ${{matrix.os}}-node-${{ matrix.java }}
           parallel: true
 
   finish:
