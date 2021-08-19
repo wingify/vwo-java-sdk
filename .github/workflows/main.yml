@@ -44,6 +44,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           flag-name: ${{matrix.os}}-node-${{ matrix.java }}
+          coveralls-endpoint: https://coveralls.io/repos/github/wingify/vwo-java-sdk/badge.svg?branch=master
           parallel: true
 
   finish:
