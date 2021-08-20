@@ -41,6 +41,8 @@ jobs:
 
       - name: Coveralls
         run: mvn clean test jacoco:report coveralls:report
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   finish:
     needs: build
