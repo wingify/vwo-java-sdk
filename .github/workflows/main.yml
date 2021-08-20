@@ -43,8 +43,8 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          flag-name: ${{matrix.os}}-node-${{ matrix.java }}
-          coveralls-endpoint: https://coveralls.io/repos/github/wingify/vwo-java-sdk/badge.svg?branch=master
+          flag-name: ${{matrix.os}}-java-${{ matrix.java }}
+          path-to-lcov: ./target/site/jacoco/jacoco.xml
           parallel: true
 
   finish:
