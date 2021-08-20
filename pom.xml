@@ -42,6 +42,12 @@ limitations under the License. -->
 
     <developers>
         <developer>
+            <name>Sanyam Jain</name>
+            <email>sanyam.j65@gmail.com</email>
+            <organization>WINGIFY</organization>
+            <organizationUrl>https://wingify.com/</organizationUrl>
+        </developer>
+        <developer>
             <name>Sakshi Mahendru</name>
             <email>sakshi93mahendru@gmail.com</email>
             <organization>WINGIFY</organization>
@@ -261,11 +267,6 @@ limitations under the License. -->
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.eluder.coveralls</groupId>
-                <artifactId>coveralls-maven-plugin</artifactId>
-                <version>4.3.0</version>
-            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
