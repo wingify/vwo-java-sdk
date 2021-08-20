@@ -46,5 +46,6 @@ jobs:
       - name: Coveralls
         uses: codecov/codecov-action@v1
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: ./**/target/site/jacoco/jacoco.xml
           name: codecov
