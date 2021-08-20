@@ -1,7 +1,7 @@
 # VWO JAVA SDK
 
 [![Build Status](http://img.shields.io/travis/wingify/vwo-java-sdk/master.svg?style=flat)](http://travis-ci.org/wingify/vwo-java-sdk)
-[![Coverage Status](https://coveralls.io/repos/github/wingify/vwo-java-sdk/badge.svg?branch=master)](https://coveralls.io/github/wingify/vwo-java-sdk?branch=master)
+[![codecov](https://codecov.io/gh/wingify/vwo-java-sdk/branch/master/graph/badge.svg?token=WZ9LNISPPJ)](https://codecov.io/gh/wingify/vwo-java-sdk)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 This open source library allows you to A/B Test your Website at server-side.
