@@ -39,18 +39,12 @@ jobs:
       - name: Build with Maven
         run: mvn clean install
 
+  finish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Coveralls
         uses: codecov/codecov-action@v1
         with:
           file: ./**/target/site/jacoco/jacoco.xml
           name: codecov
-
-  finish:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Coveralls Finished
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          parallel-finished: true
