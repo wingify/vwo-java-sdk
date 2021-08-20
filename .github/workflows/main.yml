@@ -40,12 +40,7 @@ jobs:
         run: mvn clean install
 
       - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          flag-name: ${{matrix.os}}-java-${{ matrix.java }}
-          path-to-lcov: ./target/site/jacoco/jacoco.xml
-          parallel: true
+        run: mvn clean test jacoco:report coveralls:report
 
   finish:
     needs: build
