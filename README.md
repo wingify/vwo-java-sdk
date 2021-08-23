@@ -1,6 +1,6 @@
 # VWO JAVA SDK
 
-[![Build Status](http://img.shields.io/travis/wingify/vwo-java-sdk/master.svg?style=flat)](http://travis-ci.org/wingify/vwo-java-sdk)
+[![CI](https://github.com/wingify/vwo-java-sdk/workflows/CI/badge.svg?branch=master)](https://github.com/wingify/vwo-java-sdk/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/wingify/vwo-java-sdk/branch/master/graph/badge.svg?token=WZ9LNISPPJ)](https://codecov.io/gh/wingify/vwo-java-sdk)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
