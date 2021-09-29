@@ -150,52 +150,10 @@ public class FeatureEnabledTests {
     Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100, Settings.class);
     String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
 
-    //when shouldTrackReturningUser global value is set to true
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100).withShouldTrackReturningUser(true).withBatchEvents(batchEventData).build();
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
-
-    //when shouldTrackReturningUser global value is set to false
-    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100).withShouldTrackReturningUser(false).withBatchEvents(batchEventData).build();
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
-
-    //when the global value is not passed, by default false should be used.
     vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100).withBatchEvents(batchEventData).build();
     vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
     vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
-  }
-
-  @Test
-  public void returningUserFlagPassedLocalTest() throws IOException {
-    LOGGER.info("should return variation track user call should be sent if userStorageService is not passed");
-
-    batchEventData.setEventsPerRequest(50);
-
-    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100, Settings.class);
-    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100).withShouldTrackReturningUser(true).withBatchEvents(batchEventData).build();
-
-    VWOAdditionalParams params = new VWOAdditionalParams();
-    params.setShouldTrackReturningUser(false);
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley", params);
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley", params);
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
-
-    //shouldTrackReturningUser set to true
-    params.setShouldTrackReturningUser(true);
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley", params);
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 3);
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley", params);
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 4);
-
-    //when shouldTrackReturningUser is not passed in API, global value should be used
-    vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 5);
   }
 
   private void featureTestTests(String SettingsConfig, ArrayList<UserExpectations.FeatureEnabled> userExpectations) throws IOException {

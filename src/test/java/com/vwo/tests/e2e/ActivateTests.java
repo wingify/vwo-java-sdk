@@ -243,17 +243,6 @@ public class ActivateTests {
     Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
     String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
 
-    //when shouldTrackReturningUser global value is set to true
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(true).withBatchEvents(batchEventData).build();
-    vwoInstance.activate(campaignKey, "Ashley");
-    vwoInstance.activate(campaignKey, "Ashley");
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
-
-    //when shouldTrackReturningUser global value is set to false
-    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(false).withBatchEvents(batchEventData).build();
-    vwoInstance.activate(campaignKey, "Ashley");
-    vwoInstance.activate(campaignKey, "Ashley");
-    assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
 
     //when the global value is not passed, by default false should be used.
     vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withBatchEvents(batchEventData).build();
@@ -270,23 +259,19 @@ public class ActivateTests {
 
     Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
     String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withShouldTrackReturningUser(true).withBatchEvents(batchEventData).build();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withBatchEvents(batchEventData).build();
 
     VWOAdditionalParams params = new VWOAdditionalParams();
-    params.setShouldTrackReturningUser(false);
     vwoInstance.activate(campaignKey, "Ashley", params);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
     vwoInstance.activate(campaignKey, "Ashley", params);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
 
-    //shouldTrackReturningUser set to true
-    params.setShouldTrackReturningUser(true);
     vwoInstance.activate(campaignKey, "Ashley", params);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 3);
     vwoInstance.activate(campaignKey, "Ashley", params);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 4);
 
-    //when shouldTrackReturningUser is not passed in API, global value should be used
     vwoInstance.activate(campaignKey, "Ashley");
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 5);
   }

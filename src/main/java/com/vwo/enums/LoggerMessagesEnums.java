@@ -64,7 +64,6 @@ public class LoggerMessagesEnums {
     SETTINGS_FILE_PROCESSED("Settings file processed successfully."),
     SDK_INITIALIZED("SDK properly initialized."),
     HTTP_RESPONSE("Got Http response {{response}}."),
-    GOAL_SHOULD_TRACK_AGAIN("Goal:{{goalIdentifer}} of Campaign:{{campaignKey}} for User ID:{{userId}} has already been tracked earlier. shouldTrackReturningUser is true, therefore, is eligible to be tracked again"),
 
     // Segmentation
     SEGMENTATION_STATUS("For userId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),

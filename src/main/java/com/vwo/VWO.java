@@ -216,8 +216,7 @@ public class VWO {
             this.batchEventQueue,
             this.usageStats,
             additionalParams.getCustomVariables(),
-            additionalParams.getVariationTargetingVariables(),
-            additionalParams.getShouldTrackReturningUser()
+            additionalParams.getVariationTargetingVariables()
     );
   }
 
@@ -229,7 +228,7 @@ public class VWO {
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignKey, String userId) {
-    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null, null);
+    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null);
   }
 
   /**
@@ -290,8 +289,7 @@ public class VWO {
             this.batchEventQueue,
             additionalParams.getCustomVariables(),
             additionalParams.getVariationTargetingVariables(),
-            goalsToTrack,
-            additionalParams.getShouldTrackReturningUser()
+            goalsToTrack
     );
   }
 
@@ -307,8 +305,7 @@ public class VWO {
             this.batchEventQueue,
             null,
             null,
-            this.goalTypeToTrack,
-            null
+            this.goalTypeToTrack
     );
   }
 
@@ -332,8 +329,7 @@ public class VWO {
             this.batchEventQueue,
             this.usageStats,
             additionalParams.getCustomVariables(),
-            additionalParams.getVariationTargetingVariables(),
-            additionalParams.getShouldTrackReturningUser()
+            additionalParams.getVariationTargetingVariables()
     );
   }
 
@@ -345,7 +341,7 @@ public class VWO {
    * @return Boolean corresponding to whether user became part of feature.
    */
   public boolean isFeatureEnabled(String campaignKey, String userId) {
-    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null, null);
+    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null);
   }
 
   /**
@@ -463,7 +459,6 @@ public class VWO {
     private VWOLogger customLogger;
     private boolean developmentMode;
     private GoalEnums.GOAL_TYPES goalTypeToTrack = GoalEnums.GOAL_TYPES.ALL;
-    private Boolean shouldTrackReturningUser = false;
     private Integer pollingInterval;
     private String sdkKey;
     private BatchEventData batchEvents;
@@ -557,20 +552,6 @@ public class VWO {
       return this;
     }
 
-    /**
-     * Notify whether the goal should be tracked again if its already being tracked.
-     *
-     * @param value true if goal should be tracked every time.
-     * @return Builder instance
-     */
-    public Builder withShouldTrackReturningUser(boolean value) {
-      this.shouldTrackReturningUser = value;
-      if (shouldTrackReturningUser) {
-        usageStats.put("tr", 1);
-      }
-      return this;
-    }
-
     public Builder withBatchEvents(BatchEventData batchEvents) {
       this.batchEvents = batchEvents;
       usageStats.put("eb", 1);
@@ -612,7 +593,7 @@ public class VWO {
       }
 
       this.bucketingService = new BucketingService();
-      this.variationDecider = new VariationDecider(bucketingService, userStorage, shouldTrackReturningUser, new HooksManager(this.integrations),
+      this.variationDecider = new VariationDecider(bucketingService, userStorage, new HooksManager(this.integrations),
               settingFile.getSettings().getAccountId());
       this.developmentMode = this.developmentMode || false;
 

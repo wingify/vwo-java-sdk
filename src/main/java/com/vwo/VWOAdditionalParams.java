@@ -25,7 +25,6 @@ public class VWOAdditionalParams {
   private Map<String, ?> variationTargetingVariables;
   private Object revenueValue;
   private GoalEnums.GOAL_TYPES goalTypeToTrack;
-  private Boolean shouldTrackReturningUser;
 
   public Map<String, ?> getCustomVariables() {
     return customVariables;
@@ -63,12 +62,4 @@ public class VWOAdditionalParams {
     return this;
   }
 
-  public Boolean getShouldTrackReturningUser() {
-    return shouldTrackReturningUser;
-  }
-
-  public VWOAdditionalParams setShouldTrackReturningUser(Boolean shouldTrackReturningUser) {
-    this.shouldTrackReturningUser = shouldTrackReturningUser;
-    return this;
-  }
 }

@@ -49,26 +49,21 @@ public class VariationDecider {
 
   private final BucketingService bucketingService;
   private final Storage.User userStorage;
-  private final boolean shouldTrackReturningUser;
   public boolean isStoredVariation;
   private final HooksManager hooksManager;
   private final int accountId;
   private Map<String, Object> integrationsMap;
   private static final Logger LOGGER = Logger.getLogger(VariationDecider.class);
 
-  public VariationDecider(BucketingService bucketingService, Storage.User userStorage, boolean shouldTrackReturningUser,
+  public VariationDecider(BucketingService bucketingService, Storage.User userStorage,
                           HooksManager hooksManager, int accountId) {
     this.bucketingService = bucketingService;
     this.userStorage = userStorage;
-    this.shouldTrackReturningUser = shouldTrackReturningUser;
     this.hooksManager = hooksManager;
     this.accountId = accountId;
   }
 
 
-  public boolean getShouldTrackReturningUser() {
-    return shouldTrackReturningUser;
-  }
 
   public boolean getIsStoredVariation() {
     return isStoredVariation;
@@ -84,7 +79,6 @@ public class VariationDecider {
    * @param rawCustomVariables             Pre Segmentation custom variables
    * @param rawVariationTargetingVariables User Whitelisting Targeting variables
    * @param goalIdentifier                 Goal key
-   * @param shouldTrackReturningUser       Boolean value to check if the goal should be tracked again or not.
    * @return variation name or null if not found.
    */
   public Variation getVariation(
@@ -94,8 +88,7 @@ public class VariationDecider {
           String userId,
           Map<String, ?> rawCustomVariables,
           Map<String, ?> rawVariationTargetingVariables,
-          String goalIdentifier,
-          Boolean shouldTrackReturningUser
+          String goalIdentifier
   ) {
     // Default initialization(s)
     isStoredVariation = false;
@@ -129,7 +122,7 @@ public class VariationDecider {
       return whitelistedVariation;
     }
 
-    Variation userVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, shouldTrackReturningUser, false);
+    Variation userVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, false);
     if (userVariation == null || userVariation.getId() != -1) {
       return userVariation;
     }
@@ -148,7 +141,7 @@ public class VariationDecider {
         return null;
       }
 
-      if (checkForStorageAndWhitelisting(apiName, campaignList, (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, shouldTrackReturningUser, variationTargetingVariables)) {
+      if (checkForStorageAndWhitelisting(apiName, campaignList, (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, variationTargetingVariables)) {
         LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.CALLED_CAMPAIGN_NOT_WINNER.value(new HashMap<String, String>() {
           {
             put("userId", userId);
@@ -302,10 +295,9 @@ public class VariationDecider {
    * @param campaign                 - campaign instance
    * @param userId                   - user id string
    * @param goalIdentifier           - Goal key
-   * @param shouldTrackReturningUser - Boolean value to check if the goal should be tracked again or not
    * @return Stored variation.
    */
-  private Variation checkForUserStorage(String apiName, Campaign campaign, String userId, String goalIdentifier, Boolean shouldTrackReturningUser, boolean disableLogs) {
+  private Variation checkForUserStorage(String apiName, Campaign campaign, String userId, String goalIdentifier, boolean disableLogs) {
     Variation variation = new Variation();
     variation.setId(-1);
     // Try to lookup in user storage service to get variation.
@@ -320,11 +312,9 @@ public class VariationDecider {
             LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value(), disableLogs);
           }
         } else if (StorageUtils.isValidUserStorageMap(userStorageMap)) {
-          if (shouldTrackReturningUser == null) {
-            shouldTrackReturningUser = this.shouldTrackReturningUser;
-          }
 
-          if (goalIdentifier != null && !shouldTrackReturningUser) {
+
+          if (goalIdentifier != null) {
             if (checkGoalTracked(goalIdentifier, userStorageMap)) {
               LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.GOAL_ALREADY_TRACKED.value(new HashMap<String, String>() {
                 {
@@ -335,14 +325,6 @@ public class VariationDecider {
               }), disableLogs);
               return null;
             }
-          } else if (goalIdentifier != null && shouldTrackReturningUser) {
-            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GOAL_SHOULD_TRACK_AGAIN.value(new HashMap<String, String>() {
-              {
-                put("goalIdentifer", goalIdentifier);
-                put("campaignKey", campaign.getKey());
-                put("userId", userId);
-              }
-            }), disableLogs);
           }
 
           variation = getStoredVariation(userStorageMap, userId, campaign);
@@ -441,12 +423,11 @@ public class VariationDecider {
    * @param calledCampaign              - Campaign instance of called campaign
    * @param userId                      - user id string
    * @param goalIdentifier              - Goal key
-   * @param shouldTrackReturningUser    - Boolean value to check if the goal should be tracked again or not
    * @param variationTargetingVariables - User Whitelisting Targeting variables
    * @return true, if whitelisting/storage is satisfied for any campaign.
    */
   private boolean checkForStorageAndWhitelisting(String apiName, List<Campaign> campaignList, String groupName, Campaign calledCampaign, String userId, String goalIdentifier,
-                                                 Boolean shouldTrackReturningUser, Map<String, ?> variationTargetingVariables) {
+                                                 Map<String, ?> variationTargetingVariables) {
     boolean otherCampaignWinner = false;
     for (Campaign campaign : campaignList) {
       if (campaign.getId().equals(calledCampaign.getId())) {
@@ -466,7 +447,7 @@ public class VariationDecider {
         break;
       }
 
-      Variation storedVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, shouldTrackReturningUser, true);
+      Variation storedVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, true);
       if (storedVariation != null && storedVariation.getId() != -1) {
         otherCampaignWinner = true;
         LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE.value(new HashMap<String, String>() {

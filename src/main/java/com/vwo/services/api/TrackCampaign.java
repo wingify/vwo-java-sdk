@@ -54,7 +54,6 @@ public class TrackCampaign {
    * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
    * @param goalsToTrack                Enum of goal type to track a particular type of goal
-   * @param shouldTrackReturningUser    boolean value to check if the goal should be tracked again or not.
    * @return Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
    */
   public static Map<String, Boolean> trackGoal(
@@ -68,8 +67,7 @@ public class TrackCampaign {
           BatchEventQueue batchEventQueue,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
-          GoalEnums.GOAL_TYPES goalsToTrack,
-          Boolean shouldTrackReturningUser
+          GoalEnums.GOAL_TYPES goalsToTrack
   ) {
     try {
       if (!TrackCampaign.isTrackParamsValid(campaignSpecifier, userId, goalIdentifier)) {
@@ -142,7 +140,7 @@ public class TrackCampaign {
               Object revenue = goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.CUSTOM.value()) ? null : revenueValue;
 
               String variation = CampaignVariation.getCampaignVariationName(settingFile.getSettings(), APIEnums.API_TYPES.TRACK.value(), campaign, userId, variationDecider, CustomVariables,
-                      variationTargetingVariables, shouldTrackReturningUser, goalIdentifier);
+                      variationTargetingVariables, goalIdentifier);
 
               if (variation != null) {
                 TrackCampaign.sendTrackCall(

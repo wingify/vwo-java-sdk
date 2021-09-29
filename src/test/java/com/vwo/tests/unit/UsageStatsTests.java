@@ -55,7 +55,6 @@ public class UsageStatsTests {
     assertNull(vwo.getUsageStats().get("cl"));
     assertNull(vwo.getUsageStats().get("ll"));
     assertNull(vwo.getUsageStats().get("gt"));
-    assertNull(vwo.getUsageStats().get("tr"));
     assertNull(vwo.getUsageStats().get("pi"));
   }
 
@@ -69,7 +68,6 @@ public class UsageStatsTests {
     assertNull(vwo.getUsageStats().get("ig"));
     assertNull(vwo.getUsageStats().get("eb"));
     assertNull(vwo.getUsageStats().get("gt"));
-    assertNull(vwo.getUsageStats().get("tr"));
     assertNull(vwo.getUsageStats().get("pi"));
   }
 
@@ -87,7 +85,6 @@ public class UsageStatsTests {
     assertEquals(vwo.getUsageStats().get("gt"), 1);
     assertNull(vwo.getUsageStats().get("ig"));
     assertNull(vwo.getUsageStats().get("eb"));
-    assertNull(vwo.getUsageStats().get("tr"));
     assertNull(vwo.getUsageStats().get("pi"));
   }
 
@@ -108,7 +105,6 @@ public class UsageStatsTests {
     assertEquals(vwo.getUsageStats().get("pi"), 1);
     assertNull(vwo.getUsageStats().get("ig"));
     assertNull(vwo.getUsageStats().get("eb"));
-    assertNull(vwo.getUsageStats().get("tr"));
   }
 
   @Test
@@ -130,30 +126,6 @@ public class UsageStatsTests {
     assertEquals(vwo.getUsageStats().get("pi"), 1);
     assertEquals(vwo.getUsageStats().get("ig"), 1);
     assertNull(vwo.getUsageStats().get("eb"));
-    assertNull(vwo.getUsageStats().get("tr"));
-  }
-
-  @Test
-  public void alongWithShouldTrackReturningUser() {
-    VWO vwo = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50)
-            .withUserStorage(getUSerStorage())
-            .withCustomLogger(getCustomLogger())
-            .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.ALL)
-            .withPollingInterval(20)
-            .withSdkKey("sdk_key")
-            .withShouldTrackReturningUser(true)
-            .withIntegrations(getEventData())
-            .build();
-
-    assertFalse(vwo.getUsageStats().isEmpty());
-    assertEquals(vwo.getUsageStats().get("ss"), 1);
-    assertEquals(vwo.getUsageStats().get("cl"), 1);
-    assertEquals(vwo.getUsageStats().get("ll"), 1);
-    assertEquals(vwo.getUsageStats().get("gt"), 1);
-    assertEquals(vwo.getUsageStats().get("pi"), 1);
-    assertEquals(vwo.getUsageStats().get("ig"), 1);
-    assertEquals(vwo.getUsageStats().get("tr"), 1);
-    assertNull(vwo.getUsageStats().get("eb"));
   }
 
   @Test
@@ -164,7 +136,6 @@ public class UsageStatsTests {
             .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.ALL)
             .withPollingInterval(20)
             .withSdkKey("sdk_key")
-            .withShouldTrackReturningUser(true)
             .withIntegrations(getEventData())
             .withBatchEvents(getBatchingData())
             .build();
@@ -176,7 +147,6 @@ public class UsageStatsTests {
     assertEquals(vwo.getUsageStats().get("gt"), 1);
     assertEquals(vwo.getUsageStats().get("pi"), 1);
     assertEquals(vwo.getUsageStats().get("ig"), 1);
-    assertEquals(vwo.getUsageStats().get("tr"), 1);
     assertEquals(vwo.getUsageStats().get("eb"), 1);
   }
 
@@ -188,7 +158,6 @@ public class UsageStatsTests {
             .withGoalTypeToTrack(GoalEnums.GOAL_TYPES.ALL)
             .withPollingInterval(20)
             .withSdkKey("sdk_key")
-            .withShouldTrackReturningUser(true)
             .withIntegrations(getEventData())
             .withBatchEvents(getBatchingData())
             .withDevelopmentMode(true)
@@ -201,7 +170,6 @@ public class UsageStatsTests {
     assertNull(vwo.getUsageStats().get("gt"));
     assertNull(vwo.getUsageStats().get("pi"));
     assertNull(vwo.getUsageStats().get("ig"));
-    assertNull(vwo.getUsageStats().get("tr"));
     assertNull(vwo.getUsageStats().get("eb"));
   }
 

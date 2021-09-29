@@ -49,7 +49,6 @@ public class ActivateCampaign {
    * @param usageStats                  usage info collected at the time of VWO instantiation.
    * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
-   * @param shouldTrackReturningUser    Boolean value to check if the goal should be tracked again or not.
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public static String activate(
@@ -61,8 +60,7 @@ public class ActivateCampaign {
           BatchEventQueue batchEventQueue,
           Map<String, Integer> usageStats,
           Map<String, ?> CustomVariables,
-          Map<String, ?> variationTargetingVariables,
-          Boolean shouldTrackReturningUser
+          Map<String, ?> variationTargetingVariables
   ) {
     try {
       if (!ValidationUtils.isValidParams(
@@ -106,7 +104,7 @@ public class ActivateCampaign {
       }
 
       return ActivateCampaign.activateCampaign(APIEnums.API_TYPES.ACTIVATE.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode,
-              batchEventQueue, CustomVariables, variationTargetingVariables, shouldTrackReturningUser, usageStats);
+              batchEventQueue, CustomVariables, variationTargetingVariables, usageStats);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
@@ -123,17 +121,14 @@ public class ActivateCampaign {
           BatchEventQueue batchEventQueue,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
-          Boolean shouldTrackReturningUser,
           Map<String, Integer> usageStats
   ) {
     String variation = CampaignVariation.getCampaignVariationName(settingFile.getSettings(), apiName, campaign, userId, variationDecider,
-            CustomVariables, variationTargetingVariables, shouldTrackReturningUser, null);
+            CustomVariables, variationTargetingVariables, null);
 
     if (variation != null) {
-      if (shouldTrackReturningUser == null) {
-        shouldTrackReturningUser = variationDecider.getShouldTrackReturningUser();
-      }
-      if (variationDecider.getIsStoredVariation() && !shouldTrackReturningUser) {
+
+      if (variationDecider.getIsStoredVariation()) {
         LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.USER_ALREADY_TRACKED.value(new HashMap<String, String>() {
           {
             put("campaignKey", campaign.getKey());

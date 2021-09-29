@@ -50,20 +50,19 @@ public class FeatureCampaign {
    * @param usageStats        usage info collected at the time of VWO instantiation.
    * @param CustomVariables    Pre Segmentation custom variables
    * @param variationTargetingVariables    User Whitelisting Targeting variables
-   * @param shouldTrackReturningUser    Boolean value to check if the goal should be tracked again or not.
    * @return Boolean corresponding to whether user became part of feature.
    */
   public static boolean isFeatureEnabled(
-          String campaignKey,
-          String userId,
-          SettingFile settingFile,
-          VariationDecider variationDecider,
-          boolean isDevelopmentMode,
-          BatchEventQueue batchEventQueue,
-          Map<String, Integer> usageStats,
-          Map<String, ?> CustomVariables,
-          Map<String, ?> variationTargetingVariables,
-          Boolean shouldTrackReturningUser
+      String campaignKey,
+      String userId,
+      SettingFile settingFile,
+      VariationDecider variationDecider,
+      boolean isDevelopmentMode,
+      BatchEventQueue batchEventQueue,
+      Map<String, Integer> usageStats,
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables
+
   ) {
     try {
       if (!ValidationUtils.isValidParams(
@@ -111,7 +110,7 @@ public class FeatureCampaign {
       }
 
       String variation = ActivateCampaign.activateCampaign(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
-              CustomVariables, variationTargetingVariables, shouldTrackReturningUser, usageStats);
+              CustomVariables, variationTargetingVariables, usageStats);
 
       if (variation == null) {
         return false;

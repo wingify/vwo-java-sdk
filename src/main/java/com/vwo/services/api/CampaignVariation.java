@@ -109,8 +109,9 @@ public class CampaignVariation {
           VariationDecider variationDecider,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables) {
+
     Variation variation = variationDecider.getVariation(settings, apiName, campaign, userId, CustomVariables,
-            variationTargetingVariables, null, null);
+            variationTargetingVariables, null);
     return variation != null ? variation.getName() : null;
   }
 
@@ -122,10 +123,9 @@ public class CampaignVariation {
           VariationDecider variationDecider,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
-          Boolean shouldTrackReturningUser,
           String goalIdentifier
   ) {
-    Variation variation = variationDecider.getVariation(settings, apiName, campaign, userId, CustomVariables, variationTargetingVariables, goalIdentifier, shouldTrackReturningUser);
+    Variation variation = variationDecider.getVariation(settings, apiName, campaign, userId, CustomVariables, variationTargetingVariables, goalIdentifier);
     return variation != null ? variation.getName() : null;
   }
 }
