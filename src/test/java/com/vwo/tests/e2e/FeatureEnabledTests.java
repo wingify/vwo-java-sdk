@@ -16,6 +16,7 @@
 
 package com.vwo.tests.e2e;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
 import com.vwo.VWOAdditionalParams;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -140,6 +142,39 @@ public class FeatureEnabledTests {
       boolean isFeatureEnabled = vwoInstance.isFeatureEnabled(campaignKey, TestUtils.getUsers()[i]);
       assertEquals(isFeatureEnabled, userExpectations.get(i).getVariation() == null ? false : true);
     }
+  }
+
+  @Test
+  public void featureRolloutWhitelistingTest() throws JsonProcessingException {
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_ROLLOUT_TRAFFIC_100_WHITELISTING).withDevelopmentMode(true).build();
+    VWOAdditionalParams options = new VWOAdditionalParams();
+    options.setVariationTargetingVariables(new HashMap<String, Object>() {{
+      put("safari", true);
+    }});
+    // whitelisting is satisfied.
+    boolean isFeatureEnabled = vwoInstance.isFeatureEnabled(vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getKey(), "Ashley", options);
+    assertEquals(isFeatureEnabled, true);
+
+    // whitelisting is not satisfied but still the user is eligible for the campaign as the
+    // traffic percentage is set to 100
+    options.setVariationTargetingVariables(new HashMap<String, Object>() {{
+      put("safari", false);
+    }});
+    isFeatureEnabled = vwoInstance.isFeatureEnabled(vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getKey(), "Ashley", options);
+    assertEquals(isFeatureEnabled, true);
+
+    // whitelisting is not satisfied and campaign traffic is set to 10
+    vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).setPercentTraffic(10);
+    isFeatureEnabled = vwoInstance.isFeatureEnabled(vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getKey(), "Ashley", options);
+    assertEquals(isFeatureEnabled, false);
+
+    // whitelisting is satisfied and campaign traffic is set to 0
+    options.setVariationTargetingVariables(new HashMap<String, Object>() {{
+      put("safari", true);
+    }});
+    vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).setPercentTraffic(0);
+    isFeatureEnabled = vwoInstance.isFeatureEnabled(vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getKey(), "Ashley", options);
+    assertEquals(isFeatureEnabled, true);
   }
 
   @Test

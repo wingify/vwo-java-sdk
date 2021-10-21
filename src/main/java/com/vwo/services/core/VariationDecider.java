@@ -212,7 +212,7 @@ public class VariationDecider {
             {
               put("userId", userId);
               put("campaignKey", campaign.getKey());
-              put("variation", variationObj.getName());
+              put("variation", campaign.getType().equals(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value()) ? "" : "for " + variationObj.getName());
             }
           }), disableLogs);
         } else {
@@ -229,7 +229,8 @@ public class VariationDecider {
               put("campaignKey", campaign.getKey());
               put("customVariables", variationTargetingVariables.toString());
               put("segmentationType", SegmentationTypeEnums.WHITELISTING.value());
-              put("variation", variationObj.getName());
+              put("variation", campaign.getType().equals(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())
+                  && newStatus.equals(StatusEnums.PASSED.value()) ? "and becomes part of the rollout" : "for " + variationObj.getName());
               put("status", newStatus);
             }
           }), disableLogs);
@@ -255,7 +256,7 @@ public class VariationDecider {
             put("campaignKey", campaign.getKey());
             put("customVariables", variationTargetingVariables.toString());
             put("segmentationType", SegmentationTypeEnums.WHITELISTING.value());
-            put("variation", variationName);
+            put("variation", campaign.getType().equals(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value()) ? "" : "for " + variationName);
             put("status", StatusEnums.PASSED.value());
           }
         }), disableLogs);
@@ -396,7 +397,7 @@ public class VariationDecider {
           put("campaignKey", campaign.getKey());
           put("customVariables", customVariables.toString());
           put("segmentationType", SegmentationTypeEnums.PRE_SEGMENTATION.value());
-          put("variation", "(No variation i.e. Presegment)");
+          put("variation", "");
           put("status", isPresegmentValid ? StatusEnums.PASSED.value() : StatusEnums.FAILED.value());
         }
       }), disableLogs);
@@ -407,7 +408,7 @@ public class VariationDecider {
         {
           put("campaignKey", campaign.getKey());
           put("userId", userId);
-          put("variation", "(No variation i.e. Presegment)");
+          put("variation", "");
         }
       }), disableLogs);
       return true;

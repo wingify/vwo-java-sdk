@@ -66,8 +66,8 @@ public class LoggerMessagesEnums {
     HTTP_RESPONSE("Got Http response {{response}}."),
 
     // Segmentation
-    SEGMENTATION_STATUS("For userId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),
-    SEGMENTATION_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, segment was missing, hence skipping segmentation for {{variation}}"),
+    SEGMENTATION_STATUS("For userId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} {{variation}}"),
+    SEGMENTATION_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, segment was missing, hence skipping segmentation {{variation}}"),
     WHITELISTING_SKIPPED("For userId:{{userId}} of campaign:{{campaignKey}}, whitelisting was skipped"),
     BEFORE_FLUSHING("Flushing events queue {{manually}} having {{length}} events for account:{{accountId}}. {{timer}}, queue summary: {{queue_metadata}}"),
     BATCH_EVENT_LIMIT_EXCEEDED("Impression event - {{endPoint}} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{{eventsPerRequest}} for accountId:{{accountId}}. Please read the official documentation for knowing the size limits."),
@@ -110,7 +110,7 @@ public class LoggerMessagesEnums {
     AFTER_FLUSHING("Events queue having {{length}} events has been flushed {{manually}}, queue summary: {{queue_metadata}}"),
 
     // Segmentation
-    SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} for {{variation}}"),
+    SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} {{variation}}"),
     BULK_IMPRESSION_SUCCESS("Impression event - {{endPoint}} was successfully received by VWO having accountId:{{a}}"),
     CAMPAIGN_NOT_ACTIVATED("Activate the campaign:{{campaignKey}} for User ID:{{userId}} to {{reason}}."),
     IMPRESSION_SUCCESS_QUEUE("Impression event was successfully pushed in queue"),
