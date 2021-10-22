@@ -30,6 +30,7 @@ import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -172,6 +173,45 @@ public class ActivateTests {
     };
 
     validateActivateMethod(com.vwo.tests.data.Settings.USER_WHITELISTING_AB_TEST_TRAFFIC_100, UserExpectations.TRAFFIC_0, new VWO.AdditionalParams().setCustomVariables(customVariables).setVariationTargetingVariables(variationTargetingVariables));
+  }
+
+  @Test
+  public void whitelistingWithUserHash() throws IOException {
+    LOGGER.info("Should return whitelisted variation as the user hash passes the whitelisting");
+
+    vwoInstance = VWO.launch(com.vwo.tests.data.Settings.USER_WHITELISTING_AB_TEST_TRAFFIC_100).withDevelopmentMode(true).build();
+    Settings settings = vwoInstance.getSettingFile().getSettings();
+    settings.getCampaigns().get(0).setPercentTraffic(0);
+    VWOAdditionalParams params  = new VWOAdditionalParams();
+    params.setCustomVariables(new HashMap<String, Object>(){{
+      put("eq", "something");
+    }});
+    String variationName = vwoInstance.activate(settings.getCampaigns().get(0).getKey(), "Bill", params);
+    assertEquals(variationName, null);
+
+    settings.getCampaigns().get(0).setUserListEnabled(true);
+    settings.getCampaigns().get(0).getVariations().get(1).setSegments(new HashMap<String, Object>() {{
+      put("and", new ArrayList<Object>() {{
+        add(new HashMap<String, Object>() {{
+          put("user", "A242AF8A71655251BA55F9EBB1FB326F");
+        }});
+      }});
+    }});
+
+    variationName = vwoInstance.activate(settings.getCampaigns().get(0).getKey(), "Bill", params);
+    assertEquals(variationName, "Variation-1");
+
+    settings.getCampaigns().get(0).setPercentTraffic(100);
+    settings.getCampaigns().get(0).getVariations().get(1).setSegments(new HashMap<String, Object>() {{
+      put("and", new ArrayList<Object>() {{
+        add(new HashMap<String, Object>() {{
+          put("user", "5FBBE143B5B0584297909594993D7923");
+        }});
+      }});
+    }});
+
+    variationName = vwoInstance.activate(settings.getCampaigns().get(0).getKey(), "Bill", params);
+    assertEquals(variationName, "Control");
   }
 
   @Test

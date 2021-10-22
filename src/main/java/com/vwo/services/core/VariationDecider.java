@@ -96,7 +96,9 @@ public class VariationDecider {
     initIntegrationMap(campaign, apiName, userId, goalIdentifier, rawCustomVariables, rawVariationTargetingVariables);
     final Map<String, ?> customVariables = rawCustomVariables == null ? new HashMap<>() : rawCustomVariables;
     final Map<String, ?> variationTargetingVariables = rawVariationTargetingVariables == null ? new HashMap<>() : rawVariationTargetingVariables;
-    ((Map<String, Object>) variationTargetingVariables).put(VWOAttributesEnum.USER_ID.value(), userId);
+    ((Map<String, Object>) variationTargetingVariables).put(VWOAttributesEnum.USER_ID.value(), campaign.isUserListEnabled()
+        ? UUIDUtils.getUUId(settings.getAccountId(), userId)
+        : userId);
 
     if (!campaign.getStatus().equalsIgnoreCase(CampaignEnums.STATUS.RUNNING.value())) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {

@@ -40,7 +40,8 @@ import java.util.Map;
         "segments",
         "name",
         "isForcedVariationEnabled",
-        "isBucketingSeedEnabled"
+        "isBucketingSeedEnabled",
+        "isUserListEnabled"
 })
 public class Campaign implements  Cloneable {
 
@@ -68,6 +69,8 @@ public class Campaign implements  Cloneable {
   private boolean isForcedVariationEnabled;
   @JsonProperty("isBucketingSeedEnabled")
   private boolean isBucketingSeedEnabled;
+  @JsonProperty("isUserListEnabled")
+  private boolean isUserListEnabled;
 
   private Integer startRange;
   private Integer endRange;
@@ -229,5 +232,13 @@ public class Campaign implements  Cloneable {
 
   public void setBucketingSeedEnabled(boolean bucketingSeedEnabled) {
     isBucketingSeedEnabled = bucketingSeedEnabled;
+  }
+
+  public boolean isUserListEnabled() {
+    return isUserListEnabled;
+  }
+
+  public void setUserListEnabled(boolean userListEnabled) {
+    isUserListEnabled = userListEnabled;
   }
 }

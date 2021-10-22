@@ -129,6 +129,10 @@ public class Variation implements Cloneable {
     return segments;
   }
 
+  public void setSegments(Object segments) {
+    this.segments = segments;
+  }
+
   public Integer getStartRangeVariation() {
     return startRangeVariation;
   }
