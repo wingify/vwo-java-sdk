@@ -17,7 +17,7 @@
 package com.vwo.tests.unit;
 
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
+import com.vwo.models.response.Campaign;
 import com.vwo.services.core.BucketingService;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.e2e.MEGTests;

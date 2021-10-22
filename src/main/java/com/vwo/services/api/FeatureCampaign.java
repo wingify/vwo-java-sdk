@@ -26,9 +26,9 @@ import com.vwo.services.settings.SettingFile;
 import com.vwo.enums.CampaignEnums;
 import com.vwo.enums.FeatureEnums;
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
-import com.vwo.models.Variable;
-import com.vwo.models.Variation;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Variable;
+import com.vwo.models.response.Variation;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;

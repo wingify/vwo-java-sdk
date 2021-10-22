@@ -21,28 +21,40 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vwo.enums.EventArchEnums;
 import com.vwo.enums.HTTPEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
-import com.vwo.models.Goal;
-import com.vwo.models.Settings;
-import com.vwo.models.Variation;
+import com.vwo.models.request.EventArchData;
+import com.vwo.models.request.EventArchPayload;
+import com.vwo.models.request.Props;
+import com.vwo.models.request.Event;
+import com.vwo.models.request.visitor.Visitor;
+import com.vwo.models.request.meta.VWOMeta;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Goal;
+import com.vwo.models.response.Settings;
+import com.vwo.models.response.Variation;
 import com.vwo.services.batch.FlushInterface;
 import com.vwo.services.settings.SettingFile;
+import com.vwo.utils.HttpUtils;
 import com.vwo.utils.UUIDUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.TextUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
-import java.util.UUID;
+import java.util.HashSet;
+
+import static com.vwo.utils.HttpUtils.removeNullValues;
 
 public class HttpRequestBuilder {
 
@@ -53,6 +65,7 @@ public class HttpRequestBuilder {
   public static final String WEBHOOK_SETTINGS_URL = UriEnums.WEBHOOK_SETTINGS_URL.toString();
   public static final String PUSH = UriEnums.PUSH.toString();
   public static final String BATCH_EVENTS = UriEnums.BATCH_EVENTS.toString();
+  public static final String EVENTS = UriEnums.EVENTS.toString();
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final Logger LOGGER = Logger.getLogger(HttpRequestBuilder.class);
@@ -228,8 +241,7 @@ public class HttpRequestBuilder {
     return requestParams.removeNullValues(map);
   }
 
-  public static HttpParams getBatchEventPostCallParams(String accountId, String apiKey, Queue<Map<String, Object>> properties,
-                                                       FlushInterface flushCallback, Map<String, Integer> usageStats) throws JsonProcessingException {
+  public static HttpParams getBatchEventPostCallParams(String accountId, String apiKey, Queue<Map<String, Object>> properties, Map<String, Integer> usageStats) throws JsonProcessingException {
     BuildQueryParams requestParams =
             BuildQueryParams.Builder.getInstance()
                     .withMinifiedSDKVersion()
@@ -243,7 +255,6 @@ public class HttpRequestBuilder {
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
     HttpParams httpParams = new HttpParams(VWO_HOST, BATCH_EVENTS, map, HTTPEnums.Verbs.POST);
-    httpParams.setFlushCallback(flushCallback);
     final Header[] headers = new Header[1];
 
     headers[0] = new BasicHeader("Authorization", apiKey);
@@ -254,6 +265,178 @@ public class HttpRequestBuilder {
 
     return httpParams;
   }
+
+  public static HttpParams getEventArchQueryParams(SettingFile settingFile, String eventName, Map<String, Object> properties, Map<String, Integer> usageStats) throws JsonProcessingException {
+    Settings settings = settingFile.getSettings();
+    BuildQueryParams.Builder requestBuilder =
+            BuildQueryParams.Builder.getInstance()
+                    .withSettingsAccountId(String.valueOf(settings.getAccountId()))
+                    .withEventName(eventName)
+                    .withETime(Instant.now().toEpochMilli())
+                    .withEnvironment(settings.getSdkKey())
+                    .withsdk()
+                    .withP("FS")
+                    .withRandom(Math.random());
+
+    if (usageStats != null) {
+      requestBuilder.withUsageStats(usageStats);
+    }
+
+    BuildQueryParams requestParams = requestBuilder.build();
+
+    Map<String, Object> map = requestParams.convertToMap();
+    objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+
+
+    HttpParams httpParams = new HttpParams(VWO_HOST, EVENTS, map, HTTPEnums.Verbs.POST);
+    final Header[] headers = new Header[1];
+    headers[0] = new BasicHeader("User-Agent", "java");
+    httpParams.setHeaders(headers);
+
+    JsonNode node = objectMapper.valueToTree(properties);
+    httpParams.setBody(objectMapper.writeValueAsString(node));
+
+    return httpParams;
+  }
+
+  public static EventArchPayload getBaseEventArchPayload(SettingFile settingFile, String userId, String eventName) {
+    Settings settings = settingFile.getSettings();
+    String uuid = UUIDUtils.getUUId(settings.getAccountId(), userId);
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.UUID_GENERATED.value(new HashMap<String, String>() {
+      {
+        put("userId", userId);
+        put("accountId", String.valueOf(settings.getAccountId()));
+        put("uuid", uuid);
+      }
+    }));
+
+    //create props map
+    Props props =
+        new Props()
+          .setSdkName("java")
+          .setSdkVersion(UriEnums.SDK_VERSION.toString())
+          .setVisitor(new Visitor().setProps(new HashMap<String, Object>() {
+              {
+                put("vwo_fs_environment", settings.getSdkKey());
+              }
+            }));
+
+    //create the event map
+    Event event = new Event();
+    event.setProps(props);
+    event.setTime(Instant.now().toEpochMilli());
+    event.setName(eventName);
+
+    //create the d map
+    EventArchData eventArchData = new EventArchData();
+    eventArchData.setMsgId(uuid + "-" + Instant.now().getEpochSecond());
+    eventArchData.setVisId(uuid);
+    eventArchData.setSessionId(Instant.now().getEpochSecond());
+    eventArchData.setEvent(event);
+    eventArchData.setVisitor(new Visitor().setProps(new HashMap<String, Object>() {
+      {
+        put("vwo_fs_environment", settings.getSdkKey());
+      }
+    }));
+    EventArchPayload eventArchPayload = new EventArchPayload();
+    eventArchPayload.setD(eventArchData);
+    return eventArchPayload;
+  }
+
+  public static Map<String, Object> getEventArchTrackUserPayload(SettingFile settingFile, String userId, int campaignId, int variationId) {
+
+    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, EventArchEnums.VWO_VARIATION_SHOWN.toString());
+    eventArchPayload.getD().getEvent().getProps().setVariation(variationId).setIsFirst(1).setId(campaignId);
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_USER_EVENT_ARCH_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("u", userId);
+        put("a", String.valueOf(settingFile.getSettings().getAccountId()));
+        put("c", String.valueOf(campaignId));
+      }
+    }));
+
+    Map<String, Object> payloadMap = objectMapper.convertValue(eventArchPayload, Map.class);
+    Map<String, Object> event = (Map<String, Object>)  ((Map<String, Object>) payloadMap.get("d")).get("event");
+    //    if (usageStats != null) {
+    //      HttpUtils.attachUsageStats((Map<String, Object>) event.get("props"), usageStats);
+    //    }
+    event.put("props", removeNullValues((Map<String, Object>) event.get("props")));
+
+    return payloadMap;
+  }
+
+  public static Map<String, Object> getEventArchTrackGoalPayload(SettingFile settingFile, String userId,
+                                                                 Map<String, Integer> metricMap, String goalIdentifier, Object revenue, HashSet<String> revenueListProp) {
+
+    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, goalIdentifier);
+    Map<String, Object> metric = new HashMap<String, Object>();
+    ArrayList<String> campaignList = new ArrayList<>();
+    for (Map.Entry<String, Integer> query : metricMap.entrySet()) {
+      metric.put("id_" + query.getKey(), new ArrayList<String>() {
+          {
+            add("g_" + query.getValue());
+          }
+        }
+      );
+      campaignList.add(query.getKey());
+    }
+
+    eventArchPayload.getD().getEvent().getProps().setVwoMeta(new VWOMeta().setMetric(metric));
+    eventArchPayload.getD().getEvent().getProps().setCustomEvent(true);
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_GOAL_EVENT_ARCH_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("u", userId);
+        put("a", String.valueOf(settingFile.getSettings().getAccountId()));
+        put("c", String.join(", ", campaignList));
+        put("goalName", goalIdentifier);
+      }
+    }));
+
+    Map<String, Object> payloadMap = objectMapper.convertValue(eventArchPayload, Map.class);
+    Map<String, Object> event = (Map<String, Object>)  ((Map<String, Object>) payloadMap.get("d")).get("event");
+    event.put("props", removeNullValues((Map<String, Object>) event.get("props")));
+    if (revenue != null && revenueListProp != null && revenueListProp.size() > 0) {
+      Map<String, Object> vwoMeta = (Map<String, Object>) ((Map<String, Object>) event.get("props")).get("vwoMeta");
+      for (String revenueProp: revenueListProp) {
+        vwoMeta.put(revenueProp, revenue);
+      }
+      ((Map<String, Object>) event.get("props")).put("vwoMeta", vwoMeta);
+    }
+
+    return payloadMap;
+  }
+
+
+  public static Map<String, Object> getEventArchPushPayload(SettingFile settingFile, String userId, Map<String, String> customDimensionMap) {
+
+    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, EventArchEnums.VWO_SYN_VISITOR_PROP.toString());
+
+    for (Map.Entry<String, ?> query : customDimensionMap.entrySet()) {
+      eventArchPayload.getD().getVisitor().getProps().put(query.getKey(), query.getValue());
+      eventArchPayload.getD().getEvent().getProps().getVisitor().getProps().put(query.getKey(), query.getValue());
+    }
+
+
+    eventArchPayload.getD().getEvent().getProps().setCustomEvent(true);
+
+    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.POST_SEGMENTATION_EVENT_ARCH_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+      {
+        put("u", userId);
+        put("a", String.valueOf(settingFile.getSettings().getAccountId()));
+        put("property", String.valueOf(customDimensionMap));
+      }
+    }));
+
+    Map<String, Object> payloadMap = objectMapper.convertValue(eventArchPayload, Map.class);
+    Map<String, Object> event = (Map<String, Object>)  ((Map<String, Object>) payloadMap.get("d")).get("event");
+    event.put("props", removeNullValues((Map<String, Object>) event.get("props")));
+
+    return payloadMap;
+  }
+
+
 
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   private static class BuildQueryParams {
@@ -282,6 +465,9 @@ public class HttpRequestBuilder {
     private Integer eT;
     private Integer g;
     private Map<String, Integer> usageStats;
+    private String en;
+    private Long eTime;
+    private String p;
     private static final Logger LOGGER = Logger.getLogger(BuildQueryParams.class);
 
 
@@ -311,6 +497,9 @@ public class HttpRequestBuilder {
       this.sd = builder.sd;
       this.env = builder.env;
       this.usageStats = builder.usageStats;
+      this.en = builder.en;
+      this.eTime = builder.eTime;
+      this.p = builder.p;
     }
 
 
@@ -340,8 +529,26 @@ public class HttpRequestBuilder {
       private Integer eT;
       private Integer g;
       private Map<String, Integer> usageStats;
+      private String en;
+      private Long eTime;
+      private String p;
 
       private Builder() {
+      }
+
+      public Builder withP(String p) {
+        this.p = p;
+        return this;
+      }
+
+      public Builder withEventName(String eventName) {
+        this.en = eventName;
+        return this;
+      }
+
+      public Builder withETime(Long eTime) {
+        this.eTime = eTime;
+        return this;
       }
 
       // Used just for get settings
@@ -512,7 +719,7 @@ public class HttpRequestBuilder {
         map.remove("sdk_v");
         Map<String, Integer> usageStatsEntry = new ObjectMapper().convertValue(map.get("usageStats"), Map.class);
         if (usageStatsEntry != null && !usageStatsEntry.isEmpty()) {
-          for (Map.Entry<String, Integer> mapElement: usageStatsEntry.entrySet()) {
+          for (Map.Entry<String, Integer> mapElement : usageStatsEntry.entrySet()) {
             map.put(mapElement.getKey(), mapElement.getValue());
           }
         }

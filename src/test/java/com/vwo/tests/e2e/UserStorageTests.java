@@ -20,27 +20,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
 import com.vwo.VWOAdditionalParams;
 import com.vwo.logger.Logger;
-import com.vwo.models.BatchEventData;
-import com.vwo.models.Settings;
-import com.vwo.services.http.HttpRequestBuilder;
+import com.vwo.models.response.BatchEventData;
+import com.vwo.models.response.Settings;
 import com.vwo.services.storage.Storage;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import com.vwo.utils.StorageUtils;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 

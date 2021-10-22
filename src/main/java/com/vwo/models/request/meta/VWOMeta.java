@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package com.vwo.services.settings;
+package com.vwo.models.request.meta;
 
-import com.vwo.models.response.Settings;
+import java.util.Map;
 
-public interface Parser {
-  Settings parseSettingsFile(String settingFile) throws Exception;
+public class VWOMeta {
+
+  private Map<String, Object> metric;
+
+  public Map<String, Object> getMetric() {
+    return metric;
+  }
+
+  public VWOMeta setMetric(Map<String, Object> metric) {
+    this.metric = metric;
+    return this;
+  }
 }

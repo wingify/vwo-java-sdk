@@ -17,7 +17,7 @@
 package com.vwo.services.settings;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vwo.models.Settings;
+import com.vwo.models.response.Settings;
 
 import java.io.IOException;
 

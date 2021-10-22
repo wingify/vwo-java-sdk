@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.models;
+package com.vwo.models.response;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -34,6 +34,7 @@ import java.util.Map;
         "accountId",
         "campaignGroups",
         "groups",
+        "isEventArchEnabled",
         "version"
 })
 public class Settings {
@@ -50,6 +51,8 @@ public class Settings {
   private Map<String, Integer> campaignGroups;
   @JsonProperty("groups")
   private Map<String, Groups> groups;
+  @JsonProperty("isEventArchEnabled")
+  private Boolean isEventArchEnabled;
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -121,5 +124,13 @@ public class Settings {
   @JsonProperty("groups")
   public void setGroups(Map<String, Groups> groups) {
     this.groups = groups;
+  }
+
+  public Boolean getIsEventArchEnabled() {
+    return isEventArchEnabled;
+  }
+
+  public void setIsEventArchEnabled(Boolean areEventsEnabled) {
+    this.isEventArchEnabled = areEventsEnabled;
   }
 }

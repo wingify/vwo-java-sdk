@@ -22,19 +22,22 @@ import com.vwo.enums.CampaignEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
-import com.vwo.services.settings.SettingFile;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpGetRequest;
 import com.vwo.services.http.HttpRequestBuilder;
+import com.vwo.services.http.HttpPostRequest;
+import com.vwo.services.settings.SettingFile;
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
-import com.vwo.models.Goal;
-import com.vwo.models.Variation;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Goal;
+import com.vwo.models.response.Variation;
 import com.vwo.utils.CampaignUtils;
+import com.vwo.utils.HttpUtils;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class TrackCampaign {
@@ -42,7 +45,7 @@ public class TrackCampaign {
 
   /**
    * Get variation, tracks conversion event and send to VWO server.
-   *
+   *LOGGER.debug("Track goal response received" + properties);
    * @param campaignSpecifier           Campaign key or array of Strings containing campaign keys or null
    * @param userId                      User ID
    * @param goalIdentifier              Goal key
@@ -95,6 +98,8 @@ public class TrackCampaign {
       }
 
       Map<String, Boolean> trackStatus = new HashMap<>();
+      Map<String, Integer> metricMap = new HashMap<>();
+      HashSet<String> revenuePropList = new HashSet<String>();
       for (int i = 0; i < campaignList.size(); i++) {
         Campaign campaign = campaignList.get(i);
         String key = campaign == null ? ((String[]) campaignSpecifier)[i] : campaign.getKey();
@@ -137,6 +142,10 @@ public class TrackCampaign {
                 }
               }));
             } else {
+              if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value()) && goal.getRevenueProp() != null) {
+                revenuePropList.add(goal.getRevenueProp());
+              }
+
               Object revenue = goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.CUSTOM.value()) ? null : revenueValue;
 
               String variation = CampaignVariation.getCampaignVariationName(settingFile.getSettings(), APIEnums.API_TYPES.TRACK.value(), campaign, userId, variationDecider, CustomVariables,
@@ -151,14 +160,21 @@ public class TrackCampaign {
                         CampaignUtils.getVariationObjectFromCampaign(campaign, variation),
                         revenue,
                         isDevelopmentMode,
-                        batchEventQueue
+                        batchEventQueue,
+                        metricMap
                 );
-
                 trackStatus.put(key, true);
               }
+
             }
           }
         }
+      }
+
+      if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled() && metricMap.size() > 0) {
+        Map<String, Object> trackGoalPayload = HttpRequestBuilder.getEventArchTrackGoalPayload(settingFile, userId, metricMap, goalIdentifier, revenueValue, revenuePropList);
+        HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, goalIdentifier, trackGoalPayload, null);
+        HttpPostRequest.send(httpParams, HttpUtils.handleEventArchResponse(settingFile.getSettings().getAccountId(), goalIdentifier, null), false);
       }
 
       return trackStatus;
@@ -198,11 +214,14 @@ public class TrackCampaign {
           Variation variation,
           Object revenueValue,
           boolean isDevelopmentMode,
-          BatchEventQueue batchEventQueue
+          BatchEventQueue batchEventQueue,
+          Map<String, Integer> metricMap
   ) {
     try {
       if (batchEventQueue != null) {
         batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingGoal(settingFile, campaign, userId, goal, variation, revenueValue));
+      } else if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled()) {
+        metricMap.put(String.valueOf(campaign.getId()), goal.getId());
       } else {
         HttpParams httpParams = HttpRequestBuilder.getGoalParams(settingFile, campaign, userId, goal, variation, revenueValue);
         if (!isDevelopmentMode) {

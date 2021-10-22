@@ -17,16 +17,20 @@
 package com.vwo.services.api;
 
 import com.vwo.enums.APIEnums;
+import com.vwo.enums.EventArchEnums;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.services.batch.BatchEventQueue;
-import com.vwo.services.settings.SettingFile;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpGetRequest;
 import com.vwo.services.http.HttpRequestBuilder;
+import com.vwo.services.http.HttpPostRequest;
+import com.vwo.services.settings.SettingFile;
 import com.vwo.logger.Logger;
+import com.vwo.utils.HttpUtils;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Segmentation {
   private static final Logger LOGGER = Logger.getLogger(Segmentation.class);
@@ -42,7 +46,8 @@ public class Segmentation {
    * @param isDevelopmentMode Development mode flag.
    * @return boolean value
    */
-  public static boolean pushCustomDimension(SettingFile settingFile, String tagKey, String tagValue, String userId, BatchEventQueue batchEventQueue, boolean isDevelopmentMode) {
+  public static boolean pushCustomDimension(SettingFile settingFile, String tagKey, String tagValue, String userId, BatchEventQueue batchEventQueue,
+                                            boolean isDevelopmentMode, Map<String, String> customDimensionMap) {
     try {
       if (!ValidationUtils.isValidParams(
           new HashMap<String, Object>() {
@@ -65,7 +70,16 @@ public class Segmentation {
         }
       }));
 
-      Segmentation.sendPostCustomDimensionCall(settingFile, tagKey, tagValue, userId, batchEventQueue, isDevelopmentMode);
+      if (tagKey.equals(" ") && tagValue.equals(" ") && (customDimensionMap == null || customDimensionMap.size() == 0)) {
+        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.PUSH_API_INVALID_PARAMS_CD_MAP.value());
+        return  false;
+      }
+
+      if (!tagKey.equals(" ") && !tagValue.equals(" ")) {
+        customDimensionMap.put(tagKey, tagValue);
+      }
+
+      Segmentation.sendPostCustomDimensionCall(settingFile, userId, batchEventQueue, isDevelopmentMode, customDimensionMap);
       return true;
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
@@ -73,14 +87,23 @@ public class Segmentation {
     }
   }
 
-  private static void sendPostCustomDimensionCall(SettingFile settingFile, String tagKey, String tagValue, String userId, BatchEventQueue batchEventQueue, boolean isDevelopmentMode) {
+  private static void sendPostCustomDimensionCall(SettingFile settingFile, String userId, BatchEventQueue batchEventQueue,
+                                                  boolean isDevelopmentMode, Map<String, String> customDimensionMap) {
     try {
-      if (batchEventQueue != null) {
-        batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForCustomDimension(settingFile, tagKey, tagValue, userId));
-      } else {
-        HttpParams httpParams = HttpRequestBuilder.getCustomDimensionParams(settingFile, tagKey, tagValue, userId);
-        if (!isDevelopmentMode) {
-          HttpGetRequest.send(httpParams);
+      if (!isDevelopmentMode) {
+        if (batchEventQueue != null) {
+          for (Map.Entry<String, String> query : customDimensionMap.entrySet()) {
+            batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForCustomDimension(settingFile, query.getKey(), query.getValue(), userId));
+          }
+        } else if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled()) {
+          Map<String, Object> pushPayload = HttpRequestBuilder.getEventArchPushPayload(settingFile, userId, customDimensionMap);
+          HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), pushPayload, null);
+          HttpPostRequest.send(httpParams, HttpUtils.handleEventArchResponse(settingFile.getSettings().getAccountId(), null, customDimensionMap), false);
+        } else {
+          for (Map.Entry<String, String> query : customDimensionMap.entrySet()) {
+            HttpParams httpParams = HttpRequestBuilder.getCustomDimensionParams(settingFile, query.getKey(), query.getValue(), userId);
+            HttpGetRequest.send(httpParams);
+          }
         }
       }
     } catch (Exception e) {

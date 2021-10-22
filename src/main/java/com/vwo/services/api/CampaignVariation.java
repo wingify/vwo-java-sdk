@@ -18,13 +18,13 @@ package com.vwo.services.api;
 
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
-import com.vwo.models.Settings;
+import com.vwo.models.response.Settings;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.enums.CampaignEnums;
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
-import com.vwo.models.Variation;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Variation;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;

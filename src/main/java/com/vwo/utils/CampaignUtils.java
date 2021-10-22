@@ -17,10 +17,10 @@
 package com.vwo.utils;
 
 import com.vwo.enums.CampaignEnums;
-import com.vwo.models.Campaign;
-import com.vwo.models.Goal;
-import com.vwo.models.Settings;
-import com.vwo.models.Variation;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Goal;
+import com.vwo.models.response.Settings;
+import com.vwo.models.response.Variation;
 import com.vwo.services.settings.SettingsFileUtil;
 
 import java.util.ArrayList;

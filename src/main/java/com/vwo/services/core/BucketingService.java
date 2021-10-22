@@ -18,9 +18,8 @@ package com.vwo.services.core;
 
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
-import com.vwo.models.Variable;
-import com.vwo.models.Variation;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Variation;
 import com.vwo.utils.CampaignUtils;
 
 import java.util.HashMap;

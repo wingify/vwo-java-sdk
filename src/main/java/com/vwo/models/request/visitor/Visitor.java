@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package com.vwo.services.settings;
+package com.vwo.models.request.visitor;
 
-import com.vwo.models.response.Settings;
+import java.util.Map;
 
-public interface Parser {
-  Settings parseSettingsFile(String settingFile) throws Exception;
+public class Visitor {
+
+
+  private Map<String, Object> props;
+
+  public Map<String, Object> getProps() {
+    return props;
+  }
+
+  public Visitor setProps(Map<String, Object> props) {
+    this.props = props;
+    return this;
+  }
+
 }

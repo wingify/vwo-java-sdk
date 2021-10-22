@@ -14,42 +14,35 @@
  * limitations under the License.
  */
 
-package com.vwo.models;
+package com.vwo.models.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+public class Event {
 
-import java.util.List;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-        "name",
-        "campaigns"
-})
-public class Groups {
-  @JsonProperty("name")
+  private Props props;
   private String name;
-  @JsonProperty("campaigns")
-  private List<Integer> campaigns;
+  private Long time;
 
-  @JsonProperty("name")
+  public Props getProps() {
+    return props;
+  }
+
+  public void setProps(Props props) {
+    this.props = props;
+  }
+
   public String getName() {
     return name;
   }
 
-  @JsonProperty("name")
   public void setName(String name) {
     this.name = name;
   }
 
-  @JsonProperty("campaigns")
-  public List<Integer> getCampaigns() {
-    return campaigns;
+  public Long getTime() {
+    return time;
   }
 
-  @JsonProperty("campaigns")
-  public void setCampaigns(List<Integer> campaigns) {
-    this.campaigns = campaigns;
+  public void setTime(Long time) {
+    this.time = time;
   }
 }

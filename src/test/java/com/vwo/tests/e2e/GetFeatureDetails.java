@@ -19,9 +19,9 @@
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import com.vwo.VWO;
 //import com.vwo.logger.Logger;
-//import com.vwo.models.Settings;
-//import com.vwo.models.Variable;
-//import com.vwo.models.Variation;
+//import com.vwo.models.response.Settings;
+//import com.vwo.models.response.Variable;
+//import com.vwo.models.response.Variation;
 //import com.vwo.tests.data.Settings;
 //import com.vwo.tests.data.UserExpectations;
 //import com.vwo.tests.utils.TestUtils;

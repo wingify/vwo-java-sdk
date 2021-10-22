@@ -16,14 +16,20 @@
 
 package com.vwo.services.batch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.vwo.enums.EventEnum;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
-import com.vwo.models.BatchEventData;
+import com.vwo.models.response.BatchEventData;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpPostRequest;
 import com.vwo.services.http.HttpRequestBuilder;
+import com.vwo.services.http.PostResponseHandler;
+import com.vwo.utils.HttpUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 
+import java.io.IOException;
 import java.util.Queue;
 import java.util.Map;
 import java.util.LinkedList;
@@ -31,7 +37,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.HashMap;
 
-public class BatchEventQueue {
+public class BatchEventQueue implements PostResponseHandler {
   public static final int MAX_EVENTS_PER_REQUEST = 5000;
   Queue<Map<String, Object>> batchQueue = new LinkedList<Map<String, Object>>();
   private static final Map<String, Integer> queueMetaData = new HashMap<String, Integer>();
@@ -181,7 +187,7 @@ public class BatchEventQueue {
    */
   private boolean sendPostCall(boolean sendSyncRequest) {
     try {
-      HttpParams httpParams = HttpRequestBuilder.getBatchEventPostCallParams(String.valueOf(accountId), apikey, batchQueue, flushCallback, this.usageStats);
+      HttpParams httpParams = HttpRequestBuilder.getBatchEventPostCallParams(String.valueOf(accountId), apikey, batchQueue, this.usageStats);
       LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.AFTER_FLUSHING.value(new HashMap<String, String>() {
         {
           put("manually", sendSyncRequest ? "manually" : "");
@@ -190,7 +196,7 @@ public class BatchEventQueue {
 
         }
       }));
-      return HttpPostRequest.send(httpParams, accountId, sendSyncRequest);
+      return HttpPostRequest.send(httpParams, this, sendSyncRequest);
     } catch (Exception e) {
       LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
       return false;
@@ -236,5 +242,50 @@ public class BatchEventQueue {
 
   public Queue<Map<String, Object>> getBatchQueue() {
     return this.batchQueue;
+  }
+
+  @Override
+  public void onResponse(String endpoint, int status, HttpResponse response, JsonNode events) throws IOException {
+    if (status >= 200 && status < 300) {
+      LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.BULK_IMPRESSION_SUCCESS.value(new HashMap<String, String>() {
+        {
+          put("a", String.valueOf(accountId));
+          put("endPoint", HttpUtils.getModifiedLogRequest(endpoint));
+        }
+      }));
+      if (flushCallback != null) {
+        flushCallback.onFlush(null, events);
+      }
+    } else if (status == 413) {
+      String error = EntityUtils.toString(response.getEntity());
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.BATCH_EVENT_LIMIT_EXCEEDED.value(new HashMap<String, String>() {
+        {
+          put("accountId", String.valueOf(accountId));
+          put("endPoint", endpoint);
+          put("eventsPerRequest", String.valueOf(events.get("ev").size()));
+        }
+      }));
+      LOGGER.debug(LoggerMessagesEnums.ERROR_MESSAGES.IMPRESSION_FAILED.value(new HashMap<String, String>() {
+        {
+          put("endPoint", endpoint);
+          put("err", error);
+        }
+      }));
+      if (flushCallback != null) {
+        flushCallback.onFlush(error, events);
+      }
+    } else {
+      String error = EntityUtils.toString(response.getEntity());
+      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.BULK_NOT_PROCESSED.value());
+      LOGGER.debug(LoggerMessagesEnums.ERROR_MESSAGES.IMPRESSION_FAILED.value(new HashMap<String, String>() {
+        {
+          put("endPoint", endpoint);
+          put("err", error);
+        }
+      }));
+      if (flushCallback != null) {
+        flushCallback.onFlush(error, events);
+      }
+    }
   }
 }

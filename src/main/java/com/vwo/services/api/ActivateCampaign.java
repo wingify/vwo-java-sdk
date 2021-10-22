@@ -16,19 +16,22 @@
 
 package com.vwo.services.api;
 
+import com.vwo.enums.EventArchEnums;
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.enums.CampaignEnums;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
-import com.vwo.enums.CampaignEnums;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpGetRequest;
 import com.vwo.services.http.HttpRequestBuilder;
+import com.vwo.services.http.HttpPostRequest;
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
-import com.vwo.models.Variation;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Variation;
 import com.vwo.utils.CampaignUtils;
+import com.vwo.utils.HttpUtils;
 import com.vwo.utils.ValidationUtils;
 
 import java.util.HashMap;
@@ -163,6 +166,12 @@ public class ActivateCampaign {
     try {
       if (batchEventQueue != null) {
         batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingUser(settingFile, campaign, userId, variation));
+      } else if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled()) {
+        if (!isDevelopmentMode) {
+          Map<String, Object> trackUserPayload = HttpRequestBuilder.getEventArchTrackUserPayload(settingFile, userId, campaign.getId(), variation.getId());
+          HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, EventArchEnums.VWO_VARIATION_SHOWN.toString(), trackUserPayload, usageStats);
+          HttpPostRequest.send(httpParams, HttpUtils.handleEventArchResponse(settingFile.getSettings().getAccountId(), EventArchEnums.VWO_VARIATION_SHOWN.toString(), null), false);
+        }
       } else {
         HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation, usageStats);
         if (!isDevelopmentMode) {

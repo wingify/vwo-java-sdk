@@ -18,7 +18,7 @@ package com.vwo.tests.e2e;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
-import com.vwo.models.Settings;
+import com.vwo.models.response.Settings;
 import com.vwo.logger.Logger;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;

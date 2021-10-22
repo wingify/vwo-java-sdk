@@ -4,6 +4,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.25.0] - 2020-10-23
+
+### Added
+
+- Support for pushing multiple custom dimensions at once.
+  Earlier, you had to call `push` API multiple times for tracking multiple custom dimensions as follows:
+
+  ```java
+  vwoInstance.push("browser", "chrome", userId);
+  vwoInstance.push("price", "20", userId);
+  ```
+
+  Now, you can pass a hash map
+
+  ```java
+  Map<String, Object> customDimensionMap = new HashMap<String, Object>() {
+    {
+      put("browser", "chrome");
+      put("price", "20");
+    }
+  };
+  vwoInstance.push(customDimensionMap, userId);`
+  ```
+
+  Multiple asynchronous tracking calls would be initiated in this case.
+
+### Changed
+
+- If Events Architecture is enabled for your VWO account, all the tracking calls being initiated from SDK would now be `POST` instead of `GET` and there would be single endpoint i.e. `/events/t`. This is done in order to bring events support and building advancded capabilities in future.
+
+- For events architecture accounts, tracking same goal across multiple campaigns will not send multiple tracking calls. Instead one single `POST` call would be made to track the same goal across multiple different campaigns running on the same environment.
+
+- Multiple custome dimension can be pushed via `push` API. For events architecture enabled account, only one single asynchronous call would be made to track multiple custom dimensions.
+
+  ```java
+  Map<String, Object> customDimensionMap = new HashMap<String, Object>() {
+    {
+      put("browser", "chrome");
+      put("price", "20");
+    }
+  };
+  vwoInstance.push(customDimensionMap, userId);`
+  ```
+
 ## [1.24.0] - 2020-10-23
 
 ### Changed

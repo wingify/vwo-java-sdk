@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.models;
+package com.vwo.models.response;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;

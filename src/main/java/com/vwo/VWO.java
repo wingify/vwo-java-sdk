@@ -18,8 +18,8 @@ package com.vwo;
 
 import com.vwo.enums.GoalEnums;
 import com.vwo.enums.LoggerMessagesEnums;
-import com.vwo.models.BatchEventData;
-import com.vwo.models.Settings;
+import com.vwo.models.response.BatchEventData;
+import com.vwo.models.response.Settings;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.BucketingService;
 import com.vwo.services.core.VariationDecider;
@@ -389,7 +389,17 @@ public class VWO {
    * @return Boolean representing if the tag was pushed or not
    */
   public boolean push(String tagKey, String tagValue, String userId) {
-    return Segmentation.pushCustomDimension(this.getSettingFile(), tagKey, tagValue, userId, this.batchEventQueue, this.isDevelopmentMode());
+    return Segmentation.pushCustomDimension(this.getSettingFile(), tagKey, tagValue, userId, this.batchEventQueue, this.isDevelopmentMode(), new HashMap<>());
+  }
+
+  /**
+   * Pushes the tag key and value for a user to be used in post segmentation.
+   *
+   * @param userId   ID assigned to a user
+   * @return Boolean representing if the tag was pushed or not
+   */
+  public boolean push(Map<String, String> customDimensionMap,  String userId) {
+    return Segmentation.pushCustomDimension(this.getSettingFile(), " ", " ", userId, this.batchEventQueue, this.isDevelopmentMode(), customDimensionMap);
   }
 
   /**

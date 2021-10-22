@@ -60,6 +60,9 @@ public class LoggerMessagesEnums {
     TRACK_USER_IMPRESSION_CREATED("Impression event built for track-user '{{userId}}'."),
     TRACK_GOAL_IMPRESSION_CREATED("Impression event built for track-goal of user '{{userId}}'."),
     POST_SEGMENTATION_REQUEST_CREATED("Request params build for post segmentation of user '{{userId}}'."),
+    TRACK_USER_EVENT_ARCH_IMPRESSION_CREATED("Impression built for vwo_variationShown event for account ID:{{a}}, user ID:{{u}}, and campaign ID:{{c}}'."),
+    TRACK_GOAL_EVENT_ARCH_IMPRESSION_CREATED("Impression built for {{goalName}} event for accountId:{{a}}, user ID:{{u}}, and campaign ID:{{c}}'."),
+    POST_SEGMENTATION_EVENT_ARCH_IMPRESSION_CREATED("Impression built for visitor property:{{property}} for accountId:{{a}} and user ID:{{u}}'."),
     HTTP_REQUEST_EXECUTED("Dispatching request to \n URL: '{{url}}'."),
     SETTINGS_FILE_PROCESSED("Settings file processed successfully."),
     SDK_INITIALIZED("SDK properly initialized."),
@@ -112,6 +115,7 @@ public class LoggerMessagesEnums {
     // Segmentation
     SEGMENTATION_STATUS("UserId:{{userId}} of campaign:{{campaignKey}} with variables:{{customVariables}} {{status}} {{segmentationType}} {{variation}}"),
     BULK_IMPRESSION_SUCCESS("Impression event - {{endPoint}} was successfully received by VWO having accountId:{{a}}"),
+    EVENT_ARCH_IMPRESSION_SUCCESS("Impression for {{event}} - {{endPoint}} was successfully received by VWO for account ID:{{a}}"),
     CAMPAIGN_NOT_ACTIVATED("Activate the campaign:{{campaignKey}} for User ID:{{userId}} to {{reason}}."),
     IMPRESSION_SUCCESS_QUEUE("Impression event was successfully pushed in queue"),
     GOT_WINNER_CAMPAIGN("Campaign:{{campaignKey}} is selected from the mutually exclusive group:{{groupName}} for the User ID:{{userId}}."),
@@ -164,6 +168,7 @@ public class LoggerMessagesEnums {
       "'getFeatureVariableValue' API got bad parameters. It expects campaignKey(String) as first, variableKey(String) as second, userId(String) as third, and options(optional Object) as fourth argument"
     ),
     PUSH_API_INVALID_PARAMS("'push' API got bad parameters. It expects tagKey(String) as first, tagValue(String) as second and userId(String) as third argument"),
+    PUSH_API_INVALID_PARAMS_CD_MAP("'push' API got bad parameters. It expects customDimensionMap(String, String) as first, userId(String) as second argument"),
     TRACK_API_MISSING_PARAMS(
       "'track' API got bad parameters. It expects campaignKey(String or Array of Strings or null) as first, userId(String) as second, goalIdentifier(String/Number) as third and options(optional Object) as fourth argument"
     ),

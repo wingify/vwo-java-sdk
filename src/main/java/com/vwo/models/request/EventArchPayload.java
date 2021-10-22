@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package com.vwo.services.settings;
+package com.vwo.models.request;
 
-import com.vwo.models.response.Settings;
+public class EventArchPayload {
 
-public interface Parser {
-  Settings parseSettingsFile(String settingFile) throws Exception;
+  private EventArchData d;
+
+  public EventArchData getD() {
+    return d;
+  }
+
+  public void setD(EventArchData d) {
+    this.d = d;
+  }
 }
+
+

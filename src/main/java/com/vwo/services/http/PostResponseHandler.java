@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
+
 package com.vwo.services.http;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ResponseHandler;
 
 import java.io.IOException;
 
-public class HttpPostResponseHandler implements ResponseHandler<Void> {
-  private final JsonNode properties;
-  private final String endpoint;
-  public String error;
-  public PostResponseHandler responseHandler;
-
-  public HttpPostResponseHandler(PostResponseHandler responseHandler, JsonNode properties, String endpoint) {
-    this.properties = properties;
-    this.endpoint = endpoint;
-    this.responseHandler = responseHandler;
-  }
-
-  @Override
-  public Void handleResponse(HttpResponse response) throws IOException {
-    int status = response.getStatusLine().getStatusCode();
-    responseHandler.onResponse(endpoint, status, response, properties);
-    return null;
-  }
+public interface PostResponseHandler {
+  void onResponse(String endpoint, int status, HttpResponse response, JsonNode properties) throws IOException;
 }

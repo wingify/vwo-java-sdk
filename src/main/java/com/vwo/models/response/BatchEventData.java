@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.models;
+package com.vwo.models.response;
 
 import com.vwo.services.batch.FlushInterface;
 

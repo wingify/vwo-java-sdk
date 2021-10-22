@@ -16,7 +16,7 @@
 
 package com.vwo.tests.data;
 
-import com.vwo.models.Campaign;
+import com.vwo.models.response.Campaign;
 
 import java.util.ArrayList;
 import java.util.HashMap;

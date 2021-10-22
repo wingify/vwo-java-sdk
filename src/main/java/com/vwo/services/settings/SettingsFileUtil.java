@@ -17,11 +17,11 @@
 package com.vwo.services.settings;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vwo.models.Settings;
+import com.vwo.models.response.Settings;
 import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
-import com.vwo.models.Campaign;
-import com.vwo.models.Variation;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Variation;
 
 import java.util.HashMap;
 import java.util.List;

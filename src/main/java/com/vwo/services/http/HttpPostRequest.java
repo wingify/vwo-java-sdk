@@ -33,11 +33,11 @@ public class HttpPostRequest implements Runnable {
 
   private final HttpClient httpClient = new HttpClient();
   private final HttpParams httpParams;
-  private final int accountId;
+  private final PostResponseHandler responseHandler;
 
-  public HttpPostRequest(HttpParams httpParams, int accountId) {
+  public HttpPostRequest(HttpParams httpParams, PostResponseHandler responseHandler) {
     this.httpParams = httpParams;
-    this.accountId = accountId;
+    this.responseHandler = responseHandler;
   }
 
   @Override
@@ -70,9 +70,8 @@ public class HttpPostRequest implements Runnable {
     }));
 
     HttpPostResponseHandler response = new HttpPostResponseHandler(
-            httpParams.getFlushCallback(),
+            responseHandler,
             new ObjectMapper().readTree(httpParams.getBody()),
-            accountId,
             request.getURI().toString());
 
     httpClient.send(request, response);
@@ -83,13 +82,12 @@ public class HttpPostRequest implements Runnable {
    * Sends a POST network call to VWO servers in sync and async mode.
    *
    * @param httpParams      Params for the network call
-   * @param accountId       VWO application account-id
    * @param sendSyncRequest Boolean value to decide whether the call should be sync or async
    * @return Boolean indicating whether the call was successful or not.
    */
-  public static boolean send(HttpParams httpParams, int accountId, boolean sendSyncRequest) {
+  public static boolean send(HttpParams httpParams, PostResponseHandler responseHandler, boolean sendSyncRequest) {
     try {
-      HttpPostRequest httpPostRequest = new HttpPostRequest(httpParams, accountId);
+      HttpPostRequest httpPostRequest = new HttpPostRequest(httpParams, responseHandler);
       if (sendSyncRequest) {
         return httpPostRequest.postRequest(httpPostRequest.httpParams);
       } else {

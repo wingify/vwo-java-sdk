@@ -21,7 +21,7 @@ import com.vwo.VWO;
 import com.vwo.VWOAdditionalParams;
 import com.vwo.enums.GoalEnums;
 import com.vwo.logger.Logger;
-import com.vwo.models.Settings;
+import com.vwo.models.response.Settings;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import org.junit.jupiter.api.Test;
@@ -424,5 +424,16 @@ public class TrackTests {
       assertTrue(isGoalTracked7.get(campaignList[0]));
       assertTrue(isGoalTracked7.get(campaignList[1]));
     }
+  }
+
+  @Test
+  public void testRevenuePropInEventArch() {
+    vwoInstance = VWO
+      .launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100_EVENT_ARCH)
+      .build();
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    params.setRevenueValue(20);
+    Map<String, Boolean> trackResponse = vwoInstance.track(null, "Ashley", "track3", params);
+    assertEquals(trackResponse.size(), 3);
   }
 }

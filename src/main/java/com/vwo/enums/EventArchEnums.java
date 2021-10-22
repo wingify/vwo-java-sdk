@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package com.vwo.services.settings;
+package com.vwo.enums;
 
-import com.vwo.models.response.Settings;
+public enum EventArchEnums {
 
-public interface Parser {
-  Settings parseSettingsFile(String settingFile) throws Exception;
+  VWO_VARIATION_SHOWN("vwo_variationShown"),
+  VWO_SYN_VISITOR_PROP("vwo_syncVisitorProp"),
+  EVENTS("/events/t");
+
+  private final String uri;
+
+  EventArchEnums(String uri) {
+    this.uri = uri;
+  }
+
+  @Override
+  public String toString() {
+    return this.uri;
+  }
 }

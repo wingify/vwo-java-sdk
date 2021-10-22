@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
 import com.vwo.logger.Logger;
 import com.vwo.logger.VWOLogger;
-import com.vwo.models.Settings;
+import com.vwo.models.response.Settings;
 import com.vwo.tests.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

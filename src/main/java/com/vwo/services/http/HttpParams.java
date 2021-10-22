@@ -31,7 +31,6 @@ public class HttpParams {
   private Header[] headers;
   private String body;
   private final HTTPEnums.Verbs httpVerb;
-  private FlushInterface flushCallback;
 
   public HttpParams(String domain, String url, Map<String, Object> queryParams, HTTPEnums.Verbs httpVerb) {
     this.domain = domain;
@@ -70,13 +69,5 @@ public class HttpParams {
 
   public String getBody() {
     return body;
-  }
-
-  public FlushInterface getFlushCallback() {
-    return flushCallback;
-  }
-
-  public void setFlushCallback(FlushInterface flushCallback) {
-    this.flushCallback = flushCallback;
   }
 }

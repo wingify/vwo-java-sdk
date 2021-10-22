@@ -22,6 +22,7 @@ import com.vwo.tests.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,6 +45,10 @@ public class PushSegmentTests {
     LOGGER.info("Should return false if no user ID is passed");
     assertFalse(vwoInstance.push("tagKey", "tagValue", ""));
     assertFalse(vwoInstance.push("tagKey", "tagValue", null));
+
+    LOGGER.info("Should return false if custom dimension is not passed/empty");
+    assertFalse(vwoInstance.push(null, userId));
+    assertFalse(vwoInstance.push(new HashMap<>(), userId));
   }
 
   @Test

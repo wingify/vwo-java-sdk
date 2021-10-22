@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vwo.models;
+package com.vwo.models.response;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.vwo.VWO;
 import com.vwo.logger.Logger;
 
 import java.util.HashMap;

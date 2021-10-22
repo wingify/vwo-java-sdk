@@ -19,7 +19,7 @@ package com.vwo.tests.e2e;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.vwo.VWO;
 import com.vwo.logger.Logger;
-import com.vwo.models.BatchEventData;
+import com.vwo.models.response.BatchEventData;
 import com.vwo.services.batch.FlushInterface;
 import com.vwo.tests.data.Settings;
 import com.vwo.tests.utils.TestUtils;
@@ -123,7 +123,7 @@ public class EventBatchingTests {
     vwoInstance.activate("AB_TRAFFIC_100_WEIGHT_33_33_33", userId);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
     boolean isQueueFlushed = vwoInstance.flushEvents();
-    assertEquals(isQueueFlushed, false);
+    assertEquals(isQueueFlushed, true);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 0);
   }
 }

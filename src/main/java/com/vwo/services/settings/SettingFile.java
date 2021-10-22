@@ -16,8 +16,8 @@
 
 package com.vwo.services.settings;
 
-import com.vwo.models.Campaign;
-import com.vwo.models.Settings;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Settings;
 
 public interface SettingFile {
 
