@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.25.0] - 2020-10-23
+## [1.25.0] - 2021-10-23
 
 ### Added
 
@@ -48,13 +48,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   vwoInstance.push(customDimensionMap, userId);`
   ```
 
-## [1.24.0] - 2020-10-23
+## [1.24.0] - 2021-10-23
 
 ### Changed
 
 - User IDs passed while applying whitelisting in a campaign from VWO Application will now be hashed. Inside settings-file, all User IDs will be hashed for security reasons. SDK will hash the User ID passed in the different APIs before matching it with the campaigns settings. This is feature-controlled from VWO i.e. we are only rolling this functionality gradually. Please reach out to the support team in case you want to opt-in early for this feature for your VWO account.
 
-## [1.23.1] - 2020-10-21
+## [1.23.1] - 2021-10-21
 
 ### Changed
 
