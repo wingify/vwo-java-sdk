@@ -43,7 +43,7 @@ public class BucketingTests {
 
      bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "someone@mail.com") : "someone@mail.com", "someone@mail.com", 100, true);
      variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
-    assertEquals(variationHashValue, 6361);
+    assertEquals(variationHashValue, 6362);
   }
 
   @Test
