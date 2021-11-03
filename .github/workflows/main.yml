@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master, slack-notification ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, slack-notification ]
+    branches: [ master ]
 
 jobs:
   build:
