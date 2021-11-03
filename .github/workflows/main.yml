@@ -53,3 +53,4 @@ jobs:
           color: "${{job.status == 'success' && '#00FF00' || '#FF0000'}}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+
