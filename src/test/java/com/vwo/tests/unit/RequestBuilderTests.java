@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2021 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2022 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,23 @@ package com.vwo.tests.unit;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.vwo.VWO;
 import com.vwo.enums.EventArchEnums;
+import com.vwo.models.response.BatchEventData;
+import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Goal;
+import com.vwo.models.response.Variation;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpRequestBuilder;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.services.settings.SettingsFileUtil;
+import com.vwo.tests.data.Settings;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -220,4 +227,41 @@ public class RequestBuilderTests {
     assertTrue(node.get("d").get("event").get("props").get("$visitor").get("props").has("boolean") && node.get("d").get("event").get("props").get("$visitor").get("props").get("boolean").getNodeType() == JsonNodeType.STRING);
     assertTrue(node.get("d").get("event").get("props").has("customEvent") && node.get("d").get("event").get("props").get("customEvent") .getNodeType() == JsonNodeType.BOOLEAN);
   }
+
+  @Test
+  public void locationDataTests() throws Exception {
+    BatchEventData batchEventData = new BatchEventData();
+    batchEventData.setEventsPerRequest(50);
+    VWO vwoInstance = VWO.launch(Settings.LOCATION_DATA).withBatchEvents(batchEventData).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    Goal goal = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getGoals().get(0);
+    int accountId = vwoInstance.getSettingFile().getSettings().getAccountId();
+    String apiKey = vwoInstance.getSettingFile().getSettings().getSdkKey();
+    Map<String, Integer> usageStats = new HashMap<String, Integer>();
+    usageStats.put("cl", 1);
+    usageStats.put("ll", 1);
+
+    try {
+      HttpParams httpParams = HttpRequestBuilder.getUserParams(vwoInstance.getSettingFile(), campaign, "userId", variation, usageStats);
+      assertTrue(httpParams.getUrl().contains("eu"));
+
+      httpParams = HttpRequestBuilder.getGoalParams(vwoInstance.getSettingFile(), campaign, "userId", goal, variation, null);
+      assertTrue(httpParams.getUrl().contains("eu"));
+
+      httpParams = HttpRequestBuilder.getCustomDimensionParams(vwoInstance.getSettingFile(), "tagKey", "tagValue", "userId");
+      assertTrue(httpParams.getUrl().contains("eu"));
+
+      vwoInstance.activate(campaign.getKey(), "userId");
+      httpParams = HttpRequestBuilder.getBatchEventPostCallParams(String.valueOf(accountId), apiKey, vwoInstance.getBatchEventQueue().getBatchQueue(), usageStats);
+      assertTrue(httpParams.getUrl().contains("eu"));
+
+      Map<String, Object> trackUserPayload = HttpRequestBuilder.getEventArchTrackUserPayload(vwoInstance.getSettingFile(), "userId", campaign.getId(), variation.getId());
+      httpParams = HttpRequestBuilder.getEventArchQueryParams(vwoInstance.getSettingFile(), "eventName", trackUserPayload,  usageStats);
+      assertTrue(httpParams.getUrl().contains("eu"));
+    } catch (Exception e) {
+      assertFalse(false);
+    }
+  }
+
 }

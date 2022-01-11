@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2021 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2022 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.vwo.models.response.Settings;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.BucketingService;
 import com.vwo.services.core.VariationDecider;
+import com.vwo.services.datalocation.DataLocationManager;
 import com.vwo.services.integrations.HooksManager;
 import com.vwo.services.integrations.IntegrationEventListener;
 import com.vwo.services.settings.SettingFile;
@@ -148,6 +149,7 @@ public class VWO {
   private void updateSettingsFile(String settingsFileString) {
     this.settingFileString = settingsFileString;
     this.settingFile = SettingsFileUtil.initializeSettingsFile(settingsFileString);
+    DataLocationManager.getInstance().setSettings(this.settingFile.getSettings());
   }
 
   public SettingFile getSettingFile() {
@@ -602,6 +604,7 @@ public class VWO {
         }
       }
 
+      DataLocationManager.getInstance().setSettings(this.settingFile.getSettings());
       this.bucketingService = new BucketingService();
       this.variationDecider = new VariationDecider(bucketingService, userStorage, new HooksManager(this.integrations),
               settingFile.getSettings().getAccountId());

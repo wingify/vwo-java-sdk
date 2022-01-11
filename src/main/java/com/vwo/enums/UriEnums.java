@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2021 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2022 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.vwo.enums;
 public enum UriEnums {
 
   PROTOCOL("https"),
-  SDK_VERSION("1.25.0"),
+  SDK_VERSION("1.30.0"),
   SDK_NAME("java"),
   BASE_URL("dev.visualwebsiteoptimizer.com"),
   SETTINGS_URL("/server-side/settings"),

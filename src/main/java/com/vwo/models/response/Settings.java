@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2021 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2022 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.Map;
 @JsonPropertyOrder({
         "sdkKey",
         "campaigns",
+        "collectionPrefix",
         "accountId",
         "campaignGroups",
         "groups",
@@ -41,6 +42,8 @@ public class Settings {
 
   @JsonProperty("sdkKey")
   private String sdkKey;
+  @JsonProperty("collectionPrefix")
+  private String collectionPrefix;
   @JsonProperty("campaigns")
   private List<Campaign> campaigns = null;
   @JsonProperty("accountId")
@@ -132,5 +135,15 @@ public class Settings {
 
   public void setIsEventArchEnabled(Boolean areEventsEnabled) {
     this.isEventArchEnabled = areEventsEnabled;
+  }
+
+  @JsonProperty("collectionPrefix")
+  public String getCollectionPrefix() {
+    return collectionPrefix;
+  }
+
+  @JsonProperty("collectionPrefix")
+  public void setCollectionPrefix(String collectionPrefix) {
+    this.collectionPrefix = collectionPrefix;
   }
 }

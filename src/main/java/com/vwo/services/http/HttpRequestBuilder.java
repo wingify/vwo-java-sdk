@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2021 Wingify Software Pvt. Ltd.
+ * Copyright 2019-2022 Wingify Software Pvt. Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,11 @@ import com.vwo.models.response.Campaign;
 import com.vwo.models.response.Goal;
 import com.vwo.models.response.Settings;
 import com.vwo.models.response.Variation;
-import com.vwo.services.batch.FlushInterface;
+import com.vwo.services.datalocation.DataLocationManager;
 import com.vwo.services.settings.SettingFile;
-import com.vwo.utils.HttpUtils;
 import com.vwo.utils.UUIDUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.util.TextUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -117,7 +115,7 @@ public class HttpRequestBuilder {
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-    return new HttpParams(VWO_HOST, IMPRESSION_PATH, map, HTTPEnums.Verbs.GET);
+    return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(IMPRESSION_PATH), map, HTTPEnums.Verbs.GET);
   }
 
   public static Map<String, Object> getBatchEventForTrackingUser(SettingFile settingFile, Campaign campaign, String userId, Variation variation) {
@@ -167,7 +165,7 @@ public class HttpRequestBuilder {
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-    return new HttpParams(VWO_HOST, GOAL_PATH, map, HTTPEnums.Verbs.GET);
+    return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(GOAL_PATH), map, HTTPEnums.Verbs.GET);
   }
 
   public static Map<String, Object> getBatchEventForTrackingGoal(SettingFile settingFile, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
@@ -217,7 +215,7 @@ public class HttpRequestBuilder {
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-    return new HttpParams(VWO_HOST, PUSH, map, HTTPEnums.Verbs.GET);
+    return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(PUSH), map, HTTPEnums.Verbs.GET);
   }
 
   public static Map<String, Object> getBatchEventForCustomDimension(SettingFile settingFile, String tagKey, String tagValue, String userId) {
@@ -254,7 +252,7 @@ public class HttpRequestBuilder {
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
-    HttpParams httpParams = new HttpParams(VWO_HOST, BATCH_EVENTS, map, HTTPEnums.Verbs.POST);
+    HttpParams httpParams = new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(BATCH_EVENTS), map, HTTPEnums.Verbs.POST);
     final Header[] headers = new Header[1];
 
     headers[0] = new BasicHeader("Authorization", apiKey);
@@ -288,7 +286,7 @@ public class HttpRequestBuilder {
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
 
-    HttpParams httpParams = new HttpParams(VWO_HOST, EVENTS, map, HTTPEnums.Verbs.POST);
+    HttpParams httpParams = new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(EVENTS), map, HTTPEnums.Verbs.POST);
     final Header[] headers = new Header[1];
     headers[0] = new BasicHeader("User-Agent", "java");
     httpParams.setHeaders(headers);

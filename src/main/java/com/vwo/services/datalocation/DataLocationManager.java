@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package com.vwo.services.settings;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+package com.vwo.services.datalocation;
+
 import com.vwo.models.response.Settings;
 
-import java.io.IOException;
+public class DataLocationManager {
+  private static DataLocationManager instance = null;
+  private static Settings settings;
 
-public class SettingsParser implements Parser {
-  private ObjectMapper objectMapper;
+  public static DataLocationManager getInstance() {
+    if (instance == null) {
+      instance = new DataLocationManager();
+    }
 
-  public SettingsParser(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+    return instance;
   }
 
-  public Settings parseSettingsFile(String settingsFile) throws Exception {
-    try {
-      Settings settings = objectMapper.readValue(settingsFile, Settings.class);
-      return settings;
-    } catch (IOException e) {
-      throw new Exception("Unable to parse Setting file: " + settingsFile, e);
-    }
+  public void setSettings(Settings settings) {
+    DataLocationManager.settings = settings;
+  }
+
+  public String getDataLocation(String path) {
+    return DataLocationManager.settings.getCollectionPrefix() != null ? "/" + DataLocationManager.settings.getCollectionPrefix() + path : path;
   }
 }
