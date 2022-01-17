@@ -59,6 +59,7 @@ public class Logger {
 
   public void trace(String var1) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.TRACE.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.trace(var1);
       } else {
@@ -69,6 +70,7 @@ public class Logger {
 
   public void trace(String var1, boolean disableLogs) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.TRACE.value()) && disableLogs) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.trace(var1);
       } else {
@@ -79,6 +81,7 @@ public class Logger {
 
   public void trace(String var1, Object... var2) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.TRACE.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.trace(var1, var2);
       } else {
@@ -89,6 +92,7 @@ public class Logger {
 
   public void debug(String var1) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.DEBUG.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.debug(var1);
       } else {
@@ -99,6 +103,7 @@ public class Logger {
 
   public void debug(String var1, boolean disableLogs) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.DEBUG.value()) && !disableLogs) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.debug(var1);
       } else {
@@ -110,6 +115,7 @@ public class Logger {
 
   public void debug(String var1, Object... var2) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.DEBUG.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.debug(var1, var2);
       } else {
@@ -120,6 +126,7 @@ public class Logger {
 
   public void info(String var1) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.INFO.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.info(var1);
       } else {
@@ -130,6 +137,7 @@ public class Logger {
 
   public void info(String var1, boolean disableLogs) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.INFO.value()) && !disableLogs) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.info(var1);
       } else {
@@ -140,6 +148,7 @@ public class Logger {
 
   public void info(String var1, Object... var2) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.INFO.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.info(var1, var2);
       } else {
@@ -150,6 +159,7 @@ public class Logger {
 
   public void warn(String var1) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.WARN.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.warn(var1);
       } else {
@@ -160,6 +170,7 @@ public class Logger {
 
   public void warn(String var1, boolean disableLogs) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.WARN.value()) && !disableLogs) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.warn(var1);
       } else {
@@ -170,6 +181,7 @@ public class Logger {
 
   public void warn(String var1, Object... var2) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.WARN.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.warn(var1, var2);
       } else {
@@ -180,6 +192,7 @@ public class Logger {
 
   public void error(String var1) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.ERROR.value())) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.error(var1);
       } else {
@@ -190,6 +203,7 @@ public class Logger {
 
   public void error(String var1, boolean disableLogs) {
     if (shouldAllowLogLevel(VWO.Enums.LOGGER_LEVEL.ERROR.value()) && !disableLogs) {
+      var1 = refactorMsg(var1);
       if (Logger.customLogger != null) {
         Logger.customLogger.error(var1);
       } else {
@@ -205,6 +219,15 @@ public class Logger {
       } else {
         this.logger.error(var1, var2);
       }
+    }
+  }
+
+  private String refactorMsg(String msg) {
+    try {
+      return msg = msg.replaceAll("\\(\\{" + "file" + "\\}\\): ", "");
+    } catch (Exception e) {
+      error("Exception occurred while logging the value: " + msg);
+      return null;
     }
   }
 }

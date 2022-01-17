@@ -17,12 +17,16 @@
 package com.vwo.services.settings;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.Settings;
 
 import java.io.IOException;
 
 public class SettingsParser implements Parser {
   private ObjectMapper objectMapper;
+  private static final Logger LOGGER = Logger.getLogger(SettingsParser.class);
+
 
   public SettingsParser(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
@@ -33,6 +37,7 @@ public class SettingsParser implements Parser {
       Settings settings = objectMapper.readValue(settingsFile, Settings.class);
       return settings;
     } catch (IOException e) {
+      LOGGER.error(LoggerService.getInstance().errorMessages.get("SETTINGS_FILE_CORRUPTED"));
       throw new Exception("Unable to parse Setting file: " + settingsFile, e);
     }
   }

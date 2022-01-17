@@ -16,8 +16,8 @@
 
 package com.vwo.services.http;
 
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
@@ -28,13 +28,23 @@ import java.util.HashMap;
 public class HttpGetResponseHandler implements ResponseHandler<Void> {
   private static final Logger LOGGER = Logger.getLogger(HttpGetResponseHandler.class);
 
+  private int accountId;
+  private String endPoint;
+
+  public HttpGetResponseHandler(int accountId, String endpoint) {
+    this.accountId = accountId;
+    this.endPoint = endpoint;
+  }
+
   @Override
   public Void handleResponse(HttpResponse response) throws IOException {
     int status = response.getStatusLine().getStatusCode();
     if (status >= 200 && status < 300) {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_RESPONSE.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("IMPRESSION_SUCCESS"), new HashMap<String, String>() {
         {
-          put("response", response.getStatusLine().toString());
+          put("accountId", String.valueOf(accountId));
+          put("endPoint", endPoint);
+          put("mainKeys", "");
         }
       }));
       return null;

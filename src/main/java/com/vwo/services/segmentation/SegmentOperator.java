@@ -16,13 +16,11 @@
 
 package com.vwo.services.segmentation;
 
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
 import com.vwo.services.segmentation.enums.OperatorEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class SegmentOperator {
   private static final Logger LOGGER = Logger.getLogger(SegmentOperator.class);
@@ -59,13 +57,13 @@ public class SegmentOperator {
       return !operand;
     }
 
-    LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_OPERATOR_EVALUATION.value(new HashMap<String, String>() {
-      {
-        put("expectedOperator", OperatorEnum.NOT.value());
-        put("operator", operator);
-        put("operands", String.valueOf(operand));
-      }
-    }));
+    //    LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_OPERATOR_EVALUATION.value(new HashMap<String, String>() {
+    //      {
+    //        put("expectedOperator", OperatorEnum.NOT.value());
+    //        put("operator", operator);
+    //        put("operands", String.valueOf(operand));
+    //      }
+    //    }));
     return false;
   }
 

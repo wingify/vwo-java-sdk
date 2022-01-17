@@ -16,12 +16,9 @@
 
 package com.vwo.utils;
 
-import com.vwo.enums.LoggerMessagesEnums;
-
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 

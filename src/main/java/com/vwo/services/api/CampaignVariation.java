@@ -17,7 +17,7 @@
 package com.vwo.services.api;
 
 import com.vwo.enums.APIEnums;
-import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.Settings;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
@@ -65,7 +65,7 @@ public class CampaignVariation {
         return null;
       }
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_GET_VARIATION.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("INITIATING_GET_VARIATION"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);
@@ -75,14 +75,15 @@ public class CampaignVariation {
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+        LOGGER.warn(LoggerService.getComputedMsg(LoggerService.getInstance().warningMessages.get("CAMPAIGN_NOT_RUNNING"), new HashMap<String, String>() {
           {
             put("campaignKey", campaignKey);
+            put("api", APIEnums.API_TYPES.GET_VARIATION_NAME.value());
           }
         }));
         return null;
       } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_NOT_APPLICABLE"), new HashMap<String, String>() {
           {
             put("api", "getVariation");
             put("userId", userId);
@@ -96,7 +97,7 @@ public class CampaignVariation {
       return CampaignVariation.getCampaignVariationName(settingFile.getSettings(), APIEnums.API_TYPES.GET_VARIATION_NAME.value(), campaign, userId,
               variationDecider, CustomVariables, variationTargetingVariables);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
   }

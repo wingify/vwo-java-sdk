@@ -16,8 +16,8 @@
 
 package com.vwo.services.http;
 
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.utils.HttpUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -32,9 +32,11 @@ public class HttpGetRequest implements Runnable {
 
   private final HttpClient httpClient = new HttpClient();
   private final HttpParams httpParams;
+  private final int accountId;
 
-  public HttpGetRequest(HttpParams httpParams) {
+  public HttpGetRequest(HttpParams httpParams, int accountId) {
     this.httpParams = httpParams;
+    this.accountId = accountId;
   }
 
   @Override
@@ -42,7 +44,12 @@ public class HttpGetRequest implements Runnable {
     try {
       getRequest(httpParams);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.HTTP_REQUEST_EXCEPTION.value(), e);
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("IMPRESSION_FAILED"), new HashMap<String, String>() {
+        {
+          put("endPoint", httpParams.getUrl());
+          put("err", e.getLocalizedMessage());
+        }
+      }));
     }
   }
 
@@ -50,22 +57,34 @@ public class HttpGetRequest implements Runnable {
     URI httpUri = HttpUtils.getRequestUri(httpParams);
     HttpRequestBase request = new HttpGet(httpUri);
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
+    //    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
+    //      {
+    //        put("url", HttpUtils.getModifiedLogRequest(request.getURI().toString()));
+    //      }
+    //    }));
+
+    LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("EVENT_QUEUE"), new HashMap<String, String>() {
       {
-        put("url", HttpUtils.getModifiedLogRequest(request.getURI().toString()));
+        put("event", HttpUtils.getModifiedLogRequest(request.getURI().toString()));
+        put("queueType", "normal");
       }
     }));
 
-    httpClient.send(request, new HttpGetResponseHandler());
+    httpClient.send(request, new HttpGetResponseHandler(accountId, HttpUtils.getModifiedLogRequest(request.getURI().toString())));
   }
 
-  public static HttpGetRequest send(HttpParams httpParams) {
+  public static HttpGetRequest send(HttpParams httpParams, int accountId) {
     try {
-      HttpGetRequest httpGetRequest = new HttpGetRequest(httpParams);
+      HttpGetRequest httpGetRequest = new HttpGetRequest(httpParams, accountId);
       new Thread(httpGetRequest).start();
       return httpGetRequest;
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value(), e);
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("IMPRESSION_FAILED"), new HashMap<String, String>() {
+        {
+          put("endPoint", httpParams.getUrl());
+          put("err", e.getLocalizedMessage());
+        }
+      }));
       return null;
     }
   }

@@ -18,8 +18,7 @@ package com.vwo.services.settings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vwo.enums.LoggerMessagesEnums;
-import com.vwo.enums.UriEnums;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.http.HttpClient;
 import com.vwo.logger.Logger;
 import com.vwo.services.http.HttpParams;
@@ -37,7 +36,6 @@ import java.util.stream.Collectors;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
 
 /**
  * File Setting Utility Class to provide the settingsFile which helps in instantiating the VWO CLIENT INSTANCE.
@@ -56,15 +54,15 @@ public class SettingsFileManager {
    */
   public static String getSettingsFile(String accountID, String sdkKey, boolean isViaWebhook) {
     if (accountID == null || accountID.isEmpty() || sdkKey == null || sdkKey.isEmpty()) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS.toString());
+      LOGGER.error(LoggerService.getInstance().errorMessages.get("MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS"));
       return null;
     }
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.FETCHING_ACCOUNT_SETTINGS.value(new HashMap<String, String>() {
-      {
-        put("accountID", accountID);
-      }
-    }));
+    //    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.FETCHING_ACCOUNT_SETTINGS.value(new HashMap<String, String>() {
+    //      {
+    //        put("accountID", accountID);
+    //      }
+    //    }));
 
     HttpParams httpParams = HttpRequestBuilder.getSettingParams(accountID, sdkKey, isViaWebhook);
     HttpClient httpClient = new HttpClient();
@@ -86,12 +84,13 @@ public class SettingsFileManager {
             int statusCode = closeableHttpResponse.getStatusLine().getStatusCode();
             if (statusCode != 200) {
               String stringifiedJsonNode = String.valueOf(jsonNode);
-              LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.ACCOUNT_SETTINGS_NOT_FOUND.value(new HashMap<String, String>() {
-                {
-                  put("statusCode", String.valueOf(statusCode));
-                  put("message", stringifiedJsonNode);
-                }
-              }));
+              LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("ACCOUNT_SETTINGS_NOT_FOUND"),
+                  new HashMap<String, String>() {
+                  {
+                    put("statusCode", String.valueOf(statusCode));
+                    put("message", stringifiedJsonNode);
+                  }
+                }));
             }
           }
         }

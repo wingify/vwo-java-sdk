@@ -23,9 +23,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.enums.EventArchEnums;
 import com.vwo.enums.HTTPEnums;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.request.EventArchData;
 import com.vwo.models.request.EventArchPayload;
 import com.vwo.models.request.Props;
@@ -79,7 +79,7 @@ public class HttpRequestBuilder {
                     .withPlatform()
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GET_SETTINGS_IMPRESSION_CREATED.value());
+    // LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GET_SETTINGS_IMPRESSION_CREATED.value());
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -107,13 +107,18 @@ public class HttpRequestBuilder {
             .withEnvironment(settings.getSdkKey())
             .build();
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+    Map<String, Object> map = requestParams.convertToMap();
+
+    Map<String, Object> loggingMap = map;
+    loggingMap.remove("env");
+
+
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_TRACK_USER"), new HashMap<String, String>() {
       {
-        put("userId", userId);
+        put("properties", requestParams.removeNullValues(loggingMap).toString());
       }
     }));
 
-    Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(IMPRESSION_PATH), map, HTTPEnums.Verbs.GET);
   }
@@ -130,13 +135,16 @@ public class HttpRequestBuilder {
                     .withUuid(settings.getAccountId(), userId)
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_USER_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+    Map<String, Object> map = requestParams.convertToMap();
+    map = requestParams.removeNullValues(map);
+    Map<String, Object> finalMap = map;
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_TRACK_USER"), new HashMap<String, String>() {
       {
-        put("userId", userId);
+        put("properties", finalMap.toString());
       }
     }));
-    Map<String, Object> map = requestParams.convertToMap();
-    return requestParams.removeNullValues(map);
+
+    return map;
   }
 
   public static HttpParams getGoalParams(SettingFile settingFile, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
@@ -157,13 +165,16 @@ public class HttpRequestBuilder {
                     .withEnvironment(settings.getSdkKey())
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+    Map<String, Object> map = requestParams.convertToMap();
+    Map<String, Object> loggingMap = map;
+    loggingMap.remove("env");
+
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_TRACK_GOAL"), new HashMap<String, String>() {
       {
-        put("userId", userId);
+        put("properties", requestParams.removeNullValues(loggingMap).toString());
       }
     }));
 
-    Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(GOAL_PATH), map, HTTPEnums.Verbs.GET);
   }
@@ -182,14 +193,17 @@ public class HttpRequestBuilder {
                     .withUuid(settings.getAccountId(), userId)
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_GOAL_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+    Map<String, Object> map = requestParams.convertToMap();
+    map = requestParams.removeNullValues(map);
+
+    Map<String, Object> finalMap = map;
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_TRACK_GOAL"), new HashMap<String, String>() {
       {
-        put("userId", userId);
+        put("properties", finalMap.toString());
       }
     }));
 
-    Map<String, Object> map = requestParams.convertToMap();
-    return requestParams.removeNullValues(map);
+    return map;
   }
 
   public static HttpParams getCustomDimensionParams(SettingFile settingFile, String tagKey, String tagValue, String userId) {
@@ -206,14 +220,16 @@ public class HttpRequestBuilder {
                     .withsdkVersion()
                     .withEnvironment(settings.getSdkKey())
                     .build();
+    Map<String, Object> map = requestParams.convertToMap();
+    Map<String, Object> loggingMap = map;
+    loggingMap.remove("env");
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.POST_SEGMENTATION_REQUEST_CREATED.value(new HashMap<String, String>() {
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_PUSH"), new HashMap<String, String>() {
       {
-        put("userId", userId);
+        put("properties", requestParams.removeNullValues(loggingMap).toString());
       }
     }));
 
-    Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(PUSH), map, HTTPEnums.Verbs.GET);
   }
@@ -229,14 +245,16 @@ public class HttpRequestBuilder {
                     .withUuid(settings.getAccountId(), userId)
                     .build();
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.POST_SEGMENTATION_REQUEST_CREATED.value(new HashMap<String, String>() {
+    Map<String, Object> map = requestParams.convertToMap();
+    map = requestParams.removeNullValues(map);
+    Map<String, Object> finalMap = map;
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_PUSH"), new HashMap<String, String>() {
       {
-        put("userId", userId);
+        put("properties", finalMap.toString());
       }
     }));
 
-    Map<String, Object> map = requestParams.convertToMap();
-    return requestParams.removeNullValues(map);
+    return map;
   }
 
   public static HttpParams getBatchEventPostCallParams(String accountId, String apiKey, Queue<Map<String, Object>> properties, Map<String, Integer> usageStats) throws JsonProcessingException {
@@ -299,15 +317,6 @@ public class HttpRequestBuilder {
 
   public static EventArchPayload getBaseEventArchPayload(SettingFile settingFile, String userId, String eventName) {
     Settings settings = settingFile.getSettings();
-    String uuid = UUIDUtils.getUUId(settings.getAccountId(), userId);
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.UUID_GENERATED.value(new HashMap<String, String>() {
-      {
-        put("userId", userId);
-        put("accountId", String.valueOf(settings.getAccountId()));
-        put("uuid", uuid);
-      }
-    }));
-
     //create props map
     Props props =
         new Props()
@@ -327,6 +336,7 @@ public class HttpRequestBuilder {
 
     //create the d map
     EventArchData eventArchData = new EventArchData();
+    String uuid = UUIDUtils.getUUId(settings.getAccountId(), userId);
     eventArchData.setMsgId(uuid + "-" + Instant.now().getEpochSecond());
     eventArchData.setVisId(uuid);
     eventArchData.setSessionId(Instant.now().getEpochSecond());
@@ -346,11 +356,11 @@ public class HttpRequestBuilder {
     EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, EventArchEnums.VWO_VARIATION_SHOWN.toString());
     eventArchPayload.getD().getEvent().getProps().setVariation(variationId).setIsFirst(1).setId(campaignId);
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_USER_EVENT_ARCH_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_EVENT_ARCH_TRACK_USER"), new HashMap<String, String>() {
       {
-        put("u", userId);
-        put("a", String.valueOf(settingFile.getSettings().getAccountId()));
-        put("c", String.valueOf(campaignId));
+        put("userId", userId);
+        put("accountId", String.valueOf(settingFile.getSettings().getAccountId()));
+        put("campaignId", String.valueOf(campaignId));
       }
     }));
 
@@ -383,11 +393,11 @@ public class HttpRequestBuilder {
     eventArchPayload.getD().getEvent().getProps().setVwoMeta(new VWOMeta().setMetric(metric));
     eventArchPayload.getD().getEvent().getProps().setCustomEvent(true);
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.TRACK_GOAL_EVENT_ARCH_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_EVENT_ARCH_TRACK_GOAL"), new HashMap<String, String>() {
       {
-        put("u", userId);
-        put("a", String.valueOf(settingFile.getSettings().getAccountId()));
-        put("c", String.join(", ", campaignList));
+        put("userId", userId);
+        put("accountId", String.valueOf(settingFile.getSettings().getAccountId()));
+        put("campaignId", String.join(", ", campaignList));
         put("goalName", goalIdentifier);
       }
     }));
@@ -419,10 +429,10 @@ public class HttpRequestBuilder {
 
     eventArchPayload.getD().getEvent().getProps().setCustomEvent(true);
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.POST_SEGMENTATION_EVENT_ARCH_IMPRESSION_CREATED.value(new HashMap<String, String>() {
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_EVENT_ARCH_PUSH"), new HashMap<String, String>() {
       {
-        put("u", userId);
-        put("a", String.valueOf(settingFile.getSettings().getAccountId()));
+        put("userId", userId);
+        put("accountId", String.valueOf(settingFile.getSettings().getAccountId()));
         put("property", String.valueOf(customDimensionMap));
       }
     }));
@@ -590,13 +600,6 @@ public class HttpRequestBuilder {
 
       public Builder withUuid(Integer account_id, String uId) {
         this.u = UUIDUtils.getUUId(account_id, uId);
-        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.UUID_GENERATED.value(new HashMap<String, String>() {
-          {
-            put("userId", uId);
-            put("accountId", String.valueOf(account_id));
-            put("uuid", u);
-          }
-        }));
         return this;
       }
 
@@ -645,7 +648,7 @@ public class HttpRequestBuilder {
         try {
           this.t = URLEncoder.encode("{\"u\":{\"" + tagKey + "\":\"" + tagValue + "\"}}", StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
+          // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
           e.printStackTrace();
         }
         return this;

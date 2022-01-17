@@ -17,8 +17,8 @@
 package com.vwo.services.settings;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.Settings;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
 import com.vwo.models.response.Campaign;
 import com.vwo.models.response.Variation;
@@ -37,18 +37,22 @@ public class SettingsFileUtil implements SettingFile {
       try {
         SettingFile settingFile = SettingsFileUtil.Builder.getInstance(settingFileString).build();
         settingFile.processSettingsFile();
-        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SETTINGS_FILE_PROCESSED.value());
+        LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("SETTINGS_FILE_PROCESSED"), new HashMap<String, String>() {
+          {
+            put("accountId", String.valueOf(settingFile.getSettings().getAccountId()));
+          }
+        }));
 
         return settingFile;
       } catch (Exception e) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+        LOGGER.error(LoggerService.getInstance().errorMessages.get("SETTINGS_FILE_INVALID"));
       }
     }
 
     return null;
   }
 
-  public static void setVariationRange(List<Variation> variations) {
+  public static void setVariationRange(Campaign campaign, List<Variation> variations) {
     double allocatedRange = 0;
 
     for (Variation variation : variations) {
@@ -62,12 +66,13 @@ public class SettingsFileUtil implements SettingFile {
         variation.setEndRangeVariation(-1);
       }
 
-      LOGGER.info(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_RANGE_ALLOCATED.value(new HashMap<String, String>() {
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("VARIATION_RANGE_ALLOCATION"), new HashMap<String, String>() {
         {
-          put("variation", variation.getName());
-          put("weight", String.valueOf(variation.getWeight()));
-          put("startRange", String.valueOf(variation.getStartRangeVariation()));
-          put("endRange", String.valueOf(variation.getEndRangeVariation()));
+          put("variationName", variation.getName());
+          put("campaignKey", campaign.getKey());
+          put("variationWeight", String.valueOf(variation.getWeight()));
+          put("start", String.valueOf(variation.getStartRangeVariation()));
+          put("end", String.valueOf(variation.getEndRangeVariation()));
         }
       }));
     }
@@ -89,7 +94,7 @@ public class SettingsFileUtil implements SettingFile {
   public Settings processSettingsFile() {
     List<Campaign> campaigns = settings.getCampaigns();
     for (Campaign campaign : campaigns) {
-      setVariationRange(campaign.getVariations());
+      setVariationRange(campaign, campaign.getVariations());
     }
     return this.settings;
   }
@@ -97,11 +102,11 @@ public class SettingsFileUtil implements SettingFile {
   public Campaign getCampaign(String campaignKey) {
     for (Campaign campaign : settings.getCampaigns()) {
       if (campaign.getKey().equalsIgnoreCase(campaignKey)) {
-        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.CAMPAIGN_KEY_FOUND.value(new HashMap<String, String>() {
-          {
-            put("campaignKey", campaignKey);
-          }
-        }));
+        //        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.CAMPAIGN_KEY_FOUND.value(new HashMap<String, String>() {
+        //          {
+        //            put("campaignKey", campaignKey);
+        //          }
+        //        }));
         return campaign;
       }
     }

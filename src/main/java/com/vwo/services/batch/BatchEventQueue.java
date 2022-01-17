@@ -18,8 +18,8 @@ package com.vwo.services.batch;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.vwo.enums.EventEnum;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.BatchEventData;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpPostRequest;
@@ -65,24 +65,24 @@ public class BatchEventQueue implements PostResponseHandler {
     if (batchEvents.getRequestTimeInterval() > 1) {
       this.requestTimeInterval = batchEvents.getRequestTimeInterval();
     } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.REQUEST_TIME_INTERVAL_OUT_OF_BOUNDS.value(new HashMap<String, String>() {
-        {
-          put("min_value", "1");
-          put("default_value", String.valueOf(requestTimeInterval));
-        }
-      }));
+        //      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.REQUEST_TIME_INTERVAL_OUT_OF_BOUNDS.value(new HashMap<String, String>() {
+        //        {
+        //          put("min_value", "1");
+        //          put("default_value", String.valueOf(requestTimeInterval));
+        //        }
+        //      }));
     }
 
     if (batchEvents.getEventsPerRequest() > 0 && batchEvents.getEventsPerRequest() <= MAX_EVENTS_PER_REQUEST) {
       this.eventsPerRequest = Math.min(batchEvents.getEventsPerRequest(), MAX_EVENTS_PER_REQUEST);
     } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.EVENTS_PER_REQUEST_OUT_OF_BOUNDS.value(new HashMap<String, String>() {
-        {
-          put("min_value", "0");
-          put("max_value", String.valueOf(MAX_EVENTS_PER_REQUEST));
-          put("default_value", String.valueOf(eventsPerRequest));
-        }
-      }));
+        //      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.EVENTS_PER_REQUEST_OUT_OF_BOUNDS.value(new HashMap<String, String>() {
+        //        {
+        //          put("min_value", "0");
+        //          put("max_value", String.valueOf(MAX_EVENTS_PER_REQUEST));
+        //          put("default_value", String.valueOf(eventsPerRequest));
+        //        }
+        //      }));
     }
 
     if (batchEvents.getFlushCallback() != null) {
@@ -121,7 +121,13 @@ public class BatchEventQueue implements PostResponseHandler {
 
     batchQueue.add(event);
     addEventCount((Integer) event.get("eT"));
-    LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.IMPRESSION_SUCCESS_QUEUE.value());
+    LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("EVENT_QUEUE"), new HashMap<String, String>() {
+      {
+        put("event", event.toString());
+        put("queueType", "batch");
+      }
+    }));
+
     if (timer == null) {
       createNewBatchTimer();
     }
@@ -138,17 +144,17 @@ public class BatchEventQueue implements PostResponseHandler {
    */
   public boolean flush(boolean manual) {
     if (batchQueue.size() == 0) {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.EVENT_QUEUE_EMPTY.value());
+      // LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.EVENT_QUEUE_EMPTY.value());
     }
     if (batchQueue.size() > 0 && !isBatchProcessing) {
       isBatchProcessing = true;
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.BEFORE_FLUSHING.value(new HashMap<String, String>() {
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("EVENT_BATCH_BEFORE_FLUSHING"), new HashMap<String, String>() {
         {
           put("manually", manual ? "manually" : "");
           put("length", String.valueOf(batchQueue.size()));
           put("accountId", String.valueOf(accountId));
           put("timer", manual ? "Timer will be cleared and registered again" : "");
-          put("queue_metadata", String.valueOf(queueMetaData));
+          //put("queue_metadata", String.valueOf(queueMetaData));
         }
       }));
       boolean response = sendPostCall(manual);
@@ -188,17 +194,15 @@ public class BatchEventQueue implements PostResponseHandler {
   private boolean sendPostCall(boolean sendSyncRequest) {
     try {
       HttpParams httpParams = HttpRequestBuilder.getBatchEventPostCallParams(String.valueOf(accountId), apikey, batchQueue, this.usageStats);
-      LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.AFTER_FLUSHING.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("EVENT_BATCH_After_FLUSHING"), new HashMap<String, String>() {
         {
           put("manually", sendSyncRequest ? "manually" : "");
           put("length", String.valueOf(batchQueue.size()));
-          put("queue_metadata", String.valueOf(queueMetaData));
-
         }
       }));
       return HttpPostRequest.send(httpParams, this, sendSyncRequest);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
       return false;
     }
   }
@@ -247,9 +251,9 @@ public class BatchEventQueue implements PostResponseHandler {
   @Override
   public void onResponse(String endpoint, int status, HttpResponse response, JsonNode events) throws IOException {
     if (status >= 200 && status < 300) {
-      LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.BULK_IMPRESSION_SUCCESS.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("IMPRESSION_BATCH_SUCCESS"), new HashMap<String, String>() {
         {
-          put("a", String.valueOf(accountId));
+          put("accountId", String.valueOf(accountId));
           put("endPoint", HttpUtils.getModifiedLogRequest(endpoint));
         }
       }));
@@ -258,14 +262,14 @@ public class BatchEventQueue implements PostResponseHandler {
       }
     } else if (status == 413) {
       String error = EntityUtils.toString(response.getEntity());
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.BATCH_EVENT_LIMIT_EXCEEDED.value(new HashMap<String, String>() {
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("CONFIG_BATCH_EVENT_LIMIT_EXCEEDED"), new HashMap<String, String>() {
         {
           put("accountId", String.valueOf(accountId));
           put("endPoint", endpoint);
           put("eventsPerRequest", String.valueOf(events.get("ev").size()));
         }
       }));
-      LOGGER.debug(LoggerMessagesEnums.ERROR_MESSAGES.IMPRESSION_FAILED.value(new HashMap<String, String>() {
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("IMPRESSION_FAILED"), new HashMap<String, String>() {
         {
           put("endPoint", endpoint);
           put("err", error);
@@ -276,8 +280,8 @@ public class BatchEventQueue implements PostResponseHandler {
       }
     } else {
       String error = EntityUtils.toString(response.getEntity());
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.BULK_NOT_PROCESSED.value());
-      LOGGER.debug(LoggerMessagesEnums.ERROR_MESSAGES.IMPRESSION_FAILED.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getInstance().infoMessages.get("IMPRESSION_BATCH_FAILED"));
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("IMPRESSION_FAILED"), new HashMap<String, String>() {
         {
           put("endPoint", endpoint);
           put("err", error);

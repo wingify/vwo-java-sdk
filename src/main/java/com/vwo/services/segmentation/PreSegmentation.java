@@ -18,9 +18,8 @@ package com.vwo.services.segmentation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
-import com.vwo.services.core.VariationDecider;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.segmentation.enums.OperatorEnum;
 
 import java.util.HashMap;
@@ -47,7 +46,7 @@ public class PreSegmentation {
       JsonNode dslNodes = dsl instanceof String ? mapper.readValue(dsl.toString(), JsonNode.class) : mapper.valueToTree(dsl);
       return traverseDslNodesPostOrder(dslNodes, customVariables);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SEGMENTATION_ERROR.value(new HashMap<String, String>() {
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("SEGMENTATION_ERROR"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);

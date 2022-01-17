@@ -17,7 +17,7 @@
 package com.vwo;
 
 import com.vwo.enums.GoalEnums;
-import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.BatchEventData;
 import com.vwo.models.response.Settings;
 import com.vwo.services.batch.BatchEventQueue;
@@ -129,15 +129,27 @@ public class VWO {
       String settingsFileString = this.getSettingsFile(accountId, this.sdkKey);
 
       if (!settingsFileString.equals(this.settingFileString)) {
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.VWO_SDK_INSTANCE_UPDATED.value(loggingParams));
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("POLLING_SETTINGS_FILE_UPDATED"), new HashMap<String, String>() {
+          {
+            put("accountId", String.valueOf(accountId));
+          }
+        }));
         updateSettingsFile(settingsFileString);
       } else {
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SETTINGS_NOT_UPDATED.value());
+        LOGGER.info(LoggerService.getInstance().infoMessages.get("POLLING_SETTINGS_FILE_NOT_UPDATED"));
       }
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.POLLED_SETTINGS_FILE.value(loggingParams));
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("POLLING_SUCCESS"), new HashMap<String, String>() {
+        {
+          put("accountId", String.valueOf(accountId));
+        }
+      }));
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SETTINGS_FILE_POLLING_ERROR.value(loggingParams));
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("POLLING_FAILED"), new HashMap<String, String>() {
+        {
+          put("accountId", String.valueOf(accountId));
+        }
+      }));
     }
   }
 
@@ -412,9 +424,16 @@ public class VWO {
   public boolean flushEvents() {
     int accountId = this.settingFile.getSettings().getAccountId();
     if (this.batchEventQueue != null) {
+
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("EVENT_BATCH_FLUSH"), new HashMap<String, String>() {
+        {
+          put("accountId", String.valueOf(accountId));
+          put("queueLength", String.valueOf(batchEventQueue.getBatchQueue().size()));
+        }
+      }));
       return this.batchEventQueue.flushAndClearInterval();
     } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_BATCH_QUEUE.value(new HashMap<String, String>() {
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("BATCH_QUEUE_EMPTY"), new HashMap<String, String>() {
         {
           put("accountId", String.valueOf(accountId));
         }
@@ -457,7 +476,7 @@ public class VWO {
     try {
       return new Builder().withSettingFile(settingFile);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e.getStackTrace());
+      //LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e.getStackTrace());
     }
     return null;
   }
@@ -499,6 +518,7 @@ public class VWO {
     public Builder withPollingInterval(Integer pollingInterval) {
       this.pollingInterval = pollingInterval;
       usageStats.put("pi", 1);
+      logInfo("pollingInterval", "number(in milliseconds)");
       return this;
     }
 
@@ -522,6 +542,7 @@ public class VWO {
     public Builder withUserStorage(Storage.User userStorage) {
       this.userStorage = userStorage;
       usageStats.put("ss", 1);
+      logInfo("userStorageService", "object");
       return this;
     }
 
@@ -533,6 +554,7 @@ public class VWO {
      */
     public Builder withDevelopmentMode(boolean developmentMode) {
       this.developmentMode = developmentMode;
+      logInfo("developmentMode", "boolean");
       return this;
     }
 
@@ -545,7 +567,13 @@ public class VWO {
     public Builder withCustomLogger(VWOLogger customLogger) {
       this.customLogger = customLogger;
       usageStats.put("cl", 1);
+      LOGGER.debug(LoggerService.getInstance().debugMessages.get("CONFIG_CUSTOM_LOGGER_USED"));
       if (!VWOLogger.level.equals(VWOEnums.LOGGER_LEVEL.ERROR.value())) {
+        LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("CONFIG_LOG_LEVEL_SET"), new HashMap<String, String>() {
+          {
+            put("level", VWOLogger.level);
+          }
+        }));
         usageStats.put("ll", 1);
       }
 
@@ -561,18 +589,21 @@ public class VWO {
     public Builder withGoalTypeToTrack(GoalEnums.GOAL_TYPES value) {
       this.goalTypeToTrack = value;
       usageStats.put("gt", 1);
+      logInfo("goalTypeToTrack", "GoalEnum(ALL, REVENUE, CUSTOM)");
       return this;
     }
 
     public Builder withBatchEvents(BatchEventData batchEvents) {
       this.batchEvents = batchEvents;
       usageStats.put("eb", 1);
+      logInfo("batchEvents", "Object(BatchEventData)");
       return this;
     }
 
     public Builder withIntegrations(IntegrationEventListener integrations) {
       this.integrations = integrations;
       usageStats.put("ig", 1);
+      logInfo("integrations", "Object(IntegrationEventListener)");
       return this;
     }
 
@@ -589,18 +620,29 @@ public class VWO {
       return this.createVWOInstance();
     }
 
+    private void logInfo(String parameter, String type) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("CONFIG_PARAMETER_USED"), new HashMap<String, String>() {
+        {
+          put("parameter", parameter);
+          put("type", type);
+        }
+      }));
+    }
+
     private void initializeDefaults() {
+      LOGGER.info(LoggerService.getInstance().infoMessages.get("CONFIG_VALID"));
+
       this.settingFile = SettingsFileUtil.initializeSettingsFile(this.settingFileString);
 
       if (this.pollingInterval != null) {
         if (this.sdkKey != null) {
-          LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.REGISTERED_POLLING_INTERVAL.value(new HashMap<String, String>() {
+          LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("POLLING_SETTINGS_FILE_REGISTERED"), new HashMap<String, String>() {
             {
               put("pollingInterval", pollingInterval.toString());
             }
           }));
         } else {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_POLLING_SDK_KEY.value());
+          LOGGER.error(LoggerService.getInstance().errorMessages.get("CONFIG_POLLING_SDK_KEY_NOT_PROVIVED"));
         }
       }
 
@@ -611,6 +653,7 @@ public class VWO {
       this.developmentMode = this.developmentMode || false;
 
       if (developmentMode) {
+        LOGGER.debug(LoggerService.getInstance().debugMessages.get("CONFIG_DEVELOPMENT_MODE_STATUS"));
         usageStats.clear();
       }
 
@@ -634,7 +677,8 @@ public class VWO {
               this.usageStats
       );
       if (vwoInstance != null) {
-        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SDK_INITIALIZED.value());
+
+        LOGGER.info(LoggerService.getInstance().infoMessages.get("SDK_INITIALIZED"));
       }
       return vwoInstance;
     }

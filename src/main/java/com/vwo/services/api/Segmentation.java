@@ -18,7 +18,7 @@ package com.vwo.services.api;
 
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.EventArchEnums;
-import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpGetRequest;
@@ -62,7 +62,7 @@ public class Segmentation {
         return false;
       }
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_PUSH_DIMENSION.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("INITIATING_PUSH_DIMENSION"), new HashMap<String, String>() {
         {
           put("tagKey", tagKey);
           put("tagValue", tagValue);
@@ -71,7 +71,7 @@ public class Segmentation {
       }));
 
       if (tagKey.equals(" ") && tagValue.equals(" ") && (customDimensionMap == null || customDimensionMap.size() == 0)) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.PUSH_API_INVALID_PARAMS_CD_MAP.value());
+        //        LOGGER.error(LoggerService.getInstance().errorMessages.get("PUSH_INVALID_PARAMS_CD_MAP"));
         return  false;
       }
 
@@ -82,7 +82,7 @@ public class Segmentation {
       Segmentation.sendPostCustomDimensionCall(settingFile, userId, batchEventQueue, isDevelopmentMode, customDimensionMap);
       return true;
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      //      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return false;
     }
   }
@@ -102,12 +102,12 @@ public class Segmentation {
         } else {
           for (Map.Entry<String, String> query : customDimensionMap.entrySet()) {
             HttpParams httpParams = HttpRequestBuilder.getCustomDimensionParams(settingFile, query.getKey(), query.getValue(), userId);
-            HttpGetRequest.send(httpParams);
+            HttpGetRequest.send(httpParams, settingFile.getSettings().getAccountId());
           }
         }
       }
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
     }
   }
 }

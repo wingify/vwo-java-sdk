@@ -17,9 +17,9 @@
 package com.vwo.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.api.TrackCampaign;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.PostResponseHandler;
@@ -98,9 +98,9 @@ public class HttpUtils {
       public void onResponse(String endpoint, int status, HttpResponse response, JsonNode properties) throws IOException {
         try {
           if (status >= 200 && status < 300) {
-            LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.EVENT_ARCH_IMPRESSION_SUCCESS.value(new HashMap<String, String>() {
+            LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("IMPRESSION_SUCCESS_FOR_EVENT_ARCH"), new HashMap<String, String>() {
               {
-                put("a", String.valueOf(accountId));
+                put("accountId", String.valueOf(accountId));
                 put("endPoint", HttpUtils.getModifiedLogRequest(endpoint));
                 put("event", customEvents == null
                     ? eventName + " event"
@@ -109,7 +109,7 @@ public class HttpUtils {
             }));
           } else {
             String error = EntityUtils.toString(response.getEntity());
-            LOGGER.debug(LoggerMessagesEnums.ERROR_MESSAGES.IMPRESSION_FAILED.value(new HashMap<String, String>() {
+            LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("IMPRESSION_FAILED"), new HashMap<String, String>() {
               {
                 put("endPoint", endpoint);
                 put("err", error);
@@ -117,7 +117,7 @@ public class HttpUtils {
             }));
           }
         } catch (Exception e) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
+          // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
         }
       }
     };

@@ -19,7 +19,7 @@ package com.vwo.services.api;
 import com.vwo.enums.APIEnums;
 import com.vwo.enums.GoalEnums;
 import com.vwo.enums.CampaignEnums;
-import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.http.HttpParams;
@@ -89,7 +89,7 @@ public class TrackCampaign {
       }
 
       if (campaignList.size() == 0) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.NO_CAMPAIGN_FOUND.value(new HashMap<String, String>() {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("NO_CAMPAIGN_FOUND"), new HashMap<String, String>() {
           {
             put("goalIdentifier", goalIdentifier);
           }
@@ -106,13 +106,14 @@ public class TrackCampaign {
         trackStatus.put(key, false);
 
         if (campaign == null) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+          LOGGER.warn(LoggerService.getComputedMsg(LoggerService.getInstance().warningMessages.get("CAMPAIGN_NOT_RUNNING"), new HashMap<String, String>() {
             {
               put("campaignKey", key);
+              put("api", APIEnums.API_TYPES.TRACK.value());
             }
           }));
         } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_NOT_APPLICABLE"), new HashMap<String, String>() {
             {
               put("api", "track");
               put("userId", userId);
@@ -124,7 +125,7 @@ public class TrackCampaign {
           Goal goal = TrackCampaign.getGoalId(campaign, goalIdentifier);
 
           if (goal == null) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TRACK_API_GOAL_NOT_FOUND.value(new HashMap<String, String>() {
+            LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("TRACK_API_GOAL_NOT_FOUND"), new HashMap<String, String>() {
               {
                 put("goalIdentifier", goalIdentifier);
                 put("userId", userId);
@@ -134,7 +135,7 @@ public class TrackCampaign {
           } else if (goalsToTrack.value().equals(GoalEnums.GOAL_TYPES.ALL.value()) || goalsToTrack.value().equals(goal.getType())) {
 
             if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value()) && revenueValue == null) {
-              LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_GOAL_REVENUE.value(new HashMap<String, String>() {
+              LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("TRACK_API_REVENUE_NOT_PASSED_FOR_REVENUE_GOAL"), new HashMap<String, String>() {
                 {
                   put("goalIdentifier", goalIdentifier);
                   put("userId", userId);
@@ -179,7 +180,7 @@ public class TrackCampaign {
 
       return trackStatus;
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
   }
@@ -225,11 +226,11 @@ public class TrackCampaign {
       } else {
         HttpParams httpParams = HttpRequestBuilder.getGoalParams(settingFile, campaign, userId, goal, variation, revenueValue);
         if (!isDevelopmentMode) {
-          HttpGetRequest.send(httpParams);
+          HttpGetRequest.send(httpParams, settingFile.getSettings().getAccountId());
         }
       }
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
     }
   }
 }

@@ -17,8 +17,8 @@
 package com.vwo.services.http;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.utils.HttpUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -45,7 +45,7 @@ public class HttpPostRequest implements Runnable {
     try {
       postRequest(httpParams);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.HTTP_REQUEST_EXCEPTION.value(), e);
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.HTTP_REQUEST_EXCEPTION.value(), e);
     }
   }
 
@@ -63,11 +63,11 @@ public class HttpPostRequest implements Runnable {
     StringEntity params = new StringEntity(httpParams.getBody());
     request.setEntity(params);
     request.setHeaders(httpParams.getHeaders());
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
-      {
-        put("url", HttpUtils.getModifiedLogRequest(request.getURI().toString()));
-      }
-    }));
+    //    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
+    //      {
+    //        put("url", HttpUtils.getModifiedLogRequest(request.getURI().toString()));
+    //      }
+    //    }));
 
     HttpPostResponseHandler response = new HttpPostResponseHandler(
             responseHandler,
@@ -95,7 +95,12 @@ public class HttpPostRequest implements Runnable {
         return true;
       }
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value(), e);
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("IMPRESSION_FAILED"), new HashMap<String, String>() {
+        {
+          put("endPoint", httpParams.getUrl());
+          put("err", e.getLocalizedMessage());
+        }
+      }));
       return false;
     }
   }

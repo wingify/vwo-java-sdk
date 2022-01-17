@@ -35,13 +35,14 @@ public class BucketingTests {
     Campaign campaign = new Campaign();
     campaign.setId(1);
     campaign.setBucketingSeedEnabled(true);
-    Long bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "someone@mail.com") : "someone@mail.com", "someone@mail.com", 100, true);
+    campaign.setKey("campaign");
+    Long bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "someone@mail.com") : "someone@mail.com", campaign, "someone@mail.com", 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     assertEquals(variationHashValue, 2444);
 
     campaign.setBucketingSeedEnabled(false);
 
-     bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "someone@mail.com") : "someone@mail.com", "someone@mail.com", 100, true);
+     bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "someone@mail.com") : "someone@mail.com", campaign, "someone@mail.com", 100, true);
      variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     assertEquals(variationHashValue, 6361);
   }
@@ -51,13 +52,15 @@ public class BucketingTests {
     Campaign campaign = new Campaign();
     campaign.setId(1);
     campaign.setBucketingSeedEnabled(true);
-    Long bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "1111111111111111") : "1111111111111111", "someone@mail.com", 100, true);
+    campaign.setKey("campaign");
+
+    Long bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "1111111111111111") : "1111111111111111", campaign, "someone@mail.com", 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     assertEquals(variationHashValue, 8177);
 
     campaign.setBucketingSeedEnabled(false);
 
-     bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "1111111111111111") : "1111111111111111", "someone@mail.com", 100, true);
+     bucketHash = BucketingService.getUserHashForCampaign(campaign.isBucketingSeedEnabled() ? (campaign.getId() + "_" + "1111111111111111") : "1111111111111111", campaign, "someone@mail.com", 100, true);
      variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     assertEquals(variationHashValue, 4987);
   }
@@ -65,9 +68,10 @@ public class BucketingTests {
   @Test
   public void getBucketValueForMultipleUserIdsTest() {
     ArrayList<UserExpectations.Bucketing> bucketingData = UserExpectations.bucketingData;
-
+    Campaign campaign = new Campaign();
+    campaign.setKey("campaign");
     for (UserExpectations.Bucketing data:  bucketingData) {
-      Long bucketHash = BucketingService.getUserHashForCampaign(data.getCampaign().isBucketingSeedEnabled() ? (data.getCampaign().getId() + "_" + data.getUser()) : data.getUser(), data.getUser(), 100, true);
+      Long bucketHash = BucketingService.getUserHashForCampaign(data.getCampaign().isBucketingSeedEnabled() ? (data.getCampaign().getId() + "_" + data.getUser()) : data.getUser(), campaign, data.getUser(), 100, true);
       int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
       assertEquals(variationHashValue, data.getBucketValue());
     }

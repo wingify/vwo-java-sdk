@@ -17,10 +17,13 @@
 package com.vwo.utils;
 
 import com.vwo.enums.CampaignEnums;
+import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.Campaign;
 import com.vwo.models.response.Goal;
 import com.vwo.models.response.Settings;
 import com.vwo.models.response.Variation;
+import com.vwo.services.api.TrackCampaign;
 import com.vwo.services.settings.SettingsFileUtil;
 
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CampaignUtils {
+  private static final Logger LOGGER = Logger.getLogger(CampaignUtils.class);
 
   public static Variation getVariationObjectFromCampaign(Campaign campaign, String variationName) {
     if (variationName != null) {
@@ -82,6 +86,13 @@ public class CampaignUtils {
             campaignList.add(campaign);
           }
         }
+      }
+      if (campaignList.isEmpty()) {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("CAMPAIGN_NOT_FOUND_FOR_GOAL"), new HashMap<String, String>() {
+          {
+            put("goalIdentifier", goalIdentifier);
+          }
+        }));
       }
       return campaignList;
     }

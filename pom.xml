@@ -19,7 +19,7 @@ limitations under the License. -->
 
     <groupId>com.vwo.sdk</groupId>
     <artifactId>vwo-java-sdk</artifactId>
-    <version>1.30.0</version>
+    <version>1.31.0</version>
     <packaging>jar</packaging>
 
     <name>VWO Java Server Side SDK</name>
@@ -295,8 +295,20 @@ limitations under the License. -->
         </plugins>
     </build>
 
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
+
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+        <dependency>
+          <groupId>com.github.wingify</groupId>
+          <artifactId>vwo-sdk-log-messages</artifactId>
+          <version>v0.4.0</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>

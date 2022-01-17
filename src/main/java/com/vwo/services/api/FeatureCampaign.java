@@ -19,7 +19,7 @@ package com.vwo.services.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.enums.APIEnums;
-import com.vwo.enums.LoggerMessagesEnums;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
@@ -77,7 +77,7 @@ public class FeatureCampaign {
         return false;
       }
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_IS_FEATURE_ENABLED.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("INITIATING_IS_FEATURE_ENABLED"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);
@@ -87,9 +87,10 @@ public class FeatureCampaign {
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+        LOGGER.warn(LoggerService.getComputedMsg(LoggerService.getInstance().warningMessages.get("CAMPAIGN_NOT_RUNNING"), new HashMap<String, String>() {
           {
             put("campaignKey", campaignKey);
+            put("api", APIEnums.API_TYPES.IS_FEATURE_ENABLED.value());
           }
         }));
         return false;
@@ -97,7 +98,7 @@ public class FeatureCampaign {
               !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())
                       && !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
       ) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_NOT_APPLICABLE"), new HashMap<String, String>() {
           {
             put("api", "isFeatureEnabled");
             put("userId", userId);
@@ -116,15 +117,30 @@ public class FeatureCampaign {
         return false;
       }
 
+
+
+      boolean isFeatureEnabled = false;
+
       if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())) {
-        return true;
+        isFeatureEnabled = true;
       } else {
         Variation variationDetails = campaign.getVariations().stream().filter(variationObj -> variationObj.getName().equalsIgnoreCase(variation)).findFirst().get();
-        return variationDetails.getIsFeatureEnabled();
+        isFeatureEnabled = variationDetails.getIsFeatureEnabled();
       }
 
+      boolean finalIsFeatureEnabled = isFeatureEnabled;
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("FEATURE_STATUS"), new HashMap<String, String>() {
+        {
+          put("campaignKey", campaign.getKey());
+          put("userId", userId);
+          put("status", finalIsFeatureEnabled ? "enabled" : "disabled");
+        }
+      }));
+
+      return isFeatureEnabled;
+
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      //      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return false;
     }
   }
@@ -167,7 +183,7 @@ public class FeatureCampaign {
         return null;
       }
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_GET_FEATURE_VARIATION.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("INITIATING_GET_FEATURE_VARIATION"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);
@@ -178,9 +194,10 @@ public class FeatureCampaign {
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+        LOGGER.warn(LoggerService.getComputedMsg(LoggerService.getInstance().warningMessages.get("CAMPAIGN_NOT_RUNNING"), new HashMap<String, String>() {
           {
             put("campaignKey", campaignKey);
+            put("api", APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE.value());
           }
         }));
         return null;
@@ -188,9 +205,9 @@ public class FeatureCampaign {
               !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value())
                       && !campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())
       ) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_NOT_APPLICABLE"), new HashMap<String, String>() {
           {
-            put("api", "isFeatureEnabled");
+            put("api", "getFeatureVariableValue");
             put("userId", userId);
             put("campaignKey", campaignKey);
             put("campaignType", campaign.getType());
@@ -203,6 +220,13 @@ public class FeatureCampaign {
               CustomVariables, variationTargetingVariables);
 
       if (variation == null) {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("FEATURE_STATUS"), new HashMap<String, String>() {
+          {
+            put("campaignKey", campaign.getKey());
+            put("userId", userId);
+            put("status", "disabled");
+          }
+        }));
         return null;
       }
 
@@ -215,12 +239,15 @@ public class FeatureCampaign {
         Variation variationDetails = campaign.getVariations().stream().filter(variationObj -> variationObj.getName().equalsIgnoreCase(variation)).findFirst().get();
 
         if (!variationDetails.getIsFeatureEnabled()) {
-          LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.FEATURE_NOT_ENABLED.value(new HashMap<String, String>() {
+          variationDetails = campaign.getVariations().stream().filter(variationObj -> variationObj.getId() == 1).findFirst().get();
+
+          Variation finalVariationDetails = variationDetails;
+          LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("FEATURE_VARIABLE_DEFAULT_VALUE"), new HashMap<String, String>() {
             {
-              put("variation", "variation");
+              put("variableKey", variableKey);
+              put("variationName", finalVariationDetails.getName());
             }
           }));
-          variationDetails = campaign.getVariations().stream().filter(variationObj -> variationObj.getId() == 1).findFirst().get();
         }
 
         variables = variationDetails.getVariables();
@@ -229,11 +256,9 @@ public class FeatureCampaign {
       Variable variable = variables.stream().filter(variableObj -> variableObj.getKey().equalsIgnoreCase(variableKey)).findFirst().orElse(null);
 
       if (variable == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.VARIABLE_NOT_FOUND.value(new HashMap<String, String>() {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("VARIABLE_NOT_FOUND"), new HashMap<String, String>() {
           {
             put("variableKey", variableKey);
-            put("campaignKey", campaignKey);
-            put("campaignType", campaign.getType());
             put("userId", userId);
           }
         }));
@@ -244,16 +269,16 @@ public class FeatureCampaign {
         variableType = variable.getType().toLowerCase();
       } else if (!variable.getType().equalsIgnoreCase(variableType)) {
         String expectedVariableType = variableType;
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.VARIABLE_REQUESTED_WITH_WRONG_TYPE.value(new HashMap<String, String>() {
-          {
-            put("variableType", variable.getType());
-            put("expectedVariableType", expectedVariableType);
-          }
-        }));
+        //        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.VARIABLE_REQUESTED_WITH_WRONG_TYPE.value(new HashMap<String, String>() {
+        //          {
+        //            put("variableType", variable.getType());
+        //            put("expectedVariableType", expectedVariableType);
+        //          }
+        //        }));
         return null;
       }
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.FEATURE_VARIABLE_FOUND.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("FEATURE_VARIABLE_VALUE"), new HashMap<String, String>() {
         {
           put("variableKey", variableKey);
           put("campaignKey", campaignKey);
@@ -264,36 +289,47 @@ public class FeatureCampaign {
 
       return FeatureCampaign.getTypeCastedValue(variable.getValue(), variableType);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      //      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
   }
 
   private static Object getTypeCastedValue(Object value, String type) {
-    if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.STRING.value())) {
-      return value.toString();
-    } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.INTEGER.value())) {
-      try {
-        return Integer.valueOf(value.toString());
-      } catch (NumberFormatException e) {
-        return ((Double) value).intValue();
-      }
-    } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.DOUBLE.value())) {
-      return Double.valueOf(value.toString());
-    } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.BOOLEAN.value())) {
-      return Boolean.valueOf(value.toString());
-    } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.JSON.value())) {
-      try {
-        if (ValidationUtils.isValidJSON(new ObjectMapper().writeValueAsString(value))) {
-          return value;
-        } else {
+    try {
+      if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.STRING.value())) {
+        return value.toString();
+      } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.INTEGER.value())) {
+        try {
+          return Integer.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+          return ((Double) value).intValue();
+        }
+      } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.DOUBLE.value())) {
+        return Double.valueOf(value.toString());
+      } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.BOOLEAN.value())) {
+        return Boolean.valueOf(value.toString());
+      } else if (type.equalsIgnoreCase(FeatureEnums.FEATURE_VARIABLE_TYPES.JSON.value())) {
+        try {
+          if (ValidationUtils.isValidJSON(new ObjectMapper().writeValueAsString(value))) {
+            return value;
+          } else {
+            return null;
+          }
+        } catch (JsonProcessingException e) {
           return null;
         }
-      } catch (JsonProcessingException e) {
-        return null;
+      } else {
+        return value;
       }
-    } else {
-      return value;
+    } catch (Exception e) {
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("UNABLE_TO_CAST_VALUE"), new HashMap<String, String>() {
+        {
+          put("variableValue", value.toString());
+          put("variableType", type);
+        }
+      }));
+      return null;
     }
+
   }
 }

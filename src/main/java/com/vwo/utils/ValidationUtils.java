@@ -19,8 +19,8 @@ package com.vwo.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.enums.APIEnums;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,37 +32,61 @@ public class ValidationUtils {
     switch (api) {
       case ACTIVATE:
         if (!ValidationUtils.areBasicChecksValid(params)) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.ACTIVATE_API_MISSING_PARAMS.value());
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_BAD_PARAMETERS"), new HashMap<String, String>() {
+            {
+              put("api", api.value());
+            }
+          }));
           return false;
         }
         break;
       case GET_VARIATION_NAME:
         if (!ValidationUtils.areBasicChecksValid(params)) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GET_VARIATION_API_MISSING_PARAMS.value());
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_BAD_PARAMETERS"), new HashMap<String, String>() {
+            {
+              put("api", api.value());
+            }
+          }));
           return false;
         }
         break;
       case IS_FEATURE_ENABLED:
         if (!ValidationUtils.areBasicChecksValid(params)) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.IS_FEATURE_ENABLED_API_MISSING_PARAMS.value());
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_BAD_PARAMETERS"), new HashMap<String, String>() {
+            {
+              put("api", api.value());
+            }
+          }));
           return false;
         }
         break;
       case GET_FEATURE_VARIABLE_VALUE:
         if (!ValidationUtils.areBasicChecksValid(params)) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GET_FEATURE_VARIABLE_MISSING_PARAMS.value());
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_BAD_PARAMETERS"), new HashMap<String, String>() {
+            {
+              put("api", api.value());
+            }
+          }));
           return false;
         }
         break;
       case PUSH:
         if (!ValidationUtils.areBasicChecksValid(params)) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.PUSH_API_INVALID_PARAMS.value());
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_BAD_PARAMETERS"), new HashMap<String, String>() {
+            {
+              put("api", api.value());
+            }
+          }));
           return false;
         }
         break;
       case TRACK:
         if (!ValidationUtils.areBasicChecksValid(params, api)) {
-          LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TRACK_API_MISSING_PARAMS.value());
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_BAD_PARAMETERS"), new HashMap<String, String>() {
+            {
+              put("api", api.value());
+            }
+          }));
           return false;
         }
         break;
@@ -102,7 +126,7 @@ public class ValidationUtils {
             return false;
           }
           if (value.toString().length() > 255) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TAG_KEY_LENGTH_EXCEEDED.value(new HashMap<String, String>() {
+            LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("TAG_KEY_LENGTH_EXCEEDED"), new HashMap<String, String>() {
               {
                 put("tagKey", value.toString());
                 put("userId", params.get("userId").toString());
@@ -116,7 +140,7 @@ public class ValidationUtils {
             return false;
           }
           if (value.toString().length() > 255) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.TAG_VALUE_LENGTH_EXCEEDED.value(new HashMap<String, String>() {
+            LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("TAG_VALUE_LENGTH_EXCEEDED"), new HashMap<String, String>() {
               {
                 put("tagValue", value.toString());
                 put("tagKey", params.get("tagKey").toString());
@@ -128,7 +152,11 @@ public class ValidationUtils {
           break;
         default:
           if (isEmptyValue(value)) {
-            LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.MISSING_PARAM.value());
+            LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_BAD_PARAMETERS"), new HashMap<String, String>() {
+              {
+                put("api", api.value());
+              }
+            }));
           }
           return false;
       }

@@ -18,8 +18,8 @@ package com.vwo.services.api;
 
 import com.vwo.enums.EventArchEnums;
 import com.vwo.enums.APIEnums;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.CampaignEnums;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
@@ -78,7 +78,7 @@ public class ActivateCampaign {
         return null;
       }
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.INITIATING_ACTIVATE.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("INITIATING_ACTIVATE"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);
@@ -88,14 +88,15 @@ public class ActivateCampaign {
       Campaign campaign = settingFile.getCampaign(campaignKey);
 
       if (campaign == null) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+        LOGGER.warn(LoggerService.getComputedMsg(LoggerService.getInstance().warningMessages.get("CAMPAIGN_NOT_RUNNING"), new HashMap<String, String>() {
           {
             put("campaignKey", campaignKey);
+            put("api", APIEnums.API_TYPES.ACTIVATE.value());
           }
         }));
         return null;
       } else if (campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_ROLLOUT.value()) || campaign.getType().equalsIgnoreCase(CampaignEnums.CAMPAIGN_TYPES.FEATURE_TEST.value())) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.INVALID_API.value(new HashMap<String, String>() {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("API_NOT_APPLICABLE"), new HashMap<String, String>() {
           {
             put("api", "activate");
             put("userId", userId);
@@ -109,7 +110,7 @@ public class ActivateCampaign {
       return ActivateCampaign.activateCampaign(APIEnums.API_TYPES.ACTIVATE.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode,
               batchEventQueue, CustomVariables, variationTargetingVariables, usageStats);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
     }
   }
@@ -132,7 +133,7 @@ public class ActivateCampaign {
     if (variation != null) {
 
       if (variationDecider.getIsStoredVariation()) {
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.USER_ALREADY_TRACKED.value(new HashMap<String, String>() {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("CAMPAIGN_USER_ALREADY_TRACKED"), new HashMap<String, String>() {
           {
             put("campaignKey", campaign.getKey());
             put("userId", userId);
@@ -140,17 +141,17 @@ public class ActivateCampaign {
           }
         }));
       } else {
-        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new HashMap<String, String>() {
-          {
-            put("userId", userId);
-            put("variation", variation);
-          }
-        }));
+        //        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.ACTIVATING_CAMPAIGN.value(new HashMap<String, String>() {
+        //          {
+        //            put("userId", userId);
+        //            put("variation", variation);
+        //          }
+        //        }));
         // Send Impression Call for Stats
         ActivateCampaign.sendUserCall(settingFile, campaign, userId, batchEventQueue, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), isDevelopmentMode, usageStats);
       }
     } else {
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_VARIATION_ALLOCATED.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("DECISION_NO_VARIATION_ALLOTED"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaign.getKey());
@@ -175,11 +176,11 @@ public class ActivateCampaign {
       } else {
         HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation, usageStats);
         if (!isDevelopmentMode) {
-          HttpGetRequest.send(httpParams);
+          HttpGetRequest.send(httpParams, settingFile.getSettings().getAccountId());
         }
       }
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
+      // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.UNABLE_TO_DISPATCH_HTTP_REQUEST.value());
     }
   }
 }

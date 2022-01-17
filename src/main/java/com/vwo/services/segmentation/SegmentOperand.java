@@ -17,8 +17,8 @@
 package com.vwo.services.segmentation;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.services.segmentation.enums.OperandEnum;
 import com.vwo.services.segmentation.enums.OperandValueTypeEnum;
 import com.vwo.services.segmentation.enums.VWOAttributesEnum;
@@ -85,11 +85,11 @@ public class SegmentOperand {
 
       return false;
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_OPERAND_TYPE.value(new HashMap<String, String>() {
-        {
-          put("operand", operandType);
-        }
-      }));
+      //      LOGGER.error(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_OPERAND_TYPE.value(new HashMap<String, String>() {
+      //        {
+      //          put("operand", operandType);
+      //        }
+      //      }));
       return false;
     }
   }
@@ -107,11 +107,11 @@ public class SegmentOperand {
       parseOperandKeyValueNode(operandEntry.getValue());
     }
 
-    LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_OPERAND_NODE.value(new HashMap<String, String>() {
-      {
-        put("node", node.toString());
-      }
-    }));
+    //    LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_OPERAND_NODE.value(new HashMap<String, String>() {
+    //      {
+    //        put("node", node.toString());
+    //      }
+    //    }));
   }
 
   /**
@@ -171,12 +171,12 @@ public class SegmentOperand {
         return isMatchingValue(expectedValue, actualValue);
       }
     } catch (Exception e) {
-      LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.OPERAND_MATCHING_FAILURE.value(new HashMap<String, String>() {
-        {
-          put("operand", actualValue);
-          put("expectedOperand", expectedValue);
-        }
-      }));
+      //      LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.OPERAND_MATCHING_FAILURE.value(new HashMap<String, String>() {
+      //        {
+      //          put("operand", actualValue);
+      //          put("expectedOperand", expectedValue);
+      //        }
+      //      }));
 
       return false;
     }
@@ -213,7 +213,17 @@ public class SegmentOperand {
    * @return - boolean value
    */
   private static boolean isMatchingRegex(String regexStr, String value) {
-    return Pattern.compile(regexStr).matcher(value).find();
+    try {
+      return Pattern.compile(regexStr).matcher(value).find();
+
+    } catch (Exception e) {
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("SEGMENTATION_REGEX_CREATION_FAILED"), new HashMap<String, String>() {
+        {
+          put("regex", regexStr);
+        }
+      }));
+      return false;
+    }
   }
 
   /**

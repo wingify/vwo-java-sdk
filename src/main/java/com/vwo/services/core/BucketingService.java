@@ -16,8 +16,8 @@
 
 package com.vwo.services.core;
 
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.Campaign;
 import com.vwo.models.response.Variation;
 import com.vwo.utils.CampaignUtils;
@@ -41,7 +41,7 @@ public class BucketingService {
    * @return signed murmur hash value
    */
 
-  public static long getUserHashForCampaign(String seed, String userId, int traffic, boolean disableLogs) {
+  public static long getUserHashForCampaign(String seed, Campaign campaign, String userId, int traffic, boolean disableLogs) {
 
     int murmurHash = Murmur3.hash32(seed.getBytes(), 0, seed.length(), SEED_VALUE);
 
@@ -54,7 +54,7 @@ public class BucketingService {
     Long signedMurmurHash = (murmurHash & 0xFFFFFFFFL);
     int bucketValueOfUser = BucketingService.getMultipliedHashValue(signedMurmurHash, MAX_PERCENT_TRAFFIC, 1);
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.USER_HASH_BUCKET_VALUE.value(new HashMap<String, String>() {
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_HASH_BUCKET_VALUE"), new HashMap<String, String>() {
       {
         put("bucketValue", String.valueOf(bucketValueOfUser));
         put("userId", userId);
@@ -62,23 +62,31 @@ public class BucketingService {
       }
     }), disableLogs);
 
+    LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("USER_CAMPAIGN_ELIGIBILITY"), new HashMap<String, String>() {
+      {
+        put("campaignKey", campaign.getKey());
+        put("userId", userId);
+        put("status", bucketValueOfUser > traffic ? "not eligible" : "eligible");
+      }
+    }), disableLogs);
+
     return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
   }
 
   public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic, String userId) {
-    long murmurHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), userId, campaignTraffic, false);
+    long murmurHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), campaign, userId, campaignTraffic, false);
 
 
     if (murmurHash != -1) {
       double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
       int variationHashValue = BucketingService.getMultipliedHashValue(murmurHash, MAX_TRAFFIC_VALUE, multiplier);
 
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.VARIATION_HASH_VALUE.value(new HashMap<String, String>() {
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_CAMPAIGN_BUCKET_VALUES"), new HashMap<String, String>() {
         {
           put("campaignKey", campaign.getKey());
-          put("variationHashValue", String.valueOf(variationHashValue));
+          put("bucketValue", String.valueOf(variationHashValue));
           put("userId", userId);
-          put("traffic", String.valueOf(campaignTraffic));
+          put("percentTraffic", String.valueOf(campaignTraffic));
           put("hashValue", String.valueOf(murmurHash));
         }
       }));
@@ -86,7 +94,7 @@ public class BucketingService {
       return getAllocatedItem(variations, variationHashValue);
     }
 
-    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
+    LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("USER_NOT_PART_OF_CAMPAIGN"), new HashMap<String, String>() {
       {
         put("campaignKey", campaign.getKey().toString());
         put("userId", userId);

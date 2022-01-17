@@ -19,12 +19,12 @@ package com.vwo.services.core;
 
 import com.vwo.enums.CampaignEnums;
 import com.vwo.enums.APIEnums;
-import com.vwo.enums.LoggerMessagesEnums;
 import com.vwo.enums.SegmentationTypeEnums;
 import com.vwo.enums.StatusEnums;
 import com.vwo.enums.HooksEnum;
 import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.models.response.Campaign;
 import com.vwo.models.response.Settings;
 import com.vwo.models.response.Variation;
@@ -92,17 +92,27 @@ public class VariationDecider {
     // Default initialization(s)
     isStoredVariation = false;
     integrationsMap = new HashMap<String, Object>();
+    String uuid = UUIDUtils.getUUId(settings.getAccountId(), userId);
     initIntegrationMap(campaign, apiName, userId, goalIdentifier, rawCustomVariables, rawVariationTargetingVariables);
     final Map<String, ?> customVariables = rawCustomVariables == null ? new HashMap<>() : rawCustomVariables;
     final Map<String, ?> variationTargetingVariables = rawVariationTargetingVariables == null ? new HashMap<>() : rawVariationTargetingVariables;
     ((Map<String, Object>) variationTargetingVariables).put(VWOAttributesEnum.USER_ID.value(), campaign.isUserListEnabled()
-        ? UUIDUtils.getUUId(settings.getAccountId(), userId)
+        ? uuid
         : userId);
 
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_UUID"), new HashMap<String, String>() {
+      {
+        put("accountId", String.valueOf(settings.getAccountId()));
+        put("userId", userId);
+        put("uuid", uuid);
+      }
+    }));
+
     if (!campaign.getStatus().equalsIgnoreCase(CampaignEnums.STATUS.RUNNING.value())) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.CAMPAIGN_NOT_FOUND.value(new HashMap<String, String>() {
+      LOGGER.warn(LoggerService.getComputedMsg(LoggerService.getInstance().warningMessages.get("CAMPAIGN_NOT_RUNNING"), new HashMap<String, String>() {
         {
           put("campaignKey", campaign.getKey());
+          put("api", apiName);
         }
       }));
 
@@ -131,7 +141,7 @@ public class VariationDecider {
     // Check if user satisfies pre segmentation. If not, return null.
     Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, false);
     if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null),
-            userId, campaign.getPercentTraffic(), true) != -1)) {
+            campaign, userId, campaign.getPercentTraffic(), true) != -1)) {
       return null;
     }
 
@@ -143,7 +153,7 @@ public class VariationDecider {
       }
 
       if (checkForStorageAndWhitelisting(apiName, campaignList, (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, variationTargetingVariables)) {
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.CALLED_CAMPAIGN_NOT_WINNER.value(new HashMap<String, String>() {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
           {
             put("userId", userId);
             put("campaignKey", campaign.getKey());
@@ -167,16 +177,16 @@ public class VariationDecider {
 
       String finalInEligibleCampaignKeys = inEligibleCampaignKeys.toString();
       String finalEligibleCampaignKeys = eligibleCampaignKeys.toString();
-      LOGGER.info(LoggerMessagesEnums.DEBUG_MESSAGES.GOT_ELIGIBLE_CAMPAIGNS.value(new HashMap<String, String>() {
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("MEG_ELIGIBLE_CAMPAIGNS"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("groupName", (String) groupDetails.get("groupName"));
-          put("eligibleText", eligibleCampaignKeys.substring(0, eligibleCampaignKeys.length() - 2));
+          put("eligibleCampaignKeys", eligibleCampaignKeys.substring(0, eligibleCampaignKeys.length() - 2));
           put("inEligibleText", finalInEligibleCampaignKeys.isEmpty() ? "no campaigns" : "campaigns: " + inEligibleCampaignKeys.substring(0, inEligibleCampaignKeys.length() - 2));
         }
       }));
 
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.GOT_ELIGIBLE_CAMPAIGNS.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("MEG_ELIGIBLE_CAMPAIGNS"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("noOfEligibleCampaigns", String.valueOf(processedCampaigns.get("eligibleCampaigns").size()));
@@ -209,7 +219,7 @@ public class VariationDecider {
       List<Variation> whiteListedVariations = new ArrayList<>();
       campaign.getVariations().forEach(variationObj -> {
         if (variationObj.getSegments() == null || ((HashMap) variationObj.getSegments()).isEmpty()) {
-          LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SEGMENTATION_SKIPPED.value(new HashMap<String, String>() {
+          LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("SEGMENTATION_SKIPPED"), new HashMap<String, String>() {
             {
               put("userId", userId);
               put("campaignKey", campaign.getKey());
@@ -224,7 +234,7 @@ public class VariationDecider {
           }
 
           final String newStatus = status;
-          LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SEGMENTATION_STATUS.value(new HashMap<String, String>() {
+          LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("SEGMENTATION_STATUS"), new HashMap<String, String>() {
             {
               put("userId", userId);
               put("campaignKey", campaign.getKey());
@@ -243,7 +253,7 @@ public class VariationDecider {
 
         if (whiteListedVariations.size() > 1) {
           CampaignUtils.rationalizeVariationsWeights(whiteListedVariations);
-          SettingsFileUtil.setVariationRange(whiteListedVariations);
+          SettingsFileUtil.setVariationRange(campaign, whiteListedVariations);
           whiteListedVariation = (Variation) bucketingService.getUserVariation(whiteListedVariations, campaign, 100, userId);
         }
 
@@ -251,7 +261,7 @@ public class VariationDecider {
 
         String variationName = whiteListedVariation.getName();
 
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SEGMENTATION_STATUS.value(new HashMap<String, String>() {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("SEGMENTATION_STATUS"), new HashMap<String, String>() {
           {
             put("userId", userId);
             put("campaignKey", campaign.getKey());
@@ -266,7 +276,7 @@ public class VariationDecider {
         }
         return whiteListedVariation;
       } else {
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SEGMENTATION_STATUS.value(new HashMap<String, String>() {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("SEGMENTATION_STATUS"), new HashMap<String, String>() {
           {
             put("userId", userId);
             put("campaignKey", campaign.getKey());
@@ -279,7 +289,7 @@ public class VariationDecider {
       }
       return null;
     } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.WHITELISTING_SKIPPED.value(new HashMap<String, String>() {
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("WHITELISTING_SKIPPED"), new HashMap<String, String>() {
         {
           put("campaignKey", campaign.getKey());
           put("userId", userId);
@@ -307,20 +317,32 @@ public class VariationDecider {
       try {
         Map<String, String> userStorageMap = this.userStorage.get(userId, campaign.getKey());
 
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("GETTING_DATA_USER_STORAGE_SERVICE"), new HashMap<String, String>() {
+          {
+            put("campaignKey", campaign.getKey());
+            put("userId", userId);
+          }
+        }), disableLogs);
+
         if (userStorageMap == null) {
           if (!isCampaignActivated(apiName, userId, campaign)) {
             return null;
           } else {
-            LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.NO_DATA_USER_STORAGE_SERVICE.value(), disableLogs);
+            LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_STORAGE_SERVICE_NO_STORED_DATA"), new HashMap<String, String>() {
+              {
+                put("campaignKey", campaign.getKey());
+                put("userId", userId);
+              }
+            }), disableLogs);
           }
         } else if (StorageUtils.isValidUserStorageMap(userStorageMap)) {
 
 
           if (goalIdentifier != null) {
             if (checkGoalTracked(goalIdentifier, userStorageMap)) {
-              LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.GOAL_ALREADY_TRACKED.value(new HashMap<String, String>() {
+              LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("CAMPAIGN_GOAL_ALREADY_TRACKED"), new HashMap<String, String>() {
                 {
-                  put("goalIdentifer", goalIdentifier);
+                  put("goalIdentifier", goalIdentifier);
                   put("campaignKey", campaign.getKey());
                   put("userId", userId);
                 }
@@ -329,11 +351,13 @@ public class VariationDecider {
             }
           }
 
+
+
           variation = getStoredVariation(userStorageMap, userId, campaign);
 
           if (variation != null) {
             String variationName = variation.getName();
-            LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GOT_STORED_VARIATION.value(new HashMap<String, String>() {
+            LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("GOT_STORED_VARIATION"), new HashMap<String, String>() {
               {
                 put("variationName", variationName);
                 put("campaignKey", campaign.getKey());
@@ -353,7 +377,7 @@ public class VariationDecider {
             if (!isCampaignActivated(apiName, userId, campaign)) {
               return null;
             } else {
-              LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_STORED_VARIATION.value(new HashMap<String, String>() {
+              LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_STORAGE_SERVICE_NO_STORED_DATA"), new HashMap<String, String>() {
                 {
                   put("campaignKey", campaign.getKey());
                   put("userId", userId);
@@ -365,18 +389,24 @@ public class VariationDecider {
           if (!isCampaignActivated(apiName, userId, campaign)) {
             return null;
           } else {
-            LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.INVALID_USER_STORAGE_MAP.value(new HashMap<String, String>() {
+            LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_STORAGE_SERVICE_NO_STORED_DATA"), new HashMap<String, String>() {
               {
-                put("map", userStorageMap.toString());
+                put("campaignKey", campaign.getKey());
+                put("userId", userId);
               }
             }), disableLogs);
           }
         }
       } catch (Exception e) {
-        LOGGER.warn(LoggerMessagesEnums.WARNING_MESSAGES.NO_DATA_IN_USER_STORAGE.value(), disableLogs);
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("USER_STORAGE_SERVICE_GET_FAILED"), new HashMap<String, String>() {
+          {
+            put("userId", userId);
+            put("error", e.getLocalizedMessage());
+          }
+        }), disableLogs);
       }
     } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.NO_USER_STORAGE_DEFINED.value(), disableLogs);
+      LOGGER.debug(LoggerService.getInstance().debugMessages.get("USER_STORAGE_SERVICE_NOT_CONFIGURED"), disableLogs);
     }
     return variation;
   }
@@ -392,7 +422,7 @@ public class VariationDecider {
   private Boolean checkForPreSegmentation(Campaign campaign, String userId, Map<String, ?> customVariables, boolean disableLogs) {
     if (campaign.getSegments() != null && !((LinkedHashMap) campaign.getSegments()).isEmpty()) {
       boolean isPresegmentValid = PreSegmentation.isPresegmentValid(campaign.getSegments(), customVariables, userId, campaign.getKey());
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.SEGMENTATION_STATUS.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("SEGMENTATION_STATUS"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaign.getKey());
@@ -405,7 +435,7 @@ public class VariationDecider {
 
       return isPresegmentValid;
     } else {
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SEGMENTATION_SKIPPED.value(new HashMap<String, String>() {
+      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("SEGMENTATION_SKIPPED"), new HashMap<String, String>() {
         {
           put("campaignKey", campaign.getKey());
           put("userId", userId);
@@ -438,7 +468,7 @@ public class VariationDecider {
       Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables, true);
       if (whitelistedVariation != null) {
         otherCampaignWinner = true;
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE.value(new HashMap<String, String>() {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE"), new HashMap<String, String>() {
           {
             put("campaignKey", campaign.getKey());
             put("userId", userId);
@@ -452,7 +482,7 @@ public class VariationDecider {
       Variation storedVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, true);
       if (storedVariation != null && storedVariation.getId() != -1) {
         otherCampaignWinner = true;
-        LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE.value(new HashMap<String, String>() {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE"), new HashMap<String, String>() {
           {
             put("campaignKey", campaign.getKey());
             put("userId", userId);
@@ -480,7 +510,7 @@ public class VariationDecider {
     List<Campaign> inEligibleCampaigns = new ArrayList<>();
     for (Campaign campaign: campaignList) {
       if (checkForPreSegmentation(campaign, userId, customVariables, true)
-              && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), userId, campaign.getPercentTraffic(), true) != -1) {
+              && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), campaign, userId, campaign.getPercentTraffic(), true) != -1) {
         eligibleCampaigns.add(campaign.clone());
       } else {
         inEligibleCampaigns.add(campaign);
@@ -507,6 +537,14 @@ public class VariationDecider {
     // Get variation using campaign settings for a user.
     Variation variation = null;
     variation = (Variation) bucketingService.getUserVariation(campaign.getVariations(), campaign, campaign.getPercentTraffic(), userId);
+    Variation finalVariation = variation;
+    LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("USER_VARIATION_ALLOCATION_STATUS"), new HashMap<String, String>() {
+      {
+        put("userId", userId);
+        put("campaignKey", campaign.getKey());
+        put("status", finalVariation != null ? "got variation:" + finalVariation.getName() : "did not get any variation");
+      }
+    }));
     if (variation != null) {
       this.setVariationInUserStorage(variation, campaign.getKey(), userId, goalIdentifier);
       executeIntegrationsCallback(false, campaign, variation, false);
@@ -531,11 +569,11 @@ public class VariationDecider {
       campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
     }
     CampaignUtils.setCampaignRange(shortlistedCampaigns);
-    Long bucketHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, null, groupId), userId, 100, true);
+    Long bucketHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, null, groupId), calledCampaign, userId, 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     Campaign winnerCampaign = (Campaign) bucketingService.getAllocatedItem(shortlistedCampaigns, variationHashValue);
 
-    LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.GOT_WINNER_CAMPAIGN.value(new HashMap<String, String>() {
+    LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("MEG_GOT_WINNER_CAMPAIGN"), new HashMap<String, String>() {
       {
         put("userId", userId);
         put("campaignKey", winnerCampaign.getKey());
@@ -546,7 +584,7 @@ public class VariationDecider {
     if (winnerCampaign.getId().equals(calledCampaign.getId())) {
       return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier);
     } else {
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.CALLED_CAMPAIGN_NOT_WINNER.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", calledCampaign.getKey());
@@ -616,10 +654,10 @@ public class VariationDecider {
       try {
         this.userStorage.set(variationMap);
       } catch (Exception e) {
-        LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SAVE_USER_STORAGE_SERVICE_FAILED.value(new HashMap<String, String>() {
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("USER_STORAGE_SERVICE_SET_FAILED"), new HashMap<String, String>() {
           {
             put("userId", userId);
-            put("campaignKey", campaignKey);
+            put("error", e.getLocalizedMessage());
           }
         }), e.getStackTrace());
       }
@@ -639,25 +677,26 @@ public class VariationDecider {
       String variationName = variation.getName();
       if (this.userStorage != null) {
         setVariation(userId, campaignKey, variation, goalIdentifier);
-        LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.SAVED_IN_USER_STORAGE_SERVICE.value(new HashMap<String, String>() {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("SETTING_DATA_USER_STORAGE_SERVICE"), new HashMap<String, String>() {
           {
             put("userId", userId);
-            put("variation", variationName);
+            put("campaignKey", userId);
           }
         }));
       }
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.GOT_VARIATION_FOR_USER.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("USER_VARIATION_STATUS"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);
-          put("variation", variationName);
+          put("status", "got Variation" +  variationName);
         }
       }));
     } else {
-      LOGGER.info(LoggerMessagesEnums.INFO_MESSAGES.USER_NOT_PART_OF_CAMPAIGN.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("USER_VARIATION_STATUS"), new HashMap<String, String>() {
         {
           put("userId", userId);
           put("campaignKey", campaignKey);
+          put("status", "got no Variation");
         }
       }));
     }
@@ -681,10 +720,9 @@ public class VariationDecider {
       userStorageMap.put(UserStorage.goalIdentifier, goalString);
       userStorage.set(userStorageMap);
     } catch (Exception e) {
-      LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.SAVE_USER_STORAGE_SERVICE_FAILED.value(new HashMap<String, String>() {
+      LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages.get("SET_USER_STORAGE_SERVICE_FAILED"), new HashMap<String, String>() {
         {
           put("userId", userId);
-          put("campaignKey", campaign.getKey());
         }
       }), e);
     }
@@ -714,14 +752,14 @@ public class VariationDecider {
     if (!apiName.equalsIgnoreCase(APIEnums.API_TYPES.ACTIVATE.value())
             && !apiName.equalsIgnoreCase(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value())) {
 
-      LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.CAMPAIGN_NOT_ACTIVATED.value(new HashMap<String, String>() {
+      LOGGER.warn(LoggerService.getComputedMsg(LoggerService.getInstance().warningMessages.get("CAMPAIGN_NOT_ACTIVATED"), new HashMap<String, String>() {
         {
           put("campaignKey", campaign.getKey());
           put("userId", userId);
           put("api", apiName);
         }
       }));
-      LOGGER.debug(LoggerMessagesEnums.INFO_MESSAGES.CAMPAIGN_NOT_ACTIVATED.value(new HashMap<String, String>() {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("CAMPAIGN_NOT_ACTIVATED"), new HashMap<String, String>() {
         {
           put("campaignKey", campaign.getKey());
           put("userId", userId);
