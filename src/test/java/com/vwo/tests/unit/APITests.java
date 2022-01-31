@@ -16,6 +16,7 @@
 
 package com.vwo.tests.unit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
 import com.vwo.logger.Logger;
 import com.vwo.logger.VWOLogger;
+import com.vwo.models.response.BatchEventData;
 import com.vwo.services.http.HttpRequestBuilder;
 import com.vwo.services.settings.SettingsFileUtil;
 import com.vwo.services.storage.Storage;
@@ -79,5 +81,92 @@ public class APITests {
     trackArg[1] = String.class;
     trackArg[2] = String.class;
     assertTrue(vwoInstanceClass.getMethod("track", trackArg) != null);
+  }
+
+  @Test
+  public void optOutVisualABEnabledTests() {
+    BatchEventData batchEventData = new BatchEventData();
+    batchEventData.setEventsPerRequest(1000);
+    VWO vwo = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50).withBatchEvents(batchEventData).build();
+    String campaignKey = vwo.getSettingFile().getSettings().getCampaigns().get(0).getKey();
+    String goalIdentifier = vwo.getSettingFile().getSettings().getCampaigns().get(0).getGoals().get(1).getIdentifier();
+
+    String variationName  = vwo.activate(campaignKey, "Ashley");
+    assertEquals(variationName, "Control");
+
+    variationName  = vwo.getVariationName(campaignKey, "Ashley");
+    assertEquals(variationName, "Control");
+
+    Map<String, Boolean> trackResponse = vwo.track(campaignKey, "Ashley", goalIdentifier);
+    assertTrue(trackResponse.get(campaignKey));
+
+    assertEquals(vwo.getBatchEventQueue().getBatchQueue().size(), 2);
+
+    //enable the opt-out
+    vwo.setOptOut();
+
+    assertEquals(vwo.getBatchEventQueue(), null);
+    assertEquals(vwo.getUserStorage(), null);
+    assertEquals(vwo.getBatchEventQueue(), null);
+    assertEquals(vwo.getCustomLogger(), null);
+    assertEquals(vwo.getUsageStats(), null);
+    assertEquals(vwo.getSettingFileString(), null);
+    assertEquals(vwo.getCustomLogger(), null);
+
+
+    variationName = vwo.activate(campaignKey, "Ashley");
+    assertEquals(variationName, null);
+
+    variationName = vwo.getVariationName(campaignKey, "Ashley");
+    assertEquals(variationName, null);
+
+     trackResponse = vwo.track(campaignKey, "Ashley", goalIdentifier);
+    assertEquals(trackResponse, null);
+
+  }
+
+
+  @Test
+  public void optOutFeatureTests() {
+    BatchEventData batchEventData = new BatchEventData();
+    batchEventData.setEventsPerRequest(1000);
+    VWO vwo = VWO.launch(Settings.FEATURE_TEST_TRAFFIC_100).withBatchEvents(batchEventData).build();
+    String campaignKey = vwo.getSettingFile().getSettings().getCampaigns().get(0).getKey();
+    String goalIdentifier = vwo.getSettingFile().getSettings().getCampaigns().get(0).getGoals().get(0).getIdentifier();
+
+
+    boolean isFeatureEnabled = vwo.isFeatureEnabled(campaignKey, "Ashley");
+    assertEquals(isFeatureEnabled, true);
+
+    Object variableValue = vwo.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley");
+    assertEquals(variableValue, "Variation-2 string");
+
+    Map<String, Boolean> push = vwo.push("tagKey", "tagValue", "Ashley");
+    assertEquals(push.get("tagKey"), true);
+
+    assertEquals(vwo.getBatchEventQueue().getBatchQueue().size(), 2);
+
+    //enable the opt-out
+    vwo.setOptOut();
+    vwo.setOptOut();
+
+    assertEquals(vwo.getBatchEventQueue(), null);
+    assertEquals(vwo.getUserStorage(), null);
+    assertEquals(vwo.getBatchEventQueue(), null);
+    assertEquals(vwo.getCustomLogger(), null);
+    assertEquals(vwo.getUsageStats(), null);
+    assertEquals(vwo.getSettingFileString(), null);
+    assertEquals(vwo.getCustomLogger(), null);
+
+    isFeatureEnabled = vwo.isFeatureEnabled(campaignKey, "Ashley");
+    assertEquals(isFeatureEnabled, false);
+
+    variableValue = vwo.getFeatureVariableValue(campaignKey, "STRING_VARIABLE", "Ashley");
+    assertEquals(variableValue, null);
+
+    push = vwo.push("tagKey", "tagValue", "Ashley");
+    assertEquals(push.size(), 0);
+
+    assertEquals(vwo.flushEvents(), false);
   }
 }

@@ -20,6 +20,7 @@ import com.vwo.enums.APIEnums;
 import com.vwo.enums.GoalEnums;
 import com.vwo.enums.CampaignEnums;
 import com.vwo.logger.LoggerService;
+import com.vwo.models.response.BatchEventData;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.http.HttpParams;
@@ -70,7 +71,8 @@ public class TrackCampaign {
           BatchEventQueue batchEventQueue,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
-          GoalEnums.GOAL_TYPES goalsToTrack
+          GoalEnums.GOAL_TYPES goalsToTrack,
+          Map<String, Integer> usageStats
   ) {
     try {
       if (!TrackCampaign.isTrackParamsValid(campaignSpecifier, userId, goalIdentifier)) {
@@ -100,6 +102,16 @@ public class TrackCampaign {
       Map<String, Boolean> trackStatus = new HashMap<>();
       Map<String, Integer> metricMap = new HashMap<>();
       HashSet<String> revenuePropList = new HashSet<String>();
+      Boolean areGlobalGoals = campaignList.size()  > 1 && batchEventQueue == null;
+
+      if (areGlobalGoals) {
+        BatchEventData batchEventData = new BatchEventData();
+        batchEventData.setEventsPerRequest(campaignList.size());
+        batchEventQueue = new BatchEventQueue(batchEventData,
+          settingFile.getSettings().getSdkKey(),
+          settingFile.getSettings().getAccountId(), isDevelopmentMode, usageStats);
+      }
+
       for (int i = 0; i < campaignList.size(); i++) {
         Campaign campaign = campaignList.get(i);
         String key = campaign == null ? ((String[]) campaignSpecifier)[i] : campaign.getKey();
@@ -162,7 +174,8 @@ public class TrackCampaign {
                         revenue,
                         isDevelopmentMode,
                         batchEventQueue,
-                        metricMap
+                        metricMap,
+                        areGlobalGoals
                 );
                 trackStatus.put(key, true);
               }
@@ -170,6 +183,10 @@ public class TrackCampaign {
             }
           }
         }
+      }
+
+      if (areGlobalGoals && !batchEventQueue.getBatchQueue().isEmpty()) {
+        batchEventQueue.flush(false);
       }
 
       if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled() && metricMap.size() > 0) {
@@ -216,17 +233,22 @@ public class TrackCampaign {
           Object revenueValue,
           boolean isDevelopmentMode,
           BatchEventQueue batchEventQueue,
-          Map<String, Integer> metricMap
+          Map<String, Integer> metricMap,
+          boolean areGlobalGoals
   ) {
     try {
-      if (batchEventQueue != null) {
+      if (batchEventQueue != null && !areGlobalGoals) {
         batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingGoal(settingFile, campaign, userId, goal, variation, revenueValue));
       } else if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled()) {
         metricMap.put(String.valueOf(campaign.getId()), goal.getId());
       } else {
-        HttpParams httpParams = HttpRequestBuilder.getGoalParams(settingFile, campaign, userId, goal, variation, revenueValue);
-        if (!isDevelopmentMode) {
-          HttpGetRequest.send(httpParams, settingFile.getSettings().getAccountId());
+        if (areGlobalGoals) {
+          batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingGoal(settingFile, campaign, userId, goal, variation, revenueValue));
+        } else {
+          HttpParams httpParams = HttpRequestBuilder.getGoalParams(settingFile, campaign, userId, goal, variation, revenueValue);
+          if (!isDevelopmentMode) {
+            HttpGetRequest.send(httpParams, settingFile.getSettings().getAccountId());
+          }
         }
       }
     } catch (Exception e) {

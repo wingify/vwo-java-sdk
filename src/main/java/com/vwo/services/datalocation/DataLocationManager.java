@@ -36,6 +36,10 @@ public class DataLocationManager {
   }
 
   public String getDataLocation(String path) {
-    return DataLocationManager.settings.getCollectionPrefix() != null ? "/" + DataLocationManager.settings.getCollectionPrefix() + path : path;
+    try {
+      return DataLocationManager.settings.getCollectionPrefix() != null ? "/" + DataLocationManager.settings.getCollectionPrefix() + path : path;
+    } catch (Exception e) {
+      return path;
+    }
   }
 }

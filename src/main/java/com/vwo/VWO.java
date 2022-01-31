@@ -16,6 +16,7 @@
 
 package com.vwo;
 
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.GoalEnums;
 import com.vwo.logger.LoggerService;
 import com.vwo.models.response.BatchEventData;
@@ -47,17 +48,18 @@ import java.util.Map;
  */
 public class VWO {
 
-  final Storage.User userStorage;
-  final VWOLogger customLogger;
-  final VariationDecider variationDecider;
-  final GoalEnums.GOAL_TYPES goalTypeToTrack;
-  final Integer pollingInterval;
-  final String sdkKey;
+  Storage.User userStorage;
+  VWOLogger customLogger;
+  VariationDecider variationDecider;
+  GoalEnums.GOAL_TYPES goalTypeToTrack;
+  Integer pollingInterval;
+  String sdkKey;
   private String settingFileString;
   private SettingFile settingFile;
   private BatchEventQueue batchEventQueue;
   private boolean developmentMode;
   private Map<String, Integer> usageStats;
+  private boolean optOut = false;
 
   public static final class Enums extends VWOEnums {
   }
@@ -101,8 +103,8 @@ public class VWO {
    * Poll settings file after every pollingInterval ms by spawning a new thread.
    */
   private void pollSettingsFile() {
-    (new Thread(() -> {
-      while (true) {
+    new Thread(() -> {
+      while (!optOut) {
         try {
           fetchAndUpdateSettings();
           Thread.sleep(this.pollingInterval);
@@ -110,7 +112,7 @@ public class VWO {
           e.printStackTrace();
         }
       }
-    })).start();
+    }).start();
   }
 
   /**
@@ -220,6 +222,14 @@ public class VWO {
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.ACTIVATE.value());
+        }
+      }));
+      return null;
+    }
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
     return ActivateCampaign.activate(
             campaignKey,
@@ -242,6 +252,14 @@ public class VWO {
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public String activate(String campaignKey, String userId) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.ACTIVATE.value());
+        }
+      }));
+      return null;
+    }
     return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null);
   }
 
@@ -254,6 +272,14 @@ public class VWO {
    * @return Variation name
    */
   public String getVariationName(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.GET_VARIATION_NAME.value());
+        }
+      }));
+      return null;
+    }
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
 
     return CampaignVariation.getVariationName(
@@ -274,6 +300,14 @@ public class VWO {
    * @return Variation name
    */
   public String getVariationName(String campaignKey, String userId) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.GET_VARIATION_NAME.value());
+        }
+      }));
+      return null;
+    }
     return CampaignVariation.getVariationName(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), null, null);
   }
 
@@ -287,6 +321,14 @@ public class VWO {
    * @return Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
    */
   public Map<String, Boolean> track(Object campaignKey, String userId, String goalIdentifier, VWOAdditionalParams additionalParams) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.TRACK.value());
+        }
+      }));
+      return null;
+    }
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
     GoalEnums.GOAL_TYPES goalsToTrack = additionalParams.getGoalTypeToTrack() == null
             ? this.goalTypeToTrack
@@ -303,11 +345,20 @@ public class VWO {
             this.batchEventQueue,
             additionalParams.getCustomVariables(),
             additionalParams.getVariationTargetingVariables(),
-            goalsToTrack
+            goalsToTrack,
+            this.usageStats
     );
   }
 
   public Map<String, Boolean> track(Object campaignKey, String userId, String goalIdentifier) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.TRACK.value());
+        }
+      }));
+      return null;
+    }
     return TrackCampaign.trackGoal(
             campaignKey,
             userId,
@@ -319,7 +370,8 @@ public class VWO {
             this.batchEventQueue,
             null,
             null,
-            this.goalTypeToTrack
+            this.goalTypeToTrack,
+            this.usageStats
     );
   }
 
@@ -332,6 +384,15 @@ public class VWO {
    * @return Boolean corresponding to whether user became part of feature.
    */
   public boolean isFeatureEnabled(String campaignKey, String userId, VWOAdditionalParams additionalParams) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.IS_FEATURE_ENABLED.value());
+        }
+      }));
+      return false;
+    }
+
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
 
     return FeatureCampaign.isFeatureEnabled(
@@ -355,6 +416,14 @@ public class VWO {
    * @return Boolean corresponding to whether user became part of feature.
    */
   public boolean isFeatureEnabled(String campaignKey, String userId) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.IS_FEATURE_ENABLED.value());
+        }
+      }));
+      return false;
+    }
     return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null);
   }
 
@@ -368,6 +437,15 @@ public class VWO {
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
   public Object getFeatureVariableValue(String campaignKey, String variableKey, String userId, VWOAdditionalParams additionalParams) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE.value());
+        }
+      }));
+      return null;
+    }
+
     additionalParams = additionalParams == null ? new VWO.AdditionalParams() : additionalParams;
 
     return FeatureCampaign.getFeatureVariable(
@@ -391,6 +469,15 @@ public class VWO {
    * @return If variation is assigned then string variable corresponding to variation assigned otherwise null
    */
   public Object getFeatureVariableValue(String campaignKey, String variableKey, String userId) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.GET_FEATURE_VARIABLE_VALUE.value());
+        }
+      }));
+      return null;
+    }
+
     return FeatureCampaign.getFeatureVariable(campaignKey, userId, variableKey, null, this.getSettingFile(), this.getVariationDecider(), null, null);
   }
 
@@ -402,8 +489,17 @@ public class VWO {
    * @param userId   ID assigned to a user
    * @return Boolean representing if the tag was pushed or not
    */
-  public boolean push(String tagKey, String tagValue, String userId) {
-    return Segmentation.pushCustomDimension(this.getSettingFile(), tagKey, tagValue, userId, this.batchEventQueue, this.isDevelopmentMode(), new HashMap<>());
+  public Map<String, Boolean> push(String tagKey, String tagValue, String userId) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.PUSH.value());
+        }
+      }));
+      return new HashMap<String, Boolean>();
+    }
+
+    return Segmentation.pushCustomDimension(this.getSettingFile(), tagKey, tagValue, userId, this.batchEventQueue, this.isDevelopmentMode(), new HashMap<>(), this.usageStats);
   }
 
   /**
@@ -412,8 +508,17 @@ public class VWO {
    * @param userId   ID assigned to a user
    * @return Boolean representing if the tag was pushed or not
    */
-  public boolean push(Map<String, String> customDimensionMap,  String userId) {
-    return Segmentation.pushCustomDimension(this.getSettingFile(), " ", " ", userId, this.batchEventQueue, this.isDevelopmentMode(), customDimensionMap);
+  public Map<String, Boolean> push(Map<String, String> customDimensionMap,  String userId) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.PUSH.value());
+        }
+      }));
+      return new HashMap<String, Boolean>();
+    }
+
+    return Segmentation.pushCustomDimension(this.getSettingFile(), " ", " ", userId, this.batchEventQueue, this.isDevelopmentMode(), customDimensionMap, this.usageStats);
   }
 
   /**
@@ -422,6 +527,15 @@ public class VWO {
    * @return Boolean representing if the events are flushed or not
    */
   public boolean flushEvents() {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.FLUSH_EVENTS.value());
+        }
+      }));
+      return false;
+    }
+
     int accountId = this.settingFile.getSettings().getAccountId();
     if (this.batchEventQueue != null) {
 
@@ -450,10 +564,49 @@ public class VWO {
    * @param sdkKey    Unique sdk-key
    */
   public void getAndUpdateSettingsFile(String accountId, String sdkKey) {
+    if (this.optOut) {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("API_NOT_ENABLED"), new HashMap<String, String>() {
+        {
+          put("api", APIEnums.API_TYPES.UPDATE_SETTINGS_FILE.value());
+        }
+      }));
+      return;
+    }
+
     String updatedSettings = SettingsFileManager.getSettingsFile(accountId, sdkKey, true);
     if (updatedSettings != null) {
       this.updateSettingsFile(updatedSettings);
     }
+  }
+
+  /**
+   * Manually opting out of VWO SDK, No tracking will happen.
+   *
+   * @return boolean
+   */
+  public boolean setOptOut() {
+    LOGGER.info(LoggerService.getInstance().infoMessages.get("OPT_OUT_API_CALLED"));
+    if (this.batchEventQueue != null && !this.batchEventQueue.getBatchQueue().isEmpty()) {
+      this.flushEvents();
+    }
+    this.destroyInstanceVariables();
+    return true;
+  }
+
+
+  private void destroyInstanceVariables() {
+    this.settingFile = null;
+    this.customLogger = null;
+    this.userStorage = null;
+    this.batchEventQueue = null;
+    this.settingFileString = null;
+    this.pollingInterval = 0;
+    this.variationDecider = null;
+    this.goalTypeToTrack = null;
+    this.usageStats = null;
+    this.sdkKey = null;
+    this.batchEventQueue = null;
+    this.optOut = true;
   }
 
   //  /**

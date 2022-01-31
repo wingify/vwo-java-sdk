@@ -23,6 +23,8 @@ public class APIEnums {
     IS_FEATURE_ENABLED("isFeatureEnabled"),
     GET_FEATURE_VARIABLE_VALUE("getFeatureVariableValue"),
     PUSH("push"),
+    FLUSH_EVENTS("flushEvents"),
+    UPDATE_SETTINGS_FILE("getAndUpdateSettingsFile"),
     TRACK("track");
 
 

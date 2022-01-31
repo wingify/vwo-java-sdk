@@ -35,34 +35,35 @@ public class PushSegmentTests {
   @Test
   public void validationTests() throws IOException {
     LOGGER.info("Should return false if no tag key is passed");
-    assertFalse(vwoInstance.push("", "tagValue", userId));
-    assertFalse(vwoInstance.push(null, "tagValue", userId));
+    assertFalse(vwoInstance.push("", "tagValue", userId).get(""));
+    assertTrue(vwoInstance.push(null, "tagValue", userId).size() == 0);
 
     LOGGER.info("Should return false if no tag value is passed");
-    assertFalse(vwoInstance.push("tagKey", "", userId));
-    assertFalse(vwoInstance.push("tagKey", null, userId));
+    assertFalse(vwoInstance.push("tagKey", "", userId).get("tagKey"));
+    assertTrue(vwoInstance.push("tagKey", null, userId).size() == 0);
 
     LOGGER.info("Should return false if no user ID is passed");
-    assertFalse(vwoInstance.push("tagKey", "tagValue", ""));
-    assertFalse(vwoInstance.push("tagKey", "tagValue", null));
+    assertFalse(vwoInstance.push("tagKey", "tagValue", "").get("tagKey"));
+    assertFalse(vwoInstance.push("tagKey", "tagValue", null).get("tagKey"));
 
     LOGGER.info("Should return false if custom dimension is not passed/empty");
-    assertFalse(vwoInstance.push(null, userId));
-    assertFalse(vwoInstance.push(new HashMap<>(), userId));
+    assertTrue(vwoInstance.push(null, userId).size() == 0);
+    assertTrue(vwoInstance.push(new HashMap<>(), userId).size() == 0);
   }
 
   @Test
   public void maxLengthTests() throws IOException {
     LOGGER.info("Should return false if tag key > 255.");
-    assertFalse(vwoInstance.push("rtyhgvftyhbvfrtytghbvtdygttuh67ugvctf7ugct7guctfygbhgfdghjgfghgfcgfhbvcfghbfunbhgfbghgygbhjasgduyasgdudgiugtrdtfyujhgfdreswertyuijhgfdsadxfcgvhbnvcxdsertyuhjnbvcxdrftgyhbvcxdwqkegdyusgcbdysughbctyfugihbhvgcyrxdy5ugvhcghfgxdetsrdyfugvjchfgxdtrydufgvcfgxyugyhcg", "tagValue", userId));
+    String tag = "rtyhgvftyhbvfrtytghbvtdygttuh67ugvctf7ugct7guctfygbhgfdghjgfghgfcgfhbvcfghbfunbhgfbghgygbhjasgduyasgdudgiugtrdtfyujhgfdreswertyuijhgfdsadxfcgvhbnvcxdsertyuhjnbvcxdrftgyhbvcxdwqkegdyusgcbdysughbctyfugihbhvgcyrxdy5ugvhcghfgxdetsrdyfugvjchfgxdtrydufgvcfgxyugyhcg";
+    assertFalse(vwoInstance.push(tag, "tagValue", userId).get(tag));
 
     LOGGER.info("Should return false if tag key > 255.");
-    assertFalse(vwoInstance.push("tagKey", "rtyhgvftyhbvfrtytghbvtdygttuh67ugvctf7ugct7guctfygbhgfdghjgfghgfcgfhbvcfghbfunbhgfbghgygbhjasgduyasgdudgiugtrdtfyujhgfdreswertyuijhgfdsadxfcgvhbnvcxdsertyuhjnbvcxdrftgyhbvcxdwqkegdyusgcbdysughbctyfugihbhvgcyrxdy5ugvhcghfgxdetsrdyfugvjchfgxdtrydufgvcfgxyugyhcg", userId));
+    assertFalse(vwoInstance.push("tagKey", tag, userId).get("tagKey"));
   }
 
   @Test
   public void correctCustomVariablesTest() throws IOException {
     LOGGER.info("Should return true for valid input customVariables.");
-    assertTrue(vwoInstance.push("myKey", "myValue", userId));
+    assertTrue(vwoInstance.push("myKey", "myValue", userId).size()  > 0);
   }
 }
