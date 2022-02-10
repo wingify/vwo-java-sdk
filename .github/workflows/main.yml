@@ -15,7 +15,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        java_version: ['8', '11', '12', '13', '15' ]
+        java_version: ['8', '11', '12', '13', '15', '17' ]
 
 
     steps:
@@ -53,4 +53,3 @@ jobs:
           color: "${{job.status == 'success' && '#00FF00' || '#FF0000'}}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-

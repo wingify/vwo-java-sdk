@@ -10,12 +10,14 @@ This open source library allows you to A/B Test your Website at server-side.
 
 The Java SDK supports:
 
-* Open JDK 8, 9, 11, 12
-* Oracle JDK 8, 9, 11, 12
+* Open JDK 8, 9, 11, 12, 13, 15, 17
+* Oracle JDK 8, 9, 11, 12, 13, 15, 17
+
+Our [Build](https://github.com/wingify/vwo-java-sdk/actions) is successful on these Java Versions - `8, 11, 12, 13, 15, 17`
 
 ## SDK Installation
 
-Install dependencies using 'mvn install'
+Install dependencies using `mvn install`
 
 Add below Maven dependency in your project.
 
