@@ -133,6 +133,15 @@ public class VariationDecider {
       return whitelistedVariation;
     }
 
+    if (campaign.getIsAlwaysCheckSegment()) {
+      Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, false);
+      if (isPreSegmentationValid) {
+        return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier);
+      } else {
+        return null;
+      }
+    }
+
     Variation userVariation = checkForUserStorage(apiName, campaign, userId, goalIdentifier, false);
     if (userVariation == null || userVariation.getId() != -1) {
       return userVariation;

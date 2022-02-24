@@ -41,7 +41,8 @@ import java.util.Map;
         "name",
         "isForcedVariationEnabled",
         "isBucketingSeedEnabled",
-        "isUserListEnabled"
+        "isUserListEnabled",
+        "isAlwaysCheckSegment"
 })
 public class Campaign implements  Cloneable {
 
@@ -71,6 +72,8 @@ public class Campaign implements  Cloneable {
   private boolean isBucketingSeedEnabled;
   @JsonProperty("isUserListEnabled")
   private boolean isUserListEnabled;
+  @JsonProperty("isAlwaysCheckSegment")
+  private boolean isAlwaysCheckSegment;
 
   private Integer startRange;
   private Integer endRange;
@@ -240,5 +243,9 @@ public class Campaign implements  Cloneable {
 
   public void setUserListEnabled(boolean userListEnabled) {
     isUserListEnabled = userListEnabled;
+  }
+
+  public boolean getIsAlwaysCheckSegment() {
+    return isAlwaysCheckSegment;
   }
 }
