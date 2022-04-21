@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.36.0] - 2022-21-04
+
+### Added
+
+- Updated SDK dependencies' version in `pom.xml`
+
 ## [1.35.0] - 2022-25-02
 
 ### Added

@@ -19,7 +19,7 @@ limitations under the License. -->
 
     <groupId>com.vwo.sdk</groupId>
     <artifactId>vwo-java-sdk</artifactId>
-    <version>1.35.0</version>
+    <version>1.36.0</version>
     <packaging>jar</packaging>
 
     <name>VWO Java Server Side SDK</name>
@@ -37,7 +37,7 @@ limitations under the License. -->
         <url>scm:git@github.com:wingify/vwo-java-sdk.git</url>
         <connection>scm:git:git@github.com:wingify/vwo-java-sdk.git</connection>
         <developerConnection>scm:git:git@github.com:wingify/vwo-java-sdk.git</developerConnection>
-        <tag>v1.8.1</tag>
+        <tag>v1.35.0</tag>
     </scm>
 
     <developers>
@@ -317,17 +317,17 @@ limitations under the License. -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.11.0</version>
+            <version>2.13.2</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.11.0</version>
+            <version>2.13.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
+            <version>1.7.36</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
