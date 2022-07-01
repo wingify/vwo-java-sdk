@@ -18,6 +18,12 @@ package com.vwo.models.request;
 
 import com.vwo.models.request.meta.VWOMeta;
 import com.vwo.models.request.visitor.Visitor;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Props {
 
@@ -29,6 +35,8 @@ public class Props {
   private Integer isFirst;
   private VWOMeta vwoMeta;
   private Boolean isCustomEvent;
+  @JsonIgnore
+  private Map<String,Object> additionalProperties = new HashMap<String,Object>();
 
   public Visitor getVisitor() {
     return $visitor;
@@ -98,5 +106,15 @@ public class Props {
 
   public void setCustomEvent(Boolean customEvent) {
     isCustomEvent = customEvent;
+  }
+
+  @JsonAnyGetter
+  public Map<String, ?> getAdditionalProperties() {
+    return additionalProperties;
+  }
+
+  @JsonAnySetter
+  public void setAdditionalProperties(Map<String, Object> additionalProperties) {
+    this.additionalProperties = additionalProperties;
   }
 }

@@ -100,7 +100,7 @@ public class RequestBuilderTests {
       put("10", 30);
       put("50", 40);
     }};
-    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackGoalPayload(settings, "Ashley", metricMap, "goalIdentifier", 300, new HashSet<String>(){{add("revenue");}});
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackGoalPayload(settings, "Ashley", metricMap, "goalIdentifier", 300, new HashSet<String>(){{add("revenue");}},new HashMap<>());
     HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "goalIdentifier", payload, null);
 
     assertNotNull(queryParams.getQueryParams().get("a"));

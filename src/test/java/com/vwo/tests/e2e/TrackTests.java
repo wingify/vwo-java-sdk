@@ -22,6 +22,7 @@ import com.vwo.VWOAdditionalParams;
 import com.vwo.enums.GoalEnums;
 import com.vwo.logger.Logger;
 import com.vwo.models.response.Settings;
+import com.vwo.services.storage.Storage;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import org.junit.jupiter.api.Test;
@@ -433,7 +434,48 @@ public class TrackTests {
       .build();
     VWOAdditionalParams params = new VWOAdditionalParams();
     params.setRevenueValue(20);
+    params.setEventProperties(new HashMap<>());
     Map<String, Boolean> trackResponse = vwoInstance.track(null, "Ashley", "track3", params);
     assertEquals(trackResponse.size(), 3);
+  }
+
+  private Storage.User getUserStorage(ArrayList<Map<String, String>> campaignStorageArray) {
+    return new Storage.User() {
+      @Override
+      public Map<String, String> get(String userId, String campaignName) {
+        for (Map<String, String> savedCampaign: campaignStorageArray) {
+          if (savedCampaign.get("userId").equals(userId) && savedCampaign.get("campaignKey").equals(campaignName)) {
+            return savedCampaign;
+          }
+        }
+        return null;
+      }
+
+      @Override
+      public void set(Map<String, String> map){
+        campaignStorageArray.add(map);
+      }
+    };
+  }
+
+  @Test
+  public void trackMCATest() throws IOException {//copy
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100_MCA, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    ArrayList<Map<String, String>> campaignStorageArray = new ArrayList<>();
+    Map<String, String> userStorageMap = new HashMap<String, String>(){{
+      put("userId", "Ashley");
+      put("campaignKey", campaignKey);
+      put("variationName", "Variation-1");
+      put("goalIdentifier", "track2");
+    }};
+    campaignStorageArray.add(userStorageMap);
+    Storage.User userStorage = this.getUserStorage(campaignStorageArray);
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100_MCA).withDevelopmentMode(true).withUserStorage(userStorage).build();
+
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    params.setRevenueValue(20);
+
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", "track2", params).get(campaignKey), true);
   }
 }

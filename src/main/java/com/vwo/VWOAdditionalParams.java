@@ -25,6 +25,7 @@ public class VWOAdditionalParams {
   private Map<String, ?> variationTargetingVariables;
   private Object revenueValue;
   private GoalEnums.GOAL_TYPES goalTypeToTrack;
+  private Map<String, ?> eventProperties;
 
   public Map<String, ?> getCustomVariables() {
     return customVariables;
@@ -59,6 +60,15 @@ public class VWOAdditionalParams {
 
   public VWOAdditionalParams setGoalTypeToTrack(GoalEnums.GOAL_TYPES goalTypeToTrack) {
     this.goalTypeToTrack = goalTypeToTrack;
+    return this;
+  }
+
+  public Map<String, ?> getEventProperties() {
+    return eventProperties;
+  }
+
+  public VWOAdditionalParams setEventProperties(Map<String, ?> eventProperties) {
+    this.eventProperties = eventProperties;
     return this;
   }
 

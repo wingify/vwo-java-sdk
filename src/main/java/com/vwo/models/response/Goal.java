@@ -31,7 +31,8 @@ import java.util.Map;
         "identifier",
         "id",
         "type",
-        "revenueProp"
+        "revenueProp",
+        "mca"
 
 })
 public class Goal {
@@ -44,6 +45,9 @@ public class Goal {
   private String type;
   @JsonProperty("revenueProp")
   private String revenueProp;
+
+  @JsonProperty("mca")
+  private Integer mca;
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -93,5 +97,13 @@ public class Goal {
 
   public void setRevenueProp(String revenueProp) {
     this.revenueProp = revenueProp;
+  }
+
+  public Integer getMCA() {
+    return mca;
+  }
+
+  public void setMCA(Integer mca) {
+    this.mca = mca;
   }
 }

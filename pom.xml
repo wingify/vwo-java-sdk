@@ -19,7 +19,7 @@ limitations under the License. -->
 
     <groupId>com.vwo.sdk</groupId>
     <artifactId>vwo-java-sdk</artifactId>
-    <version>1.36.0</version>
+    <version>1.40.0</version>
     <packaging>jar</packaging>
 
     <name>VWO Java Server Side SDK</name>
@@ -56,6 +56,12 @@ limitations under the License. -->
         <developer>
             <name>Punit Gupta</name>
             <email>punit.gupta14@yahoo.com</email>
+            <organization>WINGIFY</organization>
+            <organizationUrl>https://wingify.com/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Nakul Thaper</name>
+            <email>nakul.thaper.nt@gmail.com</email>
             <organization>WINGIFY</organization>
             <organizationUrl>https://wingify.com/</organizationUrl>
         </developer>

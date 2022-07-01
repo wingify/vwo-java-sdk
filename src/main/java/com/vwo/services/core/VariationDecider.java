@@ -26,8 +26,10 @@ import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
 import com.vwo.logger.LoggerService;
 import com.vwo.models.response.Campaign;
+import com.vwo.models.response.Goal;
 import com.vwo.models.response.Settings;
 import com.vwo.models.response.Variation;
+import com.vwo.services.api.TrackCampaign;
 import com.vwo.services.integrations.HooksManager;
 import com.vwo.services.segmentation.PreSegmentation;
 import com.vwo.services.segmentation.enums.VWOAttributesEnum;
@@ -43,6 +45,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class VariationDecider {
 
@@ -348,7 +351,7 @@ public class VariationDecider {
 
 
           if (goalIdentifier != null) {
-            if (checkGoalTracked(goalIdentifier, userStorageMap)) {
+            if (checkGoalTracked(goalIdentifier, userStorageMap) && !checkMCA(goalIdentifier, campaign)) {
               LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("CAMPAIGN_GOAL_ALREADY_TRACKED"), new HashMap<String, String>() {
                 {
                   put("goalIdentifier", goalIdentifier);
@@ -748,6 +751,20 @@ public class VariationDecider {
     ArrayList<String> goalList = StorageUtils.stringToArray(userStorageMap.get(UserStorage.goalIdentifier));
     return goalList != null && goalList.contains(goalIdentifier);
   }
+
+  /**
+   * check if multi conversion allowed.
+   *
+   * @param goalIdentifier - goalIdentifier string
+   * @param campaign - campaign instance
+   * @return true if multi conversion allowed, else false
+   */
+  private boolean checkMCA(String goalIdentifier, Campaign campaign) {
+    Goal goal = TrackCampaign.getGoalId(campaign, goalIdentifier);
+    boolean isMCA = (goal.getMCA() != null && goal.getMCA() == -1) && Objects.equals(goal.getType(), "REVENUE_TRACKING");
+    return isMCA;
+  }
+
 
   /**
    * Check if the campaign is activated before.

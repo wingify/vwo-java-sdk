@@ -74,6 +74,7 @@ public class HttpPostRequest implements Runnable {
             new ObjectMapper().readTree(httpParams.getBody()),
             request.getURI().toString());
 
+
     httpClient.send(request, response);
     return response.error == null;
   }

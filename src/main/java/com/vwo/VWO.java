@@ -346,7 +346,8 @@ public class VWO {
             additionalParams.getCustomVariables(),
             additionalParams.getVariationTargetingVariables(),
             goalsToTrack,
-            this.usageStats
+            this.usageStats,
+            additionalParams.getEventProperties()
     );
   }
 
@@ -371,7 +372,8 @@ public class VWO {
             null,
             null,
             this.goalTypeToTrack,
-            this.usageStats
+            this.usageStats,
+            new HashMap<>()
     );
   }
 

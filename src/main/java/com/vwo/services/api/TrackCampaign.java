@@ -61,22 +61,27 @@ public class TrackCampaign {
    * @return Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
    */
   public static Map<String, Boolean> trackGoal(
-          Object campaignSpecifier,
-          String userId,
-          String goalIdentifier,
-          Object revenueValue,
-          SettingFile settingFile,
-          VariationDecider variationDecider,
-          boolean isDevelopmentMode,
-          BatchEventQueue batchEventQueue,
-          Map<String, ?> CustomVariables,
-          Map<String, ?> variationTargetingVariables,
-          GoalEnums.GOAL_TYPES goalsToTrack,
-          Map<String, Integer> usageStats
+      Object campaignSpecifier,
+      String userId,
+      String goalIdentifier,
+      Object revenueValue,
+      SettingFile settingFile,
+      VariationDecider variationDecider,
+      boolean isDevelopmentMode,
+      BatchEventQueue batchEventQueue,
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables,
+      GoalEnums.GOAL_TYPES goalsToTrack,
+      Map<String, Integer> usageStats,
+      Map<String, ?> eventProperties
+
   ) {
     try {
       if (!TrackCampaign.isTrackParamsValid(campaignSpecifier, userId, goalIdentifier)) {
         return null;
+      }
+      if (eventProperties == null) {
+        eventProperties = new HashMap<>();
       }
 
       ArrayList<Campaign> campaignList = new ArrayList<>();
@@ -190,7 +195,7 @@ public class TrackCampaign {
       }
 
       if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled() && metricMap.size() > 0) {
-        Map<String, Object> trackGoalPayload = HttpRequestBuilder.getEventArchTrackGoalPayload(settingFile, userId, metricMap, goalIdentifier, revenueValue, revenuePropList);
+        Map<String, Object> trackGoalPayload = HttpRequestBuilder.getEventArchTrackGoalPayload(settingFile, userId, metricMap, goalIdentifier, revenueValue, revenuePropList,eventProperties);
         HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, goalIdentifier, trackGoalPayload, null);
         HttpPostRequest.send(httpParams, HttpUtils.handleEventArchResponse(settingFile.getSettings().getAccountId(), goalIdentifier, null), false);
       }
@@ -215,7 +220,7 @@ public class TrackCampaign {
     );
   }
 
-  private static Goal getGoalId(Campaign campaign, String goalIdentifier) {
+  public static Goal getGoalId(Campaign campaign, String goalIdentifier) {
     for (Goal singleGoal : campaign.getGoals()) {
       if (goalIdentifier.equalsIgnoreCase(singleGoal.getIdentifier())) {
         return singleGoal;

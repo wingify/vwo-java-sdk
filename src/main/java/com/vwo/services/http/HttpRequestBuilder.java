@@ -375,10 +375,11 @@ public class HttpRequestBuilder {
   }
 
   public static Map<String, Object> getEventArchTrackGoalPayload(SettingFile settingFile, String userId,
-                                                                 Map<String, Integer> metricMap, String goalIdentifier, Object revenue, HashSet<String> revenueListProp) {
+                                                                 Map<String, Integer> metricMap, String goalIdentifier, Object revenue, HashSet<String> revenueListProp,Map<String,?> eventProperties) {
 
     EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, goalIdentifier);
     Map<String, Object> metric = new HashMap<String, Object>();
+    Map<String,Object> eventMap = new HashMap<String,Object>();
     ArrayList<String> campaignList = new ArrayList<>();
     for (Map.Entry<String, Integer> query : metricMap.entrySet()) {
       metric.put("id_" + query.getKey(), new ArrayList<String>() {
@@ -389,7 +390,10 @@ public class HttpRequestBuilder {
       );
       campaignList.add(query.getKey());
     }
-
+    for (Map.Entry<String, ?> query : eventProperties.entrySet()) {
+      eventMap.put(query.getKey(),query.getValue());
+    }
+    eventArchPayload.getD().getEvent().getProps().setAdditionalProperties(eventMap);
     eventArchPayload.getD().getEvent().getProps().setVwoMeta(new VWOMeta().setMetric(metric));
     eventArchPayload.getD().getEvent().getProps().setCustomEvent(true);
 
