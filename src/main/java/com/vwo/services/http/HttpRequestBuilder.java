@@ -26,12 +26,12 @@ import com.vwo.enums.HTTPEnums;
 import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
 import com.vwo.logger.LoggerService;
+import com.vwo.models.request.Event;
 import com.vwo.models.request.EventArchData;
 import com.vwo.models.request.EventArchPayload;
 import com.vwo.models.request.Props;
-import com.vwo.models.request.Event;
-import com.vwo.models.request.visitor.Visitor;
 import com.vwo.models.request.meta.VWOMeta;
+import com.vwo.models.request.visitor.Visitor;
 import com.vwo.models.response.Campaign;
 import com.vwo.models.response.Goal;
 import com.vwo.models.response.Settings;
@@ -46,11 +46,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 import static com.vwo.utils.HttpUtils.removeNullValues;
 
@@ -69,15 +70,14 @@ public class HttpRequestBuilder {
   private static final Logger LOGGER = Logger.getLogger(HttpRequestBuilder.class);
 
   public static HttpParams getSettingParams(String accountID, String sdkKey, boolean isViaWebhook) {
-    BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withSettingsAccountId(accountID)
-                    .withR(Math.random())
-                    .withSdkKey(sdkKey)
-                    .withsdk()
-                    .withsdkVersion()
-                    .withPlatform()
-                    .build();
+
+    BuildQueryParams requestParams = BuildQueryParams.Builder.getInstance().withSettingsAccountId(accountID)
+        .withR(Math.random())
+        .withSdkKey(sdkKey)
+        .withsdk()
+        .withsdkVersion()
+        .withPlatform()
+        .build();
 
     // LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.GET_SETTINGS_IMPRESSION_CREATED.value());
 
@@ -92,20 +92,21 @@ public class HttpRequestBuilder {
 
   public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId, Variation variation, Map<String, Integer> usageStats) {
     Settings settings = settingFile.getSettings();
-    BuildQueryParams requestParams = BuildQueryParams.Builder.getInstance()
-            .withAccountId(settings.getAccountId())
-            .withCampaignId(campaign.getId())
-            .withRandom(Math.random())
-            .withAp()
-            .withEd()
-            .withUuid(settings.getAccountId(), userId)
-            .withSid(Instant.now().getEpochSecond())
-            .withVariation(variation.getId())
-            .withsdk()
-            .withsdkVersion()
-            .withUsageStats(usageStats)
-            .withEnvironment(settings.getSdkKey())
-            .build();
+    BuildQueryParams requestParams =
+        BuildQueryParams.Builder.getInstance()
+        .withAccountId(settings.getAccountId())
+        .withCampaignId(campaign.getId())
+        .withRandom(Math.random())
+        .withAp()
+        .withEd()
+        .withUuid(settings.getAccountId(), userId)
+        .withSid(Instant.now().getEpochSecond())
+        .withVariation(variation.getId())
+        .withsdk()
+        .withsdkVersion()
+        .withUsageStats(usageStats)
+        .withEnvironment(settings.getSdkKey())
+        .build();
 
     Map<String, Object> map = requestParams.convertToMap();
 
@@ -127,13 +128,13 @@ public class HttpRequestBuilder {
     Settings settings = settingFile.getSettings();
 
     BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withMinifiedCampaignId(campaign.getId())
-                    .withMinifiedVariationId(variation.getId())
-                    .withMinifiedEventType(1)
-                    .withSid(Instant.now().getEpochSecond())
-                    .withUuid(settings.getAccountId(), userId)
-                    .build();
+        BuildQueryParams.Builder.getInstance()
+        .withMinifiedCampaignId(campaign.getId())
+        .withMinifiedVariationId(variation.getId())
+        .withMinifiedEventType(1)
+        .withSid(Instant.now().getEpochSecond())
+        .withUuid(settings.getAccountId(), userId)
+        .build();
 
     Map<String, Object> map = requestParams.convertToMap();
     map = requestParams.removeNullValues(map);
@@ -150,20 +151,20 @@ public class HttpRequestBuilder {
   public static HttpParams getGoalParams(SettingFile settingFile, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withAccountId(settings.getAccountId())
-                    .withCampaignId(campaign.getId())
-                    .withRandom(Math.random())
-                    .withAp()
-                    .withUuid(settings.getAccountId(), userId)
-                    .withGoalId(goal.getId())
-                    .withSid(Instant.now().getEpochSecond())
-                    .withRevenue(revenueValue)
-                    .withVariation(variation.getId())
-                    .withsdk()
-                    .withsdkVersion()
-                    .withEnvironment(settings.getSdkKey())
-                    .build();
+        BuildQueryParams.Builder.getInstance()
+        .withAccountId(settings.getAccountId())
+        .withCampaignId(campaign.getId())
+        .withRandom(Math.random())
+        .withAp()
+        .withUuid(settings.getAccountId(), userId)
+        .withGoalId(goal.getId())
+        .withSid(Instant.now().getEpochSecond())
+        .withRevenue(revenueValue)
+        .withVariation(variation.getId())
+        .withsdk()
+        .withsdkVersion()
+        .withEnvironment(settings.getSdkKey())
+        .build();
 
     Map<String, Object> map = requestParams.convertToMap();
     Map<String, Object> loggingMap = map;
@@ -183,15 +184,15 @@ public class HttpRequestBuilder {
     Settings settings = settingFile.getSettings();
 
     BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withMinifiedCampaignId(campaign.getId())
-                    .withMinifiedVariationId(variation.getId())
-                    .withMinifiedEventType(2)
-                    .withMinifiedGoalId(goal.getId())
-                    .withRevenue(revenueValue)
-                    .withSid(Instant.now().getEpochSecond())
-                    .withUuid(settings.getAccountId(), userId)
-                    .build();
+        BuildQueryParams.Builder.getInstance()
+        .withMinifiedCampaignId(campaign.getId())
+        .withMinifiedVariationId(variation.getId())
+        .withMinifiedEventType(2)
+        .withMinifiedGoalId(goal.getId())
+        .withRevenue(revenueValue)
+        .withSid(Instant.now().getEpochSecond())
+        .withUuid(settings.getAccountId(), userId)
+        .build();
 
     Map<String, Object> map = requestParams.convertToMap();
     map = requestParams.removeNullValues(map);
@@ -209,17 +210,17 @@ public class HttpRequestBuilder {
   public static HttpParams getCustomDimensionParams(SettingFile settingFile, String tagKey, String tagValue, String userId) {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withAccountId(settings.getAccountId())
-                    .withUuid(settings.getAccountId(), userId)
-                    .withTags(tagKey, tagValue)
-                    .withSid(Instant.now().getEpochSecond())
-                    .withRandom(Math.random())
-                    .withAp()
-                    .withsdk()
-                    .withsdkVersion()
-                    .withEnvironment(settings.getSdkKey())
-                    .build();
+        BuildQueryParams.Builder.getInstance()
+        .withAccountId(settings.getAccountId())
+        .withUuid(settings.getAccountId(), userId)
+        .withTags(tagKey, tagValue)
+        .withSid(Instant.now().getEpochSecond())
+        .withRandom(Math.random())
+        .withAp()
+        .withsdk()
+        .withsdkVersion()
+        .withEnvironment(settings.getSdkKey())
+        .build();
     Map<String, Object> map = requestParams.convertToMap();
     Map<String, Object> loggingMap = map;
     loggingMap.remove("env");
@@ -238,12 +239,12 @@ public class HttpRequestBuilder {
     Settings settings = settingFile.getSettings();
 
     BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withMinifiedEventType(3)
-                    .withMinifiedTags(tagKey, tagValue)
-                    .withSid(Instant.now().getEpochSecond())
-                    .withUuid(settings.getAccountId(), userId)
-                    .build();
+        BuildQueryParams.Builder.getInstance()
+        .withMinifiedEventType(3)
+        .withMinifiedTags(tagKey, tagValue)
+        .withSid(Instant.now().getEpochSecond())
+        .withUuid(settings.getAccountId(), userId)
+        .build();
 
     Map<String, Object> map = requestParams.convertToMap();
     map = requestParams.removeNullValues(map);
@@ -259,13 +260,13 @@ public class HttpRequestBuilder {
 
   public static HttpParams getBatchEventPostCallParams(String accountId, String apiKey, Queue<Map<String, Object>> properties, Map<String, Integer> usageStats) throws JsonProcessingException {
     BuildQueryParams requestParams =
-            BuildQueryParams.Builder.getInstance()
-                    .withMinifiedSDKVersion()
-                    .withMinifiedSDKName()
-                    .withSettingsAccountId(accountId)
-                    .withEnvironment(apiKey)
-                    .withUsageStats(usageStats)
-                    .build();
+        BuildQueryParams.Builder.getInstance()
+        .withMinifiedSDKVersion()
+        .withMinifiedSDKName()
+        .withSettingsAccountId(accountId)
+        .withEnvironment(apiKey)
+        .withUsageStats(usageStats)
+        .build();
 
     Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -285,14 +286,14 @@ public class HttpRequestBuilder {
   public static HttpParams getEventArchQueryParams(SettingFile settingFile, String eventName, Map<String, Object> properties, Map<String, Integer> usageStats) throws JsonProcessingException {
     Settings settings = settingFile.getSettings();
     BuildQueryParams.Builder requestBuilder =
-            BuildQueryParams.Builder.getInstance()
-                    .withSettingsAccountId(String.valueOf(settings.getAccountId()))
-                    .withEventName(eventName)
-                    .withETime(Instant.now().toEpochMilli())
-                    .withEnvironment(settings.getSdkKey())
-                    .withsdk()
-                    .withP("FS")
-                    .withRandom(Math.random());
+        BuildQueryParams.Builder.getInstance()
+        .withSettingsAccountId(String.valueOf(settings.getAccountId()))
+        .withEventName(eventName)
+        .withETime(Instant.now().toEpochMilli())
+        .withEnvironment(settings.getSdkKey())
+        .withsdk()
+        .withP("FS")
+        .withRandom(Math.random());
 
     if (usageStats != null) {
       requestBuilder.withUsageStats(usageStats);
@@ -320,13 +321,9 @@ public class HttpRequestBuilder {
     //create props map
     Props props =
         new Props()
-          .setSdkName("java")
-          .setSdkVersion(UriEnums.SDK_VERSION.toString())
-          .setVisitor(new Visitor().setProps(new HashMap<String, Object>() {
-              {
-                put("vwo_fs_environment", settings.getSdkKey());
-              }
-            }));
+        .setSdkName("java")
+        .setSdkVersion(UriEnums.SDK_VERSION.toString())
+        .setEnvKey(settingFile.getSettings().getSdkKey());
 
     //create the event map
     Event event = new Event();
@@ -375,23 +372,32 @@ public class HttpRequestBuilder {
   }
 
   public static Map<String, Object> getEventArchTrackGoalPayload(SettingFile settingFile, String userId,
-                                                                 Map<String, Integer> metricMap, String goalIdentifier, Object revenue, HashSet<String> revenueListProp,Map<String,?> eventProperties) {
+                                                                 Map<String, Integer> metricMap, String goalIdentifier, Object revenue,
+                                                                 HashSet<String> revenueListProp, Map<String, ?> eventProperties) {
 
-    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, goalIdentifier);
+    final EventArchPayload eventArchPayload = getBaseEventArchPayload(settingFile, userId, goalIdentifier);
     Map<String, Object> metric = new HashMap<String, Object>();
-    Map<String,Object> eventMap = new HashMap<String,Object>();
+    Map<String, Object> eventMap = new HashMap<String, Object>();
     ArrayList<String> campaignList = new ArrayList<>();
     for (Map.Entry<String, Integer> query : metricMap.entrySet()) {
       metric.put("id_" + query.getKey(), new ArrayList<String>() {
-          {
-            add("g_" + query.getValue());
-          }
+        {
+          add("g_" + query.getValue());
+        }
         }
       );
       campaignList.add(query.getKey());
     }
     for (Map.Entry<String, ?> query : eventProperties.entrySet()) {
       eventMap.put(query.getKey(),query.getValue());
+    }
+    Iterator value = revenueListProp.iterator();
+    while (value.hasNext()) {
+      String revenueProp = (String) value.next();
+      if (!eventMap.containsKey(revenueProp)) {
+        eventMap.put(revenueProp,revenue);
+        break;
+      }
     }
     eventArchPayload.getD().getEvent().getProps().setAdditionalProperties(eventMap);
     eventArchPayload.getD().getEvent().getProps().setVwoMeta(new VWOMeta().setMetric(metric));
@@ -409,14 +415,6 @@ public class HttpRequestBuilder {
     Map<String, Object> payloadMap = objectMapper.convertValue(eventArchPayload, Map.class);
     Map<String, Object> event = (Map<String, Object>)  ((Map<String, Object>) payloadMap.get("d")).get("event");
     event.put("props", removeNullValues((Map<String, Object>) event.get("props")));
-    if (revenue != null && revenueListProp != null && revenueListProp.size() > 0) {
-      Map<String, Object> vwoMeta = (Map<String, Object>) ((Map<String, Object>) event.get("props")).get("vwoMeta");
-      for (String revenueProp: revenueListProp) {
-        vwoMeta.put(revenueProp, revenue);
-      }
-      ((Map<String, Object>) event.get("props")).put("vwoMeta", vwoMeta);
-    }
-
     return payloadMap;
   }
 
@@ -427,7 +425,7 @@ public class HttpRequestBuilder {
 
     for (Map.Entry<String, ?> query : customDimensionMap.entrySet()) {
       eventArchPayload.getD().getVisitor().getProps().put(query.getKey(), query.getValue());
-      eventArchPayload.getD().getEvent().getProps().getVisitor().getProps().put(query.getKey(), query.getValue());
+      //eventArchPayload.getD().getEvent().getProps().getVisitor().getProps().put(query.getKey(), query.getValue());
     }
 
 

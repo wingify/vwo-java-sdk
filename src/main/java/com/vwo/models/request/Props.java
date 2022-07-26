@@ -21,15 +21,18 @@ import com.vwo.models.request.visitor.Visitor;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Props {
-
-  private Visitor $visitor;
-  private String sdkName;
-  private String sdkVersion;
+  @JsonProperty("vwo_sdkName")
+  private String vwo_sdkName;
+  @JsonProperty("vwo_sdkVersion")
+  private String vwo_sdkVersion;
+  @JsonProperty("vwo_envKey")
+  private String vwo_envKey;
   private Integer variation;
   private Integer id;
   private Integer isFirst;
@@ -38,30 +41,26 @@ public class Props {
   @JsonIgnore
   private Map<String,Object> additionalProperties = new HashMap<String,Object>();
 
-  public Visitor getVisitor() {
-    return $visitor;
-  }
-
-  public Props setVisitor(Visitor $visitor) {
-    this.$visitor = $visitor;
-    return this;
-  }
+  @JsonProperty("vwo_sdkName")
 
   public String getSdkName() {
-    return sdkName;
+    return vwo_sdkName;
   }
 
+  @JsonProperty("vwo_sdkName")
   public Props setSdkName(String sdkName) {
-    this.sdkName = sdkName;
+    this.vwo_sdkName = sdkName;
     return this;
   }
 
+  @JsonProperty("vwo_sdkVersion")
   public String getSdkVersion() {
-    return sdkVersion;
+    return vwo_sdkVersion;
   }
 
+  @JsonProperty("vwo_sdkVersion")
   public Props setSdkVersion(String sdkVersion) {
-    this.sdkVersion = sdkVersion;
+    this.vwo_sdkVersion = sdkVersion;
     return this;
   }
 
@@ -106,6 +105,17 @@ public class Props {
 
   public void setCustomEvent(Boolean customEvent) {
     isCustomEvent = customEvent;
+  }
+
+  @JsonProperty("vwo_envKey")
+  public String getEnvKey() {
+    return vwo_envKey;
+  }
+
+  @JsonProperty("vwo_envKey")
+  public Props setEnvKey(String vwo_envKey) {
+    this.vwo_envKey = vwo_envKey;
+    return this;
   }
 
   @JsonAnyGetter
