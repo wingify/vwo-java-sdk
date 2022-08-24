@@ -785,36 +785,46 @@ public class VWO {
     }
 
     private void initializeDefaults() {
-      LOGGER.info(LoggerService.getInstance().infoMessages.get("CONFIG_VALID"));
+      try {
+        LOGGER.info(LoggerService.getInstance().infoMessages.get("CONFIG_VALID"));
 
-      this.settingFile = SettingsFileUtil.initializeSettingsFile(this.settingFileString);
+        this.settingFile = SettingsFileUtil.initializeSettingsFile(this.settingFileString);
 
-      if (this.pollingInterval != null) {
-        if (this.sdkKey != null) {
-          LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("POLLING_SETTINGS_FILE_REGISTERED"), new HashMap<String, String>() {
-            {
-              put("pollingInterval", pollingInterval.toString());
-            }
-          }));
-        } else {
-          LOGGER.error(LoggerService.getInstance().errorMessages.get("CONFIG_POLLING_SDK_KEY_NOT_PROVIVED"));
+        if (this.pollingInterval != null) {
+          if (this.sdkKey != null) {
+            LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("POLLING_SETTINGS_FILE_REGISTERED"), new HashMap<String, String>() {
+              {
+                put("pollingInterval", pollingInterval.toString());
+              }
+            }));
+          } else {
+            LOGGER.error(LoggerService.getInstance().errorMessages.get("CONFIG_POLLING_SDK_KEY_NOT_PROVIVED"));
+          }
         }
+
+        if (this.settingFile != null) {
+          DataLocationManager.getInstance().setSettings(this.settingFile.getSettings());
+          this.bucketingService = new BucketingService();
+          this.variationDecider = new VariationDecider(bucketingService, userStorage, new HooksManager(this.integrations),
+            settingFile.getSettings().getAccountId());
+          this.developmentMode = this.developmentMode || false;
+
+          if (developmentMode) {
+            LOGGER.debug(LoggerService.getInstance().debugMessages.get("CONFIG_DEVELOPMENT_MODE_STATUS"));
+            usageStats.clear();
+          }
+
+          if (this.batchEvents != null) {
+            batchEventsQueue = new BatchEventQueue(this.batchEvents, settingFile.getSettings().getSdkKey(), settingFile.getSettings().getAccountId(), this.developmentMode, this.usageStats);
+          }
+        } else {
+          LOGGER.error(LoggerService.getInstance().errorMessages.get("SETTINGS_FILE_CORRUPTED"));
+        }
+
+      } catch (Exception e) {
+        LOGGER.error("Something Went Wrong",e);
       }
 
-      DataLocationManager.getInstance().setSettings(this.settingFile.getSettings());
-      this.bucketingService = new BucketingService();
-      this.variationDecider = new VariationDecider(bucketingService, userStorage, new HooksManager(this.integrations),
-              settingFile.getSettings().getAccountId());
-      this.developmentMode = this.developmentMode || false;
-
-      if (developmentMode) {
-        LOGGER.debug(LoggerService.getInstance().debugMessages.get("CONFIG_DEVELOPMENT_MODE_STATUS"));
-        usageStats.clear();
-      }
-
-      if (this.batchEvents != null) {
-        batchEventsQueue = new BatchEventQueue(this.batchEvents, settingFile.getSettings().getSdkKey(), settingFile.getSettings().getAccountId(), this.developmentMode, this.usageStats);
-      }
     }
 
     private VWO createVWOInstance() {
@@ -831,7 +841,7 @@ public class VWO {
               this.batchEventsQueue,
               this.usageStats
       );
-      if (vwoInstance != null) {
+      if (this.settingFile != null &&  vwoInstance != null) {
 
         LOGGER.info(LoggerService.getInstance().infoMessages.get("SDK_INITIALIZED"));
       }
