@@ -30,16 +30,30 @@ public class LoggerService {
   public Map<String, String> errorMessages;
   public Map<String, String> infoMessages;
   public Map<String, String> warningMessages;
-  public static LoggerService instance;
+
+  // singleton instance should be private and should be accessed only by getInstance() to avoid getting NLP's
+  // public static LoggerService instance;
+  private static LoggerService instance = null;
 
   public static LoggerService getInstance() {
+    // instantiate the singleton object if not already done
     if (instance == null) {
-      return new LoggerService();
+
+      // synchronize this instantiation code, to prevent multiple instantiations and make it thread safe
+      synchronized (LoggerService.class) {
+        instance = new LoggerService();
+      }
+
+      // return new LoggerService();
     }
+
     return instance;
   }
 
-  public LoggerService() {
+  // constructor for a singleton should be private, since it is only called from a nember function
+  // [THIS CAN ALSO CAUSE LOTS OF TESTS TO BREAK, SO PLEASE RUN ALL UNIT/FUNCTIONAL TESTS FOR THIS]
+  // public LoggerService() {
+  private LoggerService() {
     debugMessages = readLogsData("debug-messages.json");
     infoMessages = readLogsData("info-messages.json");
     errorMessages = readLogsData("error-messages.json");
