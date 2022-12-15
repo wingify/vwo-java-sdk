@@ -41,7 +41,10 @@ public class LoggerService {
 
       // synchronize this instantiation code, to prevent multiple instantiations and make it thread safe
       synchronized (LoggerService.class) {
-        instance = new LoggerService();
+        // check for instance being null again, to ensure that multiple instances are not created by multiple threads (edge case)
+        if(instance == null) {
+          instance = new LoggerService();
+        }
       }
 
       // return new LoggerService();
