@@ -19,6 +19,7 @@ package com.vwo.tests.e2e;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.VWO;
 import com.vwo.logger.Logger;
+import com.vwo.logger.LoggerService;
 import com.vwo.logger.VWOLogger;
 import com.vwo.models.response.Settings;
 import com.vwo.tests.utils.TestUtils;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,6 +40,20 @@ import static org.mockito.Mockito.verify;
 
 public class CustomLoggerTests {
   private static final Logger LOGGER = Logger.getLogger(CustomLoggerTests.class);
+
+  @Test
+  public void checkSingletonTest() {
+    try {
+      HashSet<Integer> hashCodeSet = new HashSet<>();
+      for(int i=0;i<5;i++){
+        LoggerService instance= LoggerService.getInstance();
+        hashCodeSet.add(instance.hashCode());
+      }
+      assertEquals(1,hashCodeSet.size(),"LoggerService not having Singleton behaviour");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
   @Test
   public void customLoggerMethodsTest() throws IOException {
