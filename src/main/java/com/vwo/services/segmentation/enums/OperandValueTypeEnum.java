@@ -19,7 +19,11 @@ package com.vwo.services.segmentation.enums;
 public enum OperandValueTypeEnum {
   REGEX("regex"),
   LOWER("lower"),
-  WILDCARD("wildcard");
+  WILDCARD("wildcard"),
+  GREATERTHAN("gt"),
+  LESSTHAN("lt"),
+  GREATERTHANEQUALTO("gte"),
+  LESSTHANEQUALTO("lte");
 
   String operandValueType;
 

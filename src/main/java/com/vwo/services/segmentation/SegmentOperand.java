@@ -23,6 +23,7 @@ import com.vwo.services.segmentation.enums.OperandEnum;
 import com.vwo.services.segmentation.enums.OperandValueTypeEnum;
 import com.vwo.services.segmentation.enums.VWOAttributesEnum;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,10 +35,19 @@ import java.math.BigDecimal;
 
 public class SegmentOperand {
   private static final Logger LOGGER = Logger.getLogger(SegmentOperand.class);
-  private static final ArrayList<String> expectedOperandValueTypes = new ArrayList<>(Arrays.asList(
+
+  // expectedOperandValueTypes1- Operators in this expects any data type values
+  // expectedOperandValueTypes2- Operators in this expects numerical(int and float) data type only
+  private static final ArrayList<String> expectedOperandValueTypes1 = new ArrayList<>(Arrays.asList(
       OperandValueTypeEnum.LOWER.value(),
       OperandValueTypeEnum.REGEX.value(),
       OperandValueTypeEnum.WILDCARD.value()
+  ));
+  private static final ArrayList<String> expectedOperandValueTypes2 = new ArrayList<>(Arrays.asList(
+      OperandValueTypeEnum.GREATERTHAN.value(),
+      OperandValueTypeEnum.LESSTHAN.value(),
+      OperandValueTypeEnum.GREATERTHANEQUALTO.value(),
+      OperandValueTypeEnum.LESSTHANEQUALTO.value()
   ));
   private String operandType;
   private String operandKey;
@@ -150,11 +160,15 @@ public class SegmentOperand {
    */
   private static boolean isCustomVariableMatching(String actualValue, String expectedValue) {
     try {
-      Pattern regex = Pattern.compile("^(" + String.join("|", expectedOperandValueTypes) + ")\\((.*)\\)");
-      Matcher matcher = regex.matcher(expectedValue);
-      if (matcher.matches()) {
-        String type = matcher.group(1);
-        String value = matcher.group(2);
+
+
+      Pattern regex1 = Pattern.compile("^(" + String.join("|", expectedOperandValueTypes1) + ")\\((.*)\\)");
+      Pattern regex2 = Pattern.compile("^(" + String.join("|", expectedOperandValueTypes2) + ")\\(((\\d+\\.?\\d*)|(\\.\\d+))\\)");
+      Matcher matcher1 = regex1.matcher(expectedValue);
+      Matcher matcher2 = regex2.matcher(expectedValue);
+      if (matcher1.matches()) {
+        String type = matcher1.group(1);
+        String value = matcher1.group(2);
 
         if (type.equals(OperandValueTypeEnum.LOWER.value())) {
           return isMatchingValue(value.toLowerCase(), actualValue.toLowerCase());
@@ -166,6 +180,18 @@ public class SegmentOperand {
 
         // wildcard
         return isMatchingWildCard(actualValue, value);
+      } else if (matcher2.matches()) {
+        String type = matcher2.group(1);
+        String value = matcher2.group(2);
+
+        if (type.equals(OperandValueTypeEnum.GREATERTHAN.value())) {
+          return isMatchingComparisonOperator("gt",value, actualValue);
+        } else if (type.equals(OperandValueTypeEnum.LESSTHAN.value())) {
+          return isMatchingComparisonOperator("lt",value, actualValue);
+        } else if (type.equals(OperandValueTypeEnum.GREATERTHANEQUALTO.value())) {
+          return isMatchingComparisonOperator("gte",value, actualValue);
+        }
+        return isMatchingComparisonOperator("lte",value, actualValue);
       } else {
         // Equality match
         return isMatchingValue(expectedValue, actualValue);
@@ -179,6 +205,27 @@ public class SegmentOperand {
       //      }));
 
       return false;
+    }
+  }
+
+  /**
+   * Checks if the customVariables matches the one of the 4 comparison operators.
+   * @param actualValue - Value passed by user
+   * @param expectedValue - Value expected from presegment to match
+   * @return - boolean value
+   */
+  private static boolean isMatchingComparisonOperator(String operator,String expectedValue, String actualValue) {
+    switch (operator) {
+      case "gt":
+        return Double.valueOf(actualValue) > Double.valueOf(expectedValue);
+      case "lt":
+        return Double.valueOf(actualValue) < Double.valueOf(expectedValue);
+      case "gte":
+        return Double.valueOf(actualValue) >= Double.valueOf(expectedValue);
+      case "lte":
+        return Double.valueOf(actualValue) <= Double.valueOf(expectedValue);
+      default:
+        return false;
     }
   }
 
