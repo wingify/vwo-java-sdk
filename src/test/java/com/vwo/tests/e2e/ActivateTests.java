@@ -285,6 +285,7 @@ public class ActivateTests {
 
     //when the global value is not passed, by default false should be used.
     vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
     vwoInstance.activate(campaignKey, "Ashley");
     vwoInstance.activate(campaignKey, "Ashley");
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
@@ -299,6 +300,7 @@ public class ActivateTests {
     Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
     String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
     VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
 
     VWOAdditionalParams params = new VWOAdditionalParams();
     vwoInstance.activate(campaignKey, "Ashley", params);

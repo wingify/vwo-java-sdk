@@ -214,6 +214,7 @@ public class UserStorageTests {
     //when the global value is not passed, by default false should be used.
     userStorage = this.getUserStorage(new ArrayList<Map<String, String>>());
     VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withUserStorage(userStorage).withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
     vwoInstance.activate(campaignKey, "Ashley");
     vwoInstance.activate(campaignKey, "Ashley");
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
