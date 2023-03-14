@@ -231,6 +231,7 @@ public class UserStorageTests {
     Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33, Settings.class);
     String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
     VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withUserStorage(userStorage).withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
 
     VWOAdditionalParams params = new VWOAdditionalParams();
     vwoInstance.activate(campaignKey, "Ashley", params);

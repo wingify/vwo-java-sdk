@@ -88,6 +88,7 @@ public class APITests {
     BatchEventData batchEventData = new BatchEventData();
     batchEventData.setEventsPerRequest(1000);
     VWO vwo = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_50_50).withBatchEvents(batchEventData).build();
+    vwo.getBatchEventQueue().flushAndClearInterval();
     String campaignKey = vwo.getSettingFile().getSettings().getCampaigns().get(0).getKey();
     String goalIdentifier = vwo.getSettingFile().getSettings().getCampaigns().get(0).getGoals().get(1).getIdentifier();
 
@@ -131,6 +132,7 @@ public class APITests {
     BatchEventData batchEventData = new BatchEventData();
     batchEventData.setEventsPerRequest(1000);
     VWO vwo = VWO.launch(Settings.FEATURE_TEST_TRAFFIC_100).withBatchEvents(batchEventData).build();
+    vwo.getBatchEventQueue().flushAndClearInterval();
     String campaignKey = vwo.getSettingFile().getSettings().getCampaigns().get(0).getKey();
     String goalIdentifier = vwo.getSettingFile().getSettings().getCampaigns().get(0).getGoals().get(0).getIdentifier();
 
