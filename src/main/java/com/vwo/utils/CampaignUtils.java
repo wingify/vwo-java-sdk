@@ -112,6 +112,7 @@ public class CampaignUtils {
       int groupId = settings.getCampaignGroups().get(String.valueOf(campaignId));
       groupDetails.put("groupId", groupId);
       groupDetails.put("groupName", settings.getGroups().get(String.valueOf(groupId)).getName());
+      groupDetails.put("algorithm", settings.getGroups().get(String.valueOf(groupId)).getEt());
       return groupDetails;
     }
     return groupDetails;

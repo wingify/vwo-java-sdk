@@ -22,6 +22,8 @@ import com.vwo.logger.Logger;
 import com.vwo.logger.VWOLogger;
 import com.vwo.services.storage.Storage;
 import com.vwo.tests.data.Settings;
+import com.vwo.tests.utils.TestUtils;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -144,6 +146,24 @@ public class MEGTests {
     assertNull(variation);
     assertNull(variationName);
     assertEquals(isGoalTracked.get(calledCampaign), false);
+  }
+  
+  @Test
+  public void campaignPartOfNewMEG() {
+    LOGGER.debug("tests for priority campaigns");
+    vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_NEWIMPL).withDevelopmentMode(true).build();
+    String calledCampaign;
+    String variation;
+
+    // test for called campaign is priority - should return a variation
+    calledCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getKey();
+    variation = vwoInstance.activate(calledCampaign, TestUtils.getUsers()[0]);
+    assertNotNull(variation);
+    
+    // test for called campaign is not priority - should return null
+    calledCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(2).getKey();
+    variation = vwoInstance.activate(calledCampaign, TestUtils.getUsers()[1]);
+    assertNull(variation);
   }
 
   @Test
@@ -282,6 +302,7 @@ public class MEGTests {
   @Test
   public void allNewCampaignsToTheUser() {
     LOGGER.debug("when both the campaigns are new to the user");
+    vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_100).withDevelopmentMode(true).build();
     String calledCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(2).getKey();
     String otherCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(3).getKey();
     String variationName = vwoInstance.activate(calledCampaign, "Ashley");

@@ -19,19 +19,33 @@ package com.vwo.models.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.vwo.services.core.VariationDecider;
 
 import java.util.List;
+import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
         "name",
-        "campaigns"
+        "campaigns",
+        
+        "et",
+        "p",
+        "wt"
 })
 public class Groups {
   @JsonProperty("name")
   private String name;
   @JsonProperty("campaigns")
   private List<Integer> campaigns;
+  
+  // this is where algo, priority, weight go
+  @JsonProperty("et")
+  private int et;
+  @JsonProperty("p")
+  private List<Integer> p;
+  @JsonProperty("wt")
+  private Map<String, Integer> wt;
 
   @JsonProperty("name")
   public String getName() {
@@ -51,5 +65,39 @@ public class Groups {
   @JsonProperty("campaigns")
   public void setCampaigns(List<Integer> campaigns) {
     this.campaigns = campaigns;
+  }
+  
+  // getters and setters
+  @JsonProperty("et")
+  public void setEt(int et) {
+    this.et = et;
+  }
+
+  @JsonProperty("et")
+  public int getEt() {
+    // set default to random
+    et = et == 0 ? VariationDecider.ALGO_RANDOM : et;
+
+    return et;
+  }
+
+  @JsonProperty("p")
+  public void setP(List<Integer> p) {
+    this.p = p;
+  }
+
+  @JsonProperty("p")
+  public List<Integer> getP() {
+    return p;
+  }
+
+  @JsonProperty("wt")
+  public void setWt(Map<String, Integer> wt) {
+    this.wt = wt;
+  }
+
+  @JsonProperty("wt")
+  public Map<String, Integer> getWt() {
+    return wt;
   }
 }

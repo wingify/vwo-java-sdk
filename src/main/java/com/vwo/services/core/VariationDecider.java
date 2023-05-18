@@ -41,6 +41,7 @@ import com.vwo.utils.StorageUtils;
 import com.vwo.utils.UUIDUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,6 +57,10 @@ public class VariationDecider {
   private final int accountId;
   private Map<String, Object> integrationsMap;
   private static final Logger LOGGER = Logger.getLogger(VariationDecider.class);
+  
+  // MEG related
+  public static final int ALGO_RANDOM = 1;
+  public static final int ALGO_ADVANCED = 2;
 
   public VariationDecider(BucketingService bucketingService, Storage.User userStorage,
                           HooksManager hooksManager, int accountId) {
@@ -102,6 +107,8 @@ public class VariationDecider {
     ((Map<String, Object>) variationTargetingVariables).put(VWOAttributesEnum.USER_ID.value(), campaign.isUserListEnabled()
         ? uuid
         : userId);
+    
+    Map<String, List<Campaign>> processedCampaigns = null;
 
     LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_UUID"), new HashMap<String, String>() {
       {
@@ -124,20 +131,22 @@ public class VariationDecider {
 
     Variation variation;
 
+    // check if campaign is part of an MEG
     Map<String, Object> groupDetails = CampaignUtils.isPartOfGroup(settings, campaign.getId());
     if (!groupDetails.isEmpty()) {
       integrationsMap.put("groupId", groupDetails.get("groupId"));
       integrationsMap.put("groupName", groupDetails.get("groupName"));
     }
 
-
-    Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables, false);
+    Variation whitelistedVariation = checkForWhitelisting(campaign, userId, 
+        variationTargetingVariables, false);
     if (whitelistedVariation != null) {
       return whitelistedVariation;
     }
 
     if (campaign.getIsAlwaysCheckSegment()) {
-      Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, false);
+      Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, 
+          false);
       if (isPreSegmentationValid) {
         return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier);
       } else {
@@ -151,32 +160,41 @@ public class VariationDecider {
     }
 
     // Check if user satisfies pre segmentation. If not, return null.
-    Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, false);
-    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null),
+    Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, 
+        false);
+    if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(CampaignUtils
+        .getBucketingSeed(userId, campaign, null),
             campaign, userId, campaign.getPercentTraffic(), true) != -1)) {
       return null;
     }
 
+    // THIS IS WHERE MEG IMPLEMENTATION IS HAPPENING!!!
     if (groupDetails.containsKey("groupId")) {
-      List<Campaign> campaignList = CampaignUtils.getGroupCampaigns(settings, (int) groupDetails.get("groupId"));
+      List<Campaign> campaignList = CampaignUtils.getGroupCampaigns(settings,
+          (int) groupDetails.get("groupId"));
 
       if (campaignList.isEmpty()) {
         return null;
       }
 
-      if (checkForStorageAndWhitelisting(apiName, campaignList, (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, variationTargetingVariables)) {
-        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
-          {
-            put("userId", userId);
-            put("campaignKey", campaign.getKey());
-            put("groupName", String.valueOf(groupDetails.get("groupName")));
-          }
-        }));
+      if (checkForStorageAndWhitelisting(apiName, campaignList,
+          (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, 
+          variationTargetingVariables)) {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
+            .get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
+              {
+                put("userId", userId);
+                put("campaignKey", campaign.getKey());
+                put("groupName", String.valueOf(groupDetails.get("groupName")));
+              }
+            }));
         return null;
       }
 
-      Map<String, List<Campaign>> processedCampaigns = getEligibleCampaigns(campaignList, userId, customVariables);
-
+      // get eligible campaigns
+      processedCampaigns = getEligibleCampaigns(campaignList, userId, customVariables);
+      final int numEligibleCampaigns = processedCampaigns.get("eligibleCampaigns").size();
+      
       StringBuilder eligibleCampaignKeys = new StringBuilder();
       for (Campaign eachCampaign : processedCampaigns.get("eligibleCampaigns")) {
         eligibleCampaignKeys.append(eachCampaign.getKey()).append(", ");
@@ -201,7 +219,8 @@ public class VariationDecider {
       LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("MEG_ELIGIBLE_CAMPAIGNS"), new HashMap<String, String>() {
         {
           put("userId", userId);
-          put("noOfEligibleCampaigns", String.valueOf(processedCampaigns.get("eligibleCampaigns").size()));
+          // put("noOfEligibleCampaigns", String.valueOf(processedCampaigns.get("eligibleCampaigns").size()));
+          put("noOfEligibleCampaigns", String.valueOf(numEligibleCampaigns));
           put("noOfGroupCampaigns", String.valueOf(campaignList.size()));
           put("groupName", (String) groupDetails.get("groupName"));
         }
@@ -210,8 +229,21 @@ public class VariationDecider {
       if (processedCampaigns.get("eligibleCampaigns").size() == 1) {
         return evaluateTrafficAndGetVariation(processedCampaigns.get("eligibleCampaigns").get(0), userId, goalIdentifier);
       } else {
-        return normalizeAndFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"), campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"),
+        // based on algo, find winning campaign and get variation
+        switch ((int) groupDetails.get("algorithm")) {
+          case ALGO_RANDOM:
+            return normalizeAndFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"),
+                campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"),
                 (int) groupDetails.get("groupId"));
+
+          case ALGO_ADVANCED:
+            return advancedFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"),
+                campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"),
+                (int) groupDetails.get("groupId"), settings);
+
+          default:
+            return null;
+        }
       }
     } else {
       return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier);
@@ -605,6 +637,133 @@ public class VariationDecider {
       }));
     }
     return null;
+  }
+
+  /**
+   * Assign a winner campaign based on priority and traffic distribution.
+   *
+   * @param shortlistedCampaigns - List of eligible campaigns
+   * @param calledCampaign       - Campaign instance of called campaign
+   * @param userId               - user id string
+   * @param goalIdentifier       - Goal Key
+   * @param groupName            - Name of the group
+   * @return variation of the winner campaign.
+   */
+  private Variation advancedFindWinningCampaign(List<Campaign> shortlistedCampaigns, 
+      Campaign calledCampaign, String userId, String goalIdentifier, String groupName, int groupId,
+      Settings settings) {
+    Campaign winnerCampaign = null;
+
+    // priority campaigns
+    List<Integer> priorityCampaigns = settings.getGroups().get(toString().valueOf(groupId)).getP();
+
+    // traffic weightage campaigns
+    Map<String, Integer> trafficWeightageCampaigns = settings.getGroups().get(toString()
+        .valueOf(groupId)).getWt();
+    List<Campaign> eligibleTrafficWeightageCampaigns = new ArrayList<>();
+    List<Integer> percentageTrafficForWeightageCampaigns = new ArrayList<>();
+
+    // parse through the priority campaigns and find winner from shortlisted campaigns
+    for (int priorityCampaignId : priorityCampaigns) {
+      // stop parsing if winner found
+      if (winnerCampaign != null) {
+        break;
+      }
+
+      // parse through the shortlisted campaigns to search for this priority campaign
+      for (Campaign shortlistedCampaign : shortlistedCampaigns) {
+        if (shortlistedCampaign.getId() == priorityCampaignId) {
+          // set winner campaign
+          winnerCampaign = shortlistedCampaign;
+          final String winnerCampaignKey = winnerCampaign.getKey();
+
+          LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
+              .get("MEG_GOT_WINNER_CAMPAIGN"), new HashMap<String, String>() {
+                {
+                  put("userId", userId);
+                  put("campaignKey", winnerCampaignKey);
+                  put("groupName", groupName);
+                }
+              }));
+
+          break;
+        }
+      }
+    }
+
+    // if winner not found, parse through traffic weightage campaigns
+    if (winnerCampaign == null) {
+      // parse through shortlisted campaigns and get their traffic weightages
+      for (Campaign campaign : shortlistedCampaigns) {
+        if (trafficWeightageCampaigns.containsKey(toString().valueOf(campaign.getId()))) {
+          // get campaign and percentage traffic
+          eligibleTrafficWeightageCampaigns.add(campaign);
+          percentageTrafficForWeightageCampaigns.add(trafficWeightageCampaigns.get(toString()
+              .valueOf(campaign.getId())));
+        }
+      }
+
+      // select winner based on traffic weightage, from shortlisted campaigns
+      if (!eligibleTrafficWeightageCampaigns.isEmpty()) {
+        winnerCampaign = getCampaignBasedOnTrafficWeightage(eligibleTrafficWeightageCampaigns,
+            percentageTrafficForWeightageCampaigns);
+        final String winnerCampaignKey = winnerCampaign.getKey();
+
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
+            .get("MEG_GOT_WINNER_CAMPAIGN"), new HashMap<String, String>() {
+              {
+                put("userId", userId);
+                put("campaignKey", winnerCampaignKey);
+                put("groupName", groupName);
+              }
+            }));
+      }
+    }
+
+    // return variation if winner is called campaign
+    if (winnerCampaign.getId().equals(calledCampaign.getId())) {
+      return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier);
+    } else {
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
+          .get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
+            {
+              put("userId", userId);
+              put("campaignKey", calledCampaign.getKey());
+              put("groupName", groupName);
+            }
+          }));
+    }
+    return null;
+  }
+
+  /**
+   * Get a winner campaign based on traffic weightage of campaigns.
+   *
+   * @param campaigns        - List of shortlisted campaigns
+   * @param trafficWeightage - Corresponding traffic weightage of the campaigns
+   * @return selected campaign based on random weightage of traffic 
+   */
+  public static Campaign getCampaignBasedOnTrafficWeightage(List<Campaign> campaigns,
+      List<Integer> trafficWeightage) {
+    List<Integer> cumulativeWeights = new ArrayList<>();
+    int sum = 0;
+      
+    // get the cumulative weights for the campaigns
+    for (int weight : trafficWeightage) {
+      sum += weight;
+      cumulativeWeights.add(sum);
+    }
+
+    // get a weighted random
+    int randomNum = (int) (Math.random() * sum);
+    int index = Collections.binarySearch(cumulativeWeights, randomNum);
+
+    // binarysearch returns a negative value when generated number is between cumulative weights
+    if (index < 0) {
+      index = -(index + 1);
+    }
+
+    return campaigns.get(index);
   }
 
   /**
