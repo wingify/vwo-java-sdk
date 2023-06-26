@@ -80,7 +80,10 @@ public class LoggerService {
       String key = pair.getKey();
       String value = pair.getValue();
       try {
-        msg = msg.replaceAll("\\{" + key + "}", value.replaceAll("\\$", "\\\\\\$"));
+        // refactor value if valid
+        if (value != null && value.length() > 0 && key != null && key.length() > 0) {
+          msg = msg.replaceAll("\\{" + key + "}", value.replaceAll("\\$", "\\\\\\$"));
+        }
       } catch (Exception e) {
         LOGGER.error("Exception occurred while logging the value: " + value);
       }

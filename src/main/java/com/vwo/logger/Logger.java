@@ -223,11 +223,17 @@ public class Logger {
   }
 
   private String refactorMsg(String msg) {
+    String refactoredMsg = msg;
     try {
-      return msg = msg.replaceAll("\\(\\{" + "file" + "\\}\\): ", "");
+      // refactor message if valid
+      if (msg != null && msg.length() > 0) {
+        refactoredMsg = msg.replaceAll("\\(\\{" + "file" + "\\}\\): ", "");
+      }
     } catch (Exception e) {
       error("Exception occurred while logging the value: " + msg);
       return null;
     }
+    
+    return refactoredMsg;
   }
 }
