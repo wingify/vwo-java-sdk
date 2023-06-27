@@ -139,7 +139,7 @@ public class VariationDecider {
     }
 
     Variation whitelistedVariation = checkForWhitelisting(campaign, userId, 
-        variationTargetingVariables, false);
+        variationTargetingVariables, false, settings.getIsNB());
     if (whitelistedVariation != null) {
       return whitelistedVariation;
     }
@@ -148,7 +148,7 @@ public class VariationDecider {
       Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, 
           false);
       if (isPreSegmentationValid) {
-        return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier);
+        return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier, settings.getIsNB());
       } else {
         return null;
       }
@@ -163,7 +163,7 @@ public class VariationDecider {
     Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, 
         false);
     if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(CampaignUtils
-        .getBucketingSeed(userId, campaign, null),
+        .getBucketingSeed(userId, campaign, null, settings.getIsNB()),
             campaign, userId, campaign.getPercentTraffic(), true) != -1)) {
       return null;
     }
@@ -179,7 +179,7 @@ public class VariationDecider {
 
       if (checkForStorageAndWhitelisting(apiName, campaignList,
           (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, 
-          variationTargetingVariables)) {
+          variationTargetingVariables, settings.getIsNB())) {
         LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
             .get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
               {
@@ -192,7 +192,7 @@ public class VariationDecider {
       }
 
       // get eligible campaigns
-      processedCampaigns = getEligibleCampaigns(campaignList, userId, customVariables);
+      processedCampaigns = getEligibleCampaigns(campaignList, userId, customVariables, settings.getIsNB());
       final int numEligibleCampaigns = processedCampaigns.get("eligibleCampaigns").size();
       
       StringBuilder eligibleCampaignKeys = new StringBuilder();
@@ -227,14 +227,14 @@ public class VariationDecider {
       }));
 
       if (processedCampaigns.get("eligibleCampaigns").size() == 1) {
-        return evaluateTrafficAndGetVariation(processedCampaigns.get("eligibleCampaigns").get(0), userId, goalIdentifier);
+        return evaluateTrafficAndGetVariation(processedCampaigns.get("eligibleCampaigns").get(0), userId, goalIdentifier, settings.getIsNB());
       } else {
         // based on algo, find winning campaign and get variation
         switch ((int) groupDetails.get("algorithm")) {
           case ALGO_RANDOM:
             return normalizeAndFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"),
                 campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"),
-                (int) groupDetails.get("groupId"));
+                (int) groupDetails.get("groupId"), settings.getIsNB());
 
           case ALGO_ADVANCED:
             return advancedFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"),
@@ -246,7 +246,7 @@ public class VariationDecider {
         }
       }
     } else {
-      return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier);
+      return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier, settings.getIsNB());
     }
   }
 
@@ -258,7 +258,7 @@ public class VariationDecider {
    * @param variationTargetingVariables - User Whitelisting Targeting variables
    * @return whitelisted variation.
    */
-  private Variation checkForWhitelisting(Campaign campaign, String userId, Map<String, ?> variationTargetingVariables, boolean disableLogs) {
+  private Variation checkForWhitelisting(Campaign campaign, String userId, Map<String, ?> variationTargetingVariables, boolean disableLogs, boolean isNewBucketingEnabled) {
     if (campaign.getIsForcedVariationEnabled() == true) {
       List<Variation> whiteListedVariations = new ArrayList<>();
       campaign.getVariations().forEach(variationObj -> {
@@ -298,7 +298,7 @@ public class VariationDecider {
         if (whiteListedVariations.size() > 1) {
           CampaignUtils.rationalizeVariationsWeights(whiteListedVariations);
           SettingsFileUtil.setVariationRange(campaign, whiteListedVariations);
-          whiteListedVariation = (Variation) bucketingService.getUserVariation(whiteListedVariations, campaign, 100, userId);
+          whiteListedVariation = (Variation) bucketingService.getUserVariation(whiteListedVariations, campaign, 100, userId, isNewBucketingEnabled);
         }
 
         // this.setVariationInUserStorage(whiteListedVariation, campaign.getKey(), userId);
@@ -503,13 +503,13 @@ public class VariationDecider {
    * @return true, if whitelisting/storage is satisfied for any campaign.
    */
   private boolean checkForStorageAndWhitelisting(String apiName, List<Campaign> campaignList, String groupName, Campaign calledCampaign, String userId, String goalIdentifier,
-                                                 Map<String, ?> variationTargetingVariables) {
+                                                 Map<String, ?> variationTargetingVariables, boolean isNewBucketingEnabled) {
     boolean otherCampaignWinner = false;
     for (Campaign campaign : campaignList) {
       if (campaign.getId().equals(calledCampaign.getId())) {
         continue;
       }
-      Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables, true);
+      Variation whitelistedVariation = checkForWhitelisting(campaign, userId, variationTargetingVariables, true, isNewBucketingEnabled);
       if (whitelistedVariation != null) {
         otherCampaignWinner = true;
         LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE"), new HashMap<String, String>() {
@@ -549,12 +549,12 @@ public class VariationDecider {
    * @param customVariables -  Pre Segmentation custom variables
    * @return List of campaigns which satisfies the conditions.
    */
-  private Map<String, List<Campaign>> getEligibleCampaigns(List<Campaign> campaignList, String userId, Map<String, ?> customVariables) {
+  private Map<String, List<Campaign>> getEligibleCampaigns(List<Campaign> campaignList, String userId, Map<String, ?> customVariables, boolean isNewBucketingEnabled) {
     List<Campaign> eligibleCampaigns = new ArrayList<>();
     List<Campaign> inEligibleCampaigns = new ArrayList<>();
     for (Campaign campaign: campaignList) {
       if (checkForPreSegmentation(campaign, userId, customVariables, true)
-              && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), campaign, userId, campaign.getPercentTraffic(), true) != -1) {
+              && BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null, isNewBucketingEnabled), campaign, userId, campaign.getPercentTraffic(), true) != -1) {
         eligibleCampaigns.add(campaign.clone());
       } else {
         inEligibleCampaigns.add(campaign);
@@ -577,10 +577,10 @@ public class VariationDecider {
    * @param goalIdentifier - Goal key
    * @return variation assigned to the user.
    */
-  private Variation evaluateTrafficAndGetVariation(Campaign campaign, String userId, String goalIdentifier) {
+  private Variation evaluateTrafficAndGetVariation(Campaign campaign, String userId, String goalIdentifier, boolean isNewBucketingEnabled) {
     // Get variation using campaign settings for a user.
     Variation variation = null;
-    variation = (Variation) bucketingService.getUserVariation(campaign.getVariations(), campaign, campaign.getPercentTraffic(), userId);
+    variation = (Variation) bucketingService.getUserVariation(campaign.getVariations(), campaign, campaign.getPercentTraffic(), userId, isNewBucketingEnabled);
     Variation finalVariation = variation;
     LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("USER_VARIATION_ALLOCATION_STATUS"), new HashMap<String, String>() {
       {
@@ -607,13 +607,15 @@ public class VariationDecider {
    * @param groupName            - Name of the group
    * @return variation of the winner campaign.
    */
-  private Variation normalizeAndFindWinningCampaign(List<Campaign> shortlistedCampaigns, Campaign calledCampaign, String userId, String goalIdentifier, String groupName, int groupId) {
+  private Variation normalizeAndFindWinningCampaign(List<Campaign> shortlistedCampaigns,
+      Campaign calledCampaign, String userId, String goalIdentifier, String groupName, int groupId,
+      boolean isNewBucketingEnabled) {
 
     for (Campaign campaign : shortlistedCampaigns) {
       campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
     }
     CampaignUtils.setCampaignRange(shortlistedCampaigns);
-    Long bucketHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, null, groupId), calledCampaign, userId, 100, true);
+    Long bucketHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, null, groupId, isNewBucketingEnabled), calledCampaign, userId, 100, true);
     int variationHashValue = BucketingService.getMultipliedHashValue(bucketHash, BucketingService.MAX_TRAFFIC_VALUE, 1);
     Campaign winnerCampaign = (Campaign) bucketingService.getAllocatedItem(shortlistedCampaigns, variationHashValue);
 
@@ -626,7 +628,7 @@ public class VariationDecider {
     }));
 
     if (winnerCampaign.getId().equals(calledCampaign.getId())) {
-      return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier);
+      return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier, isNewBucketingEnabled);
     } else {
       LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
         {
@@ -722,7 +724,7 @@ public class VariationDecider {
 
     // return variation if winner is called campaign
     if (winnerCampaign.getId().equals(calledCampaign.getId())) {
-      return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier);
+      return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier, settings.getIsNB());
     } else {
       LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
           .get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {

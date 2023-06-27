@@ -184,16 +184,16 @@ public class CampaignUtils {
    * @param groupId      - Group id
    * @return Seed value
    */
-  public static String getBucketingSeed(String userId, Campaign campaign, Integer groupId) {
+  public static String getBucketingSeed(String userId, Campaign campaign, Integer groupId, boolean isNewBucketingEnabled) {
     if (groupId != null) {
       return groupId + "_" + userId;
     }
 
-    if (campaign != null && campaign.isBucketingSeedEnabled()) {
+    // if (campaign != null && campaign.isBucketingSeedEnabled()) {
+    if (campaign != null && (isNewBucketingEnabled || campaign.isBucketingSeedEnabled())) {
       return campaign.getId() + "_" + userId;
     } else {
       return userId;
     }
   }
-
 }

@@ -18,6 +18,7 @@ package com.vwo.models.response;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// is this causing a crash?
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
         "goals",
@@ -74,6 +76,8 @@ public class Campaign implements  Cloneable {
   private boolean isUserListEnabled;
   @JsonProperty("isAlwaysCheckSegment")
   private boolean isAlwaysCheckSegment;
+  @JsonProperty("isOB")
+  private boolean isOB;
 
   private Integer startRange;
   private Integer endRange;
@@ -247,5 +251,15 @@ public class Campaign implements  Cloneable {
 
   public boolean getIsAlwaysCheckSegment() {
     return isAlwaysCheckSegment;
+  }
+  
+  @JsonProperty("isOB")
+  public boolean getIsOB() {
+    return isOB;
+  }
+  
+  @JsonProperty("isOB")
+  public void setIsOB(boolean isOB) {
+    this.isOB = isOB;
   }
 }

@@ -43,7 +43,7 @@ public class BucketingService {
 
   public static long getUserHashForCampaign(String seed, Campaign campaign, String userId, int traffic, boolean disableLogs) {
 
-    int murmurHash = Murmur3.hash32(seed.getBytes(), 0, seed.length(), SEED_VALUE);
+    // int murmurHash = Murmur3.hash32(seed.getBytes(), 0, seed.length(), SEED_VALUE);
 
     /**
      * Took reference from StackOverflow (https://stackoverflow.com/) to:
@@ -51,14 +51,15 @@ public class BucketingService {
      * Author - Mysticial (https://stackoverflow.com/users/922184/mysticial)
      * Source - https://stackoverflow.com/questions/9578639/best-way-to-convert-a-signed-integer-to-an-unsigned-long
      */
-    Long signedMurmurHash = (murmurHash & 0xFFFFFFFFL);
+    // Long signedMurmurHash = (murmurHash & 0xFFFFFFFFL);
+    long signedMurmurHash = getMurmurHashVal(seed);
     int bucketValueOfUser = BucketingService.getMultipliedHashValue(signedMurmurHash, MAX_PERCENT_TRAFFIC, 1);
 
     LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_HASH_BUCKET_VALUE"), new HashMap<String, String>() {
       {
         put("bucketValue", String.valueOf(bucketValueOfUser));
         put("userId", userId);
-        put("hashValue", String.valueOf(murmurHash));
+        put("signedHashValue", String.valueOf(signedMurmurHash));
       }
     }), disableLogs);
 
@@ -73,34 +74,70 @@ public class BucketingService {
     return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
   }
 
-  public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic, String userId) {
-    long murmurHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, campaign, null), campaign, userId, campaignTraffic, false);
-
-
-    if (murmurHash != -1) {
-      double multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
-      int variationHashValue = BucketingService.getMultipliedHashValue(murmurHash, MAX_TRAFFIC_VALUE, multiplier);
-
-      LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_CAMPAIGN_BUCKET_VALUES"), new HashMap<String, String>() {
-        {
-          put("campaignKey", campaign.getKey());
-          put("bucketValue", String.valueOf(variationHashValue));
-          put("userId", userId);
-          put("percentTraffic", String.valueOf(campaignTraffic));
-          put("hashValue", String.valueOf(murmurHash));
-        }
-      }));
-
-      return getAllocatedItem(variations, variationHashValue);
+  public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic, String userId, boolean isNewBucketingEnabled) {
+    String seed = CampaignUtils.getBucketingSeed(userId, null, null, isNewBucketingEnabled);
+    long murmurHash;
+    double multiplier = 1;
+    int variationHashValue;
+    
+    // use old algorithm if old bucketing flag is set
+    if (!isNewBucketingEnabled || campaign.getIsOB()) {
+      // for old algo, regenerate seed using userId AND camapignId
+      murmurHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId,
+        campaign, null, isNewBucketingEnabled), campaign, userId, campaignTraffic, false);
+      if (murmurHash != -1) {
+        multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
+      } else {
+        LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get(
+            "USER_NOT_PART_OF_CAMPAIGN"), new HashMap<String, String>() {
+              {
+                put("campaignKey", campaign.getKey().toString());
+                put("userId", userId);
+              }
+            }));
+        return null;
+      }
+      
+      // log algo type
+      LOGGER.debug("Bucketing Algo Type : Old, for (" + userId + ", " + campaign.getKey() + ")");
+    } else {
+      // use new algorithm if old bucketing flag is not set
+      // for new algo, use seed that used only userId
+      murmurHash = getMurmurHashVal(seed);
+      
+      // log algo type
+      LOGGER.debug("Bucketing Algo Type : New, for (" + userId + ", " + campaign.getKey() + ")");
     }
 
-    LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("USER_NOT_PART_OF_CAMPAIGN"), new HashMap<String, String>() {
-      {
-        put("campaignKey", campaign.getKey().toString());
-        put("userId", userId);
-      }
-    }));
-    return null;
+    variationHashValue = BucketingService.getMultipliedHashValue(murmurHash, MAX_TRAFFIC_VALUE,
+      multiplier);
+
+    LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get(
+        "USER_CAMPAIGN_BUCKET_VALUES"), new HashMap<String, String>() {
+          {
+            put("campaignKey", campaign.getKey());
+            put("bucketValue", String.valueOf(variationHashValue));
+            put("userId", userId);
+            put("percentTraffic", String.valueOf(campaignTraffic));
+            put("hashValue", String.valueOf(murmurHash));
+          }
+        }));
+
+    return getAllocatedItem(variations, variationHashValue);
+  }
+  
+  // get murmur hash
+  private static long getMurmurHashVal(String seed) {
+    /**
+     * Took reference from StackOverflow (https://stackoverflow.com/) to:
+     * Convert the int to unsigned long value
+     * Author - Mysticial (https://stackoverflow.com/users/922184/mysticial)
+     * Source - https://stackoverflow.com/questions/9578639/best-way-to-convert-a-signed-integer-to-an-unsigned-long
+   */
+    int murmurHash = Murmur3.hash32(seed.getBytes(), 0, seed.length(), SEED_VALUE);
+    long signedMurmurHash = (murmurHash & 0xFFFFFFFFL);
+    
+    return signedMurmurHash;
   }
 
   /**

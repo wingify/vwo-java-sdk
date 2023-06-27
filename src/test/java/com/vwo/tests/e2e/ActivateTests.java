@@ -316,6 +316,24 @@ public class ActivateTests {
     vwoInstance.activate(campaignKey, "Ashley");
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 5);
   }
+  
+  @Test
+  public void newBucketingAlgo() throws IOException {
+	  LOGGER.info("should successfully get variation from both old and new bucketing algos!");
+	  
+	  Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_50_50_NEW_BUCKET_ALGO, Settings.class);
+	  String campaignKey_new = settingsConfig.getCampaigns().get(0).getKey();
+	  String campaignKey_old = settingsConfig.getCampaigns().get(1).getKey();
+	  VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_TRAFFIC_100_WEIGHT_50_50_NEW_BUCKET_ALGO).build();
+
+	  // old campaign
+	  String variation = vwoInstance.activate(campaignKey_old, "Ashley", new VWOAdditionalParams());
+	  assertEquals(variation, "Variation-1-Old");
+
+	  // new campaign
+	  variation = vwoInstance.activate(campaignKey_new, "Ashley", new VWOAdditionalParams());
+	  assertEquals(variation, "Control-New");
+  }
 
   private static void validateActivateMethod(String settingsFile, ArrayList<UserExpectations.Variation> userVariation, VWOAdditionalParams additionalParams) throws IOException {
     Settings settingsConfig = new ObjectMapper().readValue(settingsFile, Settings.class);
