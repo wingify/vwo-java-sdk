@@ -282,7 +282,7 @@ public class BatchEventQueue implements PostResponseHandler {
           && batchEventQueueObj.getBatchEventQueue().size() > 0) {
         // sleep before trying again
         try {
-          Thread.sleep(400);
+          Thread.sleep(1000);
         } catch (InterruptedException e) {
           // no need to handle this exception
         }
