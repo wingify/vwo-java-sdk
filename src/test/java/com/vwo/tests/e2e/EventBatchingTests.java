@@ -63,7 +63,8 @@ public class EventBatchingTests {
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 0);
     vwoInstance.activate("AB_TRAFFIC_100_WEIGHT_33_33_33", userId);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
-    vwoInstance.getBatchEventQueue().flush(false);
+    // vwoInstance.getBatchEventQueue().flush(false);
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 0);
   }
 
@@ -80,6 +81,7 @@ public class EventBatchingTests {
     });
     vwoInstance = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_33_33_33)
       .withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 0);
     vwoInstance.activate("AB_TRAFFIC_100_WEIGHT_33_33_33", userId);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
@@ -100,6 +102,7 @@ public class EventBatchingTests {
       }
     });
     vwoInstance = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 0);
     vwoInstance.activate("AB_TRAFFIC_100_WEIGHT_33_33_33", userId);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
@@ -121,6 +124,7 @@ public class EventBatchingTests {
       }
     });
     vwoInstance = VWO.launch(Settings.AB_TRAFFIC_100_WEIGHT_33_33_33).withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 0);
     vwoInstance.activate("AB_TRAFFIC_100_WEIGHT_33_33_33", userId);
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 1);
