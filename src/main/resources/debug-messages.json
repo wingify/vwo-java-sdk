@@ -1,0 +1,36 @@
+{
+  "CONFIG_BATCH_EVENT_LIMIT_EXCEEDED": "({file}): Impression event - {endPoint} failed due to exceeding payload size. Parameter eventsPerRequest in batchEvents config in launch API has value:{eventsPerRequest} for account ID:{accountId}. Please read the official documentation for knowing the size limits",
+  "CONFIG_LOG_LEVEL_SET": "({file}): Log level set to {level}",
+  "CONFIG_CUSTOM_LOGGER_USED": "({file}): Custom logger used",
+  "CONFIG_DEVELOPMENT_MODE_STATUS": "({file}): DEVELOPMENT mode is ON. No tracking call will be made to VWO Server",
+
+  "POLLING_SETTINGS_FILE_REGISTERED": "({file}): Polling of settings-file is registered with a periodic interval of {pollingInterval} ms",
+
+  "SETTINGS_FILE_PROCESSED": "({file}): settings-file matches the schema, validated and properly processed for the Account ID:{accountId}",
+
+  "IMPRESSION_FOR_TRACK_USER": "({file}): Impression built for tracking user - {properties}",
+  "IMPRESSION_FOR_TRACK_GOAL": "({file}): Impression built for tracking goal - {properties}",
+  "IMPRESSION_FOR_PUSH": "({file}): Impression built for pushing custom dimension - {properties}",
+
+  "IMPRESSION_FOR_EVENT_ARCH_TRACK_USER": "({file}): Impression built for vwo_variationShown event for Account ID:{accountId}, User ID:{userId}, and Campaign ID:{campaignId}",
+  "IMPRESSION_FOR_EVENT_ARCH_TRACK_GOAL": "({file}): Impression built for {goalName} event for Account ID:{accountId}, User ID:{userId}, and Campaign ID:{campaignId}",
+  "IMPRESSION_FOR_EVENT_ARCH_PUSH": "({file}): Impression built for visitor-property:{property} for Account ID:{accountId} and User ID:{userId}",
+
+  "EVENT_BATCH_BEFORE_FLUSHING": "({file}): flushing event queue {manually} having {length} events for Account ID:{accountId}. {timer}",
+  "EVENT_BATCH_FLUSH": "{{file}}: Manually flushing batch events for Account ID:{accountId} having {queueLength} events",
+
+  "USER_STORAGE_SERVICE_NOT_CONFIGURED": "({file}): User Storage Service is not configured to get/set the data",
+  "USER_STORAGE_SERVICE_NO_STORED_DATA": "({file}): No stored variation for User ID:{userId} for Campaign:{campaignKey} found in User Storage Service",
+
+  "VARIATION_RANGE_ALLOCATION": "({file}): Variation:{variationName} of Campaign:{campaignKey} having weight:{variationWeight} got bucketing range: ( {start} - {end} )",
+
+  "MEG_ELIGIBLE_CAMPAIGNS": "({file}): Campaigns: {eligibleCampaignKeys} are eligible, {inEligibleText} are ineligible from the Group:{groupName} for the User ID:{userId}",
+
+  "SEGMENTATION_SKIPPED": "({file}): Segmentation is not used for Campaign:{campaignKey}, hence skipping evaluating segmentation{variation} for User ID:{userId}",
+  "SEGMENTATION_STATUS": "({file}): User ID:{userId} for Campaign:{campaignKey} with variables:{customVariables} {status} {segmentationType} {variation}",
+  "WHITELISTING_SKIPPED": "({file}): Whitelisting is not used for Campaign:{campaignKey}, hence skipping evaluating whitelisting for User ID:{userId}",
+
+  "USER_UUID": "({file}): VWO UUID generated for Account Id:{accountId} and User ID:{userId} is {uuid}",
+  "USER_HASH_BUCKET_VALUE": "({file}): User ID:{userId} having hash:{hashValue} got bucketValue:{bucketValue}",
+  "USER_CAMPAIGN_BUCKET_VALUES": "({file}): User ID:{userId} for Campaign:{campaignKey} having percent-traffic:{percentTraffic} got hash-value:{hashValue} and bucket-value:{bucketValue}"
+}

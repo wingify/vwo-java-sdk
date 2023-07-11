@@ -1,0 +1,40 @@
+{
+  "CONFIG_PARAMETER_INVALID": "({file}): {parameter} paased in {api} API is not correct. It should be of type:{type}",
+  "CONFIG_POLLING_SDK_KEY_NOT_PROVIVED": "({file}): SDK Key is required along with pollingInterval to poll the settings-file",
+  "CONFIG_CORRUPTED": "({file}): Config passed to {api} API is invalid. Please refer developer docs",
+
+  "SETTINGS_FILE_INVALID": "({file}): Settings file passed while instantiating SDK instance is invalid",
+  "SETTINGS_FILE_CORRUPTED": "({file}): Fetched settings-file doesn't match the desired schema. Please contact VWO Support for help",
+
+  "BATCH_QUEUE_EMPTY": "{{file}}: No batch queue present for account:{accountId} when calling flushEvents API. Check batchEvents config in launch API",
+
+  "API_HAS_CORRUPTED_SETTINGS_FILE": "({file}): {api} API has corrupted settings-file. Please check or reach out to VWO support",
+
+  "API_BAD_PARAMETERS": "({file}): {api} API got bad parameters. Refer the developer docs",
+  "API_NOT_APPLICABLE": "({file}): {api} API is not valid for Campaign:{campaignKey} having type:{campaignType} for User ID:{userId}",
+
+  "USER_ID_INVALID": "({file}): Invalid User Id:{userId} passed to the API",
+
+  "CAMPAIGN_NOT_FOUND_FOR_GOAL": "({file}): No such campaign found corresponding to goalIdentifier:{goalIdentifier}. Please verify from VWO app",
+
+  "POLLING_FAILED": "({file}): Fetching of settings-file failed via polling for the accountId:{accountId}",
+
+  "SEGMENTATION_REGEX_CREATION_FAILED": "({file}): Regular expression:{regex} used for targeting cound not be evaluated",
+  "SEGMENTATION_ERROR": "({file}): Could not segment the User ID:{userId} for Campaign:{campaignKey}{variation} with customVariables:{customVariables}. Error message: {err}",
+
+  "USER_STORAGE_SERVICE_GET_FAILED": "({file}): Getting data from User Storage Service failed for User ID:{userId}. Error: {error}",
+  "USER_STORAGE_SERVICE_SET_FAILED": "({file}): Saving data into User Storage Service failed for User ID:{userId}. Error: {error}",
+
+  "IMPRESSION_FAILED": "({file}): Impression event could not be sent to VWO - {endPoint}. Reason: {err}",
+
+  "TAG_KEY_LENGTH_EXCEEDED": "({file}): Length of custom dimension key:{tagKey} for User Id:{userId} can not be greater than 255",
+  "TAG_VALUE_LENGTH_EXCEEDED": "({file}): Length of custom dimension value:{tagValue} of tagKey:{tagKey} for User Id:{userId} can not be greater than 255",
+
+  "TRACK_API_GOAL_NOT_FOUND": "({file}): Goal:{goalIdentifier} not found for Campaign:{campaignKey} and User Id:{userId}",
+  "TRACK_API_REVENUE_NOT_PASSED_FOR_REVENUE_GOAL": "({file}): Revenue value should be passed for revenue goal:{goalIdentifier} for Campaign:{campaignKey} and User Id:{userId}",
+
+  "UNABLE_TO_CAST_VALUE": "({file}): Unable to cast value:{variableValue} to type:{variableType}, returning null",
+  "VARIABLE_NOT_FOUND": "({file}): Variable:{variableKey} for User ID:{userId} is not found in settings-file, returning null",
+  "MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS": "AccountId and sdkKey are required for fetching account settings. Aborting!",
+  "ACCOUNT_SETTINGS_NOT_FOUND":  "({file}): Request failed for fetching account settings. Got Status Code: ${statusCode} and message: ${message}"
+}

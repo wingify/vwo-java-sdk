@@ -1,0 +1,58 @@
+{
+  "CONFIG_VALID": "({file}): SDK configuration and account settings-file are valid",
+  "CONFIG_PARAMETER_USED": "({file}): {parameter} paased in launch API having type:{type}",
+  "CONFIG_RETURN_PROMISE": "({file}): {method} API returns a promise as returnPromiseFor is set to true for this API",
+
+  "SDK_INITIALIZED": "({file}): SDK is properly initialzed with the passed configuration",
+
+  "POLLING_SUCCESS": "({file}): settings-file fetched successfully via polling for the accountId:{accountId}",
+  "POLLING_SETTINGS_FILE_UPDATED": "({file}): SDK instance is updated with the latest settings-file for the accountId:{accountId}",
+  "POLLING_SETTINGS_FILE_NOT_UPDATED": "{file}: settings-file fetched via polling is same as earlier fetched settings",
+
+  "DECISION_NO_VARIATION_ALLOTED": "({file}): Variation was not assigned to the User ID:{userId} for Campaign:{campaignKey}",
+
+
+  "EVENT_BATCH_DEFAULTS": "({file}): {parameter} not passed in SDK configuration, setting it default to {defaultValue}",
+  "EVENT_QUEUE": "({file}): Event with payload:{event} pushed to the {queueType} queue",
+  "EVENT_BATCH_After_FLUSHING": "({file}): Event queue having {length} events has been flushed {manually}",
+
+  "CAMPAIGN_NOT_ACTIVATED": "({file}): Activate the campaign:{campaignKey} first for User ID:{userId} to {reason}",
+  "CAMPAIGN_USER_ALREADY_TRACKED": "({file}): User ID:{userId} for Campaign:{campaignKey} has already been tracked earlier for \"{api}\" API. No tracking call is made to VWO server",
+  "CAMPAIGN_GOAL_ALREADY_TRACKED": "({file}): Goal:{goalIdentifier} of Campaign:{campaignKey} for User ID:{userId} has already been tracked earlier. No tracking call is made to VWO server",
+
+  "GOT_STORED_VARIATION": "({file}): Got stored variation from User Storage Service for User ID:{userId} for Campaign:{campaignKey} as Variation:{variationName}",
+  "GETTING_DATA_USER_STORAGE_SERVICE": "({file}): Read data from User Storage Service for User ID:{userId} and Campaign:{campaignKey}",
+  "SETTING_DATA_USER_STORAGE_SERVICE": "({file}): Set data into User Storage Service for User ID:{userId} and Campaign:{campaignKey}",
+
+  "IMPRESSION_SUCCESS": "({file}): Impression event - {endPoint} was successfully received by VWO having main keys: Account ID:{accountId}, {mainKeys}",
+  "IMPRESSION_SUCCESS_FOR_EVENT_ARCH": "({file}): Impression for {event} - {endPoint} was successfully received by VWO for Account ID:{accountId}",
+  "IMPRESSION_BATCH_SUCCESS": "({file}): Impression event - {endPoint} was successfully received by VWO having Account ID:{accountId}",
+  "IMPRESSION_BATCH_FAILED": "({file}): Batch events couldn\"t be received by VWO. Calling Flush Callback with error and data",
+
+  "MEG_ELIGIBLE_CAMPAIGNS": "({file}): Got {noOfEligibleCampaigns} eligible winners out of {noOfGroupCampaigns} campaigns from the Group:{groupName} and for User ID:{userId}",
+
+  "OTHER_CAMPAIGN_SATISFIES_WHITELISTING_STORAGE": "({file}): Campaign:{campaignKey} of Group:{groupName} satisfies {type} for User ID:{userId}",
+  "SEGMENTATION_STATUS": "({file}): User ID:{userId} for Campaign:{campaignKey} with variables:{customVariables} {status} {segmentationType} {variation}",
+
+  "MEG_CALLED_CAMPAIGN_NOT_WINNER": "({file}): Campaign:{campaignKey} does not qualify from the mutually exclusive group:{groupName} for User ID:{userId}",
+  "MEG_GOT_WINNER_CAMPAIGN": "({file}): Campaign:{campaignKey} is selected from the mutually exclusive group:{groupName} for the User ID:{userId}",
+
+  "FEATURE_STATUS": "({file}): Campaign:{campaignKey} is {status} for user ID:{userId}",
+
+  "FEATURE_VARIABLE_VALUE": "({file}): For User ID:{userId}, value for variable:{variableKey} of feature:{campaignKey} is:{variableValue}",
+  "FEATURE_VARIABLE_DEFAULT_VALUE": "({file}): Feature is not enabled for variation:{variationName}. Returning default value for the variable:{variableKey}",
+
+  "USER_NOT_PART_OF_CAMPAIGN": "({file}): User ID:{userId} did not qualify for Campaign:{campaignKey}",
+  "USER_VARIATION_STATUS": "({file}): User ID:{userId} for Campaign:{campaignKey} {status}",
+  "USER_CAMPAIGN_ELIGIBILITY": "({file}): User ID:{userId} for Campaign:{campaignKey} is {status} to become part of campaign",
+  "USER_VARIATION_ALLOCATION_STATUS": "({file}): User ID:{userId} for Campaign:{campaignKey} {status}",
+
+  "OPT_OUT_API_CALLED": "({file}): You have opted out for not tracking i.e. all API calls will stop functioning and will simply early return",
+  "API_NOT_ENABLED": "({file}): {api} API is disabled as you opted out for tracking. Reinitialize the SDK to enable the normal functioning of all APIs.",
+
+  "INITIATING_ACTIVATE": "({file}): Initiating activation of user {userId} for campaign {campaignKey}.",
+  "INITIATING_GET_VARIATION": "({file}): Initiating getVariation of user '{userId}' for campaign '{campaignKey}'.",
+  "INITIATING_GET_FEATURE_VARIATION": "({file}): Initiating getFeatureVariable for variable key '{variableKey}' of user '{userId}' for campaign '{campaignKey}'.",
+  "INITIATING_IS_FEATURE_ENABLED": "({file}): Initiating isFeatureEnabled of user '{userId}' for campaign '{campaignKey}'.",
+  "INITIATING_PUSH_DIMENSION": "({file}): Initiating push segment of user '{userId}' with tag name `{tagKey}` and tag value '{tagValue}'."
+}

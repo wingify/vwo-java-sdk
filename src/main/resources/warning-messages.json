@@ -1,0 +1,4 @@
+{
+  "CAMPAIGN_NOT_RUNNING": "({file}): {api} API called with Campaign:{campaignKey} but the campaign is not RUNNING. Please verify from VWO App",
+  "CAMPAIGN_NOT_ACTIVATED": "({file}): Campaign:{campaignKey} for User ID:{userId} is not yet activated for API:{api}. Use activate API to activate A/B test or isFeatureEnabled API to activate Feature Test"
+}
