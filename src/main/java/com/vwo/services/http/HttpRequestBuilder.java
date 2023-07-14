@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vwo.enums.EventArchEnums;
+import com.vwo.enums.GoalEnums;
 import com.vwo.enums.HTTPEnums;
 import com.vwo.enums.UriEnums;
 import com.vwo.logger.Logger;
@@ -180,20 +181,33 @@ public class HttpRequestBuilder {
     return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(GOAL_PATH), map, HTTPEnums.Verbs.GET);
   }
 
-  public static Map<String, Object> getBatchEventForTrackingGoal(SettingFile settingFile, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
+  public static Map<String, Object> getBatchEventForTrackingGoal(SettingFile settingFile,
+      Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue,
+      Map<String, ?> eventProperties) {
     Settings settings = settingFile.getSettings();
 
-    BuildQueryParams requestParams =
-        BuildQueryParams.Builder.getInstance()
-        .withMinifiedCampaignId(campaign.getId())
-        .withMinifiedVariationId(variation.getId())
-        .withMinifiedEventType(2)
-        .withMinifiedGoalId(goal.getId())
-        .withRevenue(revenueValue)
-        .withSid(Instant.now().getEpochSecond())
-        .withUuid(settings.getAccountId(), userId)
-        .build();
-
+    // create the builder
+    BuildQueryParams.Builder builder =
+            BuildQueryParams.Builder.getInstance()
+            .withMinifiedCampaignId(campaign.getId())
+            .withMinifiedVariationId(variation.getId())
+            .withMinifiedEventType(2)
+            .withMinifiedGoalId(goal.getId())
+            .withSid(Instant.now().getEpochSecond())
+            .withUuid(settings.getAccountId(), userId);
+    
+    // check if revenue needs to be added
+    if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value()) 
+        && revenueValue != null) {
+      // add the revenue directly
+      builder.withRevenue(revenueValue);
+    } else if (settings.getIsEventArchEnabled() != null && settings.getIsEventArchEnabled()
+        && eventProperties != null && eventProperties.containsKey(goal.getRevenueProp())) {
+      // add the revenue from the event properties
+      builder.withRevenue(eventProperties.get(goal.getRevenueProp()));
+    }
+    
+    BuildQueryParams requestParams = builder.build();
     Map<String, Object> map = requestParams.convertToMap();
     map = requestParams.removeNullValues(map);
 

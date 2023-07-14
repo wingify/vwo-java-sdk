@@ -478,4 +478,50 @@ public class TrackTests {
 
     assertEquals(vwoInstance.track(campaignKey, "Ashley", "track2", params).get(campaignKey), true);
   }
+  
+  @Test
+  public void trackEventProps_noRevenueValueInRevenueGoal() {
+    String campaignKey = "track1";
+    String goalIdentifier = "track3";
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_100_EVENT_PROPERTIES).withDevelopmentMode(true).build();
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    HashMap<String, String> eventProperties = new HashMap<>();
+    params.setEventProperties(eventProperties);
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", goalIdentifier, params).get(campaignKey), false);
+  }
+  
+  @Test
+  public void trackEventProps_noRevenueValueInNumberGoal() {
+    String campaignKey = "track1";
+    String goalIdentifier = "track4";
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_100_EVENT_PROPERTIES).withDevelopmentMode(true).build();
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    HashMap<String, String> eventProperties = new HashMap<>();
+    params.setEventProperties(eventProperties);
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", goalIdentifier, params).get(campaignKey), true);
+  }
+  
+  @Test
+  public void trackEventProps_eventPropertiesInsteadOfRevenueValueInRevenueGoal() {
+    String campaignKey = "track1";
+    String goalIdentifier = "track3";
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_100_EVENT_PROPERTIES).withDevelopmentMode(true).build();
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    HashMap<String, Integer> eventProperties = new HashMap<>();
+    eventProperties.put("abcd", 400);
+    params.setEventProperties(eventProperties);
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", goalIdentifier, params).get(campaignKey), true);
+  }
+  
+  @Test
+  public void trackEventProps_wrongEventPropertiesInsteadOfRevenueValueInRevenueGoal() {
+    String campaignKey = "track1";
+    String goalIdentifier = "track3";
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_100_EVENT_PROPERTIES).withDevelopmentMode(true).build();
+    VWOAdditionalParams params = new VWOAdditionalParams();
+    HashMap<String, Integer> eventProperties = new HashMap<>();
+    eventProperties.put("ab", 400);
+    params.setEventProperties(eventProperties);
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", goalIdentifier, params).get(campaignKey), false);
+  }
 }

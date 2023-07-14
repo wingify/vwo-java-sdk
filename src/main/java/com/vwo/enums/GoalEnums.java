@@ -33,4 +33,18 @@ public class GoalEnums {
       return this.type;
     }
   }
+  
+  public enum MCA_TYPE {
+    REVENUE_PROP(-1);
+
+    private final int mca;
+
+    MCA_TYPE(int mca) {
+      this.mca = mca;
+    }
+
+    public int value() {
+      return this.mca;
+    }
+  }
 }
