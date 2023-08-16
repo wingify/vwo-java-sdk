@@ -185,7 +185,7 @@ public class UsageStatsTests {
     campaign.setId(231);
     Variation variation = new Variation();
     variation.setId(1);
-    HttpParams httpParams =  HttpRequestBuilder.getUserParams(vwo.getSettingFile(), campaign, "userId", variation, vwo.getUsageStats());
+    HttpParams httpParams =  HttpRequestBuilder.getUserParams(vwo.getSettingFile(), campaign, "userId", variation, vwo.getUsageStats(), null, null);
     assertTrue(httpParams.getQueryParams().containsKey("_l"));
   }
 
@@ -199,7 +199,7 @@ public class UsageStatsTests {
     campaign.setId(231);
     Variation variation = new Variation();
     variation.setId(1);
-    HttpParams httpParams =  HttpRequestBuilder.getUserParams(vwo.getSettingFile(), campaign, "userId", variation, vwo.getUsageStats());
+    HttpParams httpParams =  HttpRequestBuilder.getUserParams(vwo.getSettingFile(), campaign, "userId", variation, vwo.getUsageStats(), null, null);
     assertFalse(httpParams.getQueryParams().containsKey("_l"));
   }
 

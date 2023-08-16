@@ -27,7 +27,6 @@ public class APIEnums {
     UPDATE_SETTINGS_FILE("getAndUpdateSettingsFile"),
     TRACK("track");
 
-
     private final String type;
 
     API_TYPES(String type) {
@@ -37,6 +36,22 @@ public class APIEnums {
     public String value() {
       return this.type;
     }
+  }
+  
+  public enum VISITOR {
+    USERAGENT("visitor_ua"),
+    CUSTOMHEADER_USERAGENT("X-Device-User-Agent"),
+    IP("visitor_ip"),
+    CUSTOMHEADER_IP("VWO-X-Forwarded-For");
 
+    private final String visitor;
+    
+    VISITOR(String visitor) {
+      this.visitor = visitor;
+    }
+    
+    public String value() {
+      return this.visitor;
+    }
   }
 }

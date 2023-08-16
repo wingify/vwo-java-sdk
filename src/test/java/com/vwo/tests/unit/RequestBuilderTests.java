@@ -20,17 +20,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.vwo.VWO;
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.EventArchEnums;
 import com.vwo.models.response.BatchEventData;
 import com.vwo.models.response.Campaign;
 import com.vwo.models.response.Goal;
 import com.vwo.models.response.Variation;
+import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpRequestBuilder;
 import com.vwo.services.settings.SettingFile;
 import com.vwo.services.settings.SettingsFileUtil;
 import com.vwo.tests.data.Settings;
 import org.junit.jupiter.api.Test;
+import org.apache.http.Header;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,12 +48,12 @@ public class RequestBuilderTests {
   public void trackUserPayloadTest() throws Exception {
     SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
 
-    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackUserPayload(settings, "Ashley", 20, 3);
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackUserPayload(settings, "Ashley", 20, 3, null, null);
     HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, EventArchEnums.VWO_VARIATION_SHOWN.toString(), payload, new HashMap<String, Integer>() {{
       put("_l", 1);
       put("cl", 1);
       put("ll", 1);
-    }});
+    }}, null, null);
 
     assertNotNull(queryParams.getQueryParams().get("a"));
     assertNotNull(queryParams.getQueryParams().get("en"));
@@ -100,8 +103,8 @@ public class RequestBuilderTests {
       put("10", 30);
       put("50", 40);
     }};
-    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackGoalPayload(settings, "Ashley", metricMap, "goalIdentifier", 300, new HashSet<String>(){{add("revenue");}},new HashMap<>());
-    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "goalIdentifier", payload, null);
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackGoalPayload(settings, "Ashley", metricMap, "goalIdentifier", 300, new HashSet<String>(){{add("revenue");}},new HashMap<>(), null, null);
+    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "goalIdentifier", payload, null, null, null);
 
     assertNotNull(queryParams.getQueryParams().get("a"));
     assertNotNull(queryParams.getQueryParams().get("en"));
@@ -141,7 +144,7 @@ public class RequestBuilderTests {
     SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
 
     Map<String, Object> payload = HttpRequestBuilder.getEventArchPushPayload(settings, "Ashley",  new HashMap<String, String>() {{put("tagKey", "TagValue");}});
-    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), payload, null);
+    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), payload, null, null, null);
 
     assertNotNull(queryParams.getQueryParams().get("a"));
     assertNotNull(queryParams.getQueryParams().get("en"));
@@ -186,7 +189,7 @@ public class RequestBuilderTests {
       put("double", "20.34");
       put("boolean", "false");
     }});
-    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), payload, null);
+    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), payload, null, null, null);
 
     assertNotNull(queryParams.getQueryParams().get("a"));
     assertNotNull(queryParams.getQueryParams().get("en"));
@@ -243,10 +246,10 @@ public class RequestBuilderTests {
     usageStats.put("ll", 1);
 
     try {
-      HttpParams httpParams = HttpRequestBuilder.getUserParams(vwoInstance.getSettingFile(), campaign, "userId", variation, usageStats);
+      HttpParams httpParams = HttpRequestBuilder.getUserParams(vwoInstance.getSettingFile(), campaign, "userId", variation, usageStats, null, null);
       assertTrue(httpParams.getUrl().contains("eu"));
 
-      httpParams = HttpRequestBuilder.getGoalParams(vwoInstance.getSettingFile(), campaign, "userId", goal, variation, null);
+      httpParams = HttpRequestBuilder.getGoalParams(vwoInstance.getSettingFile(), campaign, "userId", goal, variation, null, null, null);
       assertTrue(httpParams.getUrl().contains("eu"));
 
       httpParams = HttpRequestBuilder.getCustomDimensionParams(vwoInstance.getSettingFile(), "tagKey", "tagValue", "userId");
@@ -256,12 +259,285 @@ public class RequestBuilderTests {
       httpParams = HttpRequestBuilder.getBatchEventPostCallParams(String.valueOf(accountId), apiKey, vwoInstance.getBatchEventQueue().getBatchQueue(), usageStats);
       assertTrue(httpParams.getUrl().contains("eu"));
 
-      Map<String, Object> trackUserPayload = HttpRequestBuilder.getEventArchTrackUserPayload(vwoInstance.getSettingFile(), "userId", campaign.getId(), variation.getId());
-      httpParams = HttpRequestBuilder.getEventArchQueryParams(vwoInstance.getSettingFile(), "eventName", trackUserPayload,  usageStats);
+      Map<String, Object> trackUserPayload = HttpRequestBuilder.getEventArchTrackUserPayload(vwoInstance.getSettingFile(), "userId", campaign.getId(), variation.getId(), null, null);
+      httpParams = HttpRequestBuilder.getEventArchQueryParams(vwoInstance.getSettingFile(), "eventName", trackUserPayload,  usageStats, null, null);
       assertTrue(httpParams.getUrl().contains("eu"));
     } catch (Exception e) {
       assertFalse(false);
     }
   }
 
+  @Test
+  public void requestHeaderForTrackGoalInEventArchWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings
+        .AB_TRAFFIC_50_WEIGHT_50_50).build();
+    String userAgent = "user_agent";
+    String userIP = "user_IP";
+    boolean isHeaderUserAgent = false, isHeaderIP = false;
+
+    Map<String, Integer> metricMap = new HashMap<String, Integer>() {{
+      put("20", 20);
+      put("10", 30);
+      put("50", 40);
+    }};
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackGoalPayload(settings,
+      "Ashley", metricMap, "goalIdentifier", 300, new HashSet<String>(){{add("revenue");}},
+      new HashMap<>(), userAgent, userIP);
+    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "goalIdentifier",
+        payload, null, userAgent, userIP);
+    
+    // verify headers
+    Header[] headers = queryParams.getHeaders();
+    assertNotNull(headers);
+    assertEquals(headers.length, 3);
+    for (int x = 0; x < headers.length; x++) {
+        // verify user agent
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value())) {
+          isHeaderUserAgent = headers[x].getValue().equals(userAgent);
+        }
+
+        // verify IP
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_IP.value())) {
+          isHeaderIP = headers[x].getValue().equals(userIP);
+        }
+    }
+    assertEquals(isHeaderUserAgent, true);
+    assertEquals(isHeaderIP, true);
+  }
+
+  @Test
+  public void payloadForTrackGoalInEventArchWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings
+        .AB_TRAFFIC_50_WEIGHT_50_50).build();
+    String userAgent = "user_agent", userIP = "user_IP";
+
+    Map<String, Integer> metricMap = new HashMap<String, Integer>() {{
+      put("20", 20);
+      put("10", 30);
+      put("50", 40);
+    }};
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackGoalPayload(settings,
+      "Ashley", metricMap, "goalIdentifier", 300, new HashSet<String>(){{add("revenue");}},
+      new HashMap<>(), userAgent, userIP);
+    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "goalIdentifier",
+        payload, null, userAgent, userIP);
+    
+    // verify params
+    JsonNode node = new ObjectMapper().readTree(queryParams.getBody());
+    assertNotNull(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()));
+    assertTrue(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()).getNodeType() == JsonNodeType.STRING);
+    assertEquals(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()).asText(), userAgent);
+    assertNotNull(node.get("d").get(APIEnums.VISITOR.IP.value()));
+    assertTrue(node.get("d").get(APIEnums.VISITOR.IP.value()).getNodeType() == JsonNodeType.STRING);
+    assertEquals(node.get("d").get(APIEnums.VISITOR.IP.value()).asText(), userIP);
+  }
+
+  @Test
+  public void requestHeaderForTrackUserInEventArchWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    String clientUserAgent = "user_agent", userIPAddress = "visitor_ip";
+    boolean isHeaderUserAgent = false, isHeaderIP = false;
+
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackUserPayload(settings,
+      "Ashley", campaign.getId(), variation.getId(), clientUserAgent, userIPAddress);
+    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "CUSTOM",
+        payload, null, clientUserAgent, userIPAddress);
+    
+    // verify headers
+    Header[] headers = queryParams.getHeaders();
+    assertNotNull(headers);
+    assertEquals(headers.length, 3);
+    for (int x = 0; x < headers.length; x++) {
+        // verify user agent
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value())) {
+          isHeaderUserAgent = headers[x].getValue().equals(clientUserAgent);
+        }
+
+        // verify IP
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_IP.value())) {
+          isHeaderIP = headers[x].getValue().equals(userIPAddress);
+        }
+    }
+    assertEquals(isHeaderUserAgent, true);
+    assertEquals(isHeaderIP, true);
+  }
+
+  @Test
+  public void payloadForTrackUserInEventArchWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings
+        .AB_TRAFFIC_50_WEIGHT_50_50).build();
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0)
+        .getVariations().get(0);
+    String clientUserAgent = "user_agent";
+    String userIPAddress = "visitor_ip";
+
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackUserPayload(settings, 
+        "Ashley", campaign.getId(), variation.getId(), clientUserAgent, userIPAddress);
+    HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "CUSTOM",
+    payload, null, clientUserAgent, userIPAddress);
+    
+    // verify params
+    JsonNode node = new ObjectMapper().readTree(queryParams.getBody());
+    assertNotNull(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()));
+    assertTrue(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()).getNodeType() == JsonNodeType.STRING);
+    assertEquals(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()).asText(), clientUserAgent);
+    assertNotNull(node.get("d").get(APIEnums.VISITOR.IP.value()));
+    assertTrue(node.get("d").get(APIEnums.VISITOR.IP.value()).getNodeType() == JsonNodeType.STRING);
+    assertEquals(node.get("d").get(APIEnums.VISITOR.IP.value()).asText(), userIPAddress);
+  }
+
+  @Test
+  public void requestHeaderForTrackGoalWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Goal goal = campaign.getGoals().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    String clientUserAgent = "user_agent";
+    String userIPAddress = "user_IP";
+    boolean isHeaderUserAgent = false;
+    boolean isHeaderIP = false;
+    
+    HttpParams queryParams = HttpRequestBuilder.getGoalParams(settings, campaign, "Ashley", goal, variation, 300, clientUserAgent, userIPAddress);
+    
+    // verify headers
+    Header[] headers = queryParams.getHeaders();
+    assertNotNull(headers);
+    assertEquals(headers.length, 3);
+    for (int x = 0; x < headers.length; x++) {
+        // verify user agent
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value())) {
+          isHeaderUserAgent = headers[x].getValue().equals(clientUserAgent);
+        }
+
+        // verify IP
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_IP.value())) {
+          isHeaderIP = headers[x].getValue().equals(userIPAddress);
+        }
+    }
+    assertEquals(isHeaderUserAgent, true);
+    assertEquals(isHeaderIP, true);
+  }
+
+  @Test
+  public void payloadForTrackGoalWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Goal goal = campaign.getGoals().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    String clientUserAgent = "user_agent";
+    String userIPAddress = "user_IP";
+	    
+    HttpParams httpParams = HttpRequestBuilder.getGoalParams(settings, campaign, "Ashley", goal, variation, 300, clientUserAgent, userIPAddress);
+    
+    // verify params
+    Map<String, Object> queryParams = httpParams.getQueryParams();
+    assertNotNull(queryParams.get(APIEnums.VISITOR.USERAGENT.value()));
+    assertEquals(queryParams.get(APIEnums.VISITOR.USERAGENT.value()), clientUserAgent);
+    assertNotNull(queryParams.get(APIEnums.VISITOR.IP.value()));
+    assertEquals(queryParams.get(APIEnums.VISITOR.IP.value()), userIPAddress);
+  }
+
+  @Test
+  public void requestHeaderForTrackUserWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    Map<String, Integer> usageStats = new HashMap<String, Integer>();
+    usageStats.put("cl", 1);
+    usageStats.put("ll", 1);
+    String clientUserAgent = "user_agent";
+    String userIPAddress = "user_IP";
+    boolean isHeaderUserAgent = false;
+    boolean isHeaderIP = false;
+    
+    HttpParams queryParams = HttpRequestBuilder.getUserParams(settings, campaign, "Ashley", variation, usageStats, clientUserAgent, userIPAddress);
+    
+    // verify headers
+    Header[] headers = queryParams.getHeaders();
+    assertNotNull(headers);
+    assertEquals(headers.length, 3);
+    for (int x = 0; x < headers.length; x++) {
+        // verify user agent
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value())) {
+          isHeaderUserAgent = headers[x].getValue().equals(clientUserAgent);
+        }
+
+        // verify IP
+        if (headers[x].getName().equalsIgnoreCase(APIEnums.VISITOR.CUSTOMHEADER_IP.value())) {
+          isHeaderIP = headers[x].getValue().equals(userIPAddress);
+        }
+    }
+    assertEquals(isHeaderUserAgent, true);
+    assertEquals(isHeaderIP, true);
+  }
+
+  @Test
+  public void payloadForTrackUserWithUAAndIPTest() throws Exception {
+    SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Goal goal = campaign.getGoals().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    Map<String, Integer> usageStats = new HashMap<String, Integer>();
+    usageStats.put("cl", 1);
+    usageStats.put("ll", 1);
+    String clientUserAgent = "user_agent";
+    String userIPAddress = "user_IP";
+    
+    HttpParams httpParams = HttpRequestBuilder.getUserParams(settings, campaign, "Ashley", variation, usageStats, clientUserAgent, userIPAddress);
+    
+    // verify params
+    Map<String, Object> queryParams = httpParams.getQueryParams();
+    assertNotNull(queryParams.get(APIEnums.VISITOR.USERAGENT.value()));
+    assertEquals(queryParams.get(APIEnums.VISITOR.USERAGENT.value()), clientUserAgent);
+    assertNotNull(queryParams.get(APIEnums.VISITOR.IP.value()));
+    assertEquals(queryParams.get(APIEnums.VISITOR.IP.value()), userIPAddress);
+  }
+
+  @Test
+  public void payloadForBatchingTrackUserWithUAAndIPTest() throws Exception {
+	SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    BatchEventData batchEventData = new BatchEventData();
+    batchEventData.setEventsPerRequest(50);
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).withBatchEvents(batchEventData).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    String clientUserAgent = "user_agent", userIPAddress = "visitor_ip";
+
+    Map<String, Object> payload = HttpRequestBuilder.getBatchEventForTrackingUser(settings, campaign, "Ashley", variation, clientUserAgent, userIPAddress);
+
+    // verify params for tracking user
+    assertNotNull(payload.keySet().contains(APIEnums.VISITOR.USERAGENT.value()));
+    assertEquals(payload.get(APIEnums.VISITOR.USERAGENT.value()), clientUserAgent);
+    assertNotNull(payload.keySet().contains(APIEnums.VISITOR.IP.value()));
+    assertEquals(payload.get(APIEnums.VISITOR.IP.value()), userIPAddress);
+  }
+  
+  @Test
+  public void payloadForBatchingTrackGoalWithUAAndIPTest() throws Exception {
+	SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
+    BatchEventData batchEventData = new BatchEventData();
+    batchEventData.setEventsPerRequest(50);
+    VWO vwoInstance = VWO.launch(Settings.AB_TRAFFIC_50_WEIGHT_50_50).withBatchEvents(batchEventData).build();
+    Campaign campaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0);
+    Goal goal = campaign.getGoals().get(0);
+    Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
+    String clientUserAgent = "user_agent", userIPAddress = "visitor_ip";
+
+    Map<String, Object> payload = HttpRequestBuilder.getBatchEventForTrackingGoal(settings, campaign, "Ashley", goal, variation, 300, new HashMap<>(), clientUserAgent, userIPAddress);
+
+    // verify params for tracking user
+    assertNotNull(payload.keySet().contains(APIEnums.VISITOR.USERAGENT.value()));
+    assertEquals(payload.get(APIEnums.VISITOR.USERAGENT.value()), clientUserAgent);
+    assertNotNull(payload.keySet().contains(APIEnums.VISITOR.IP.value()));
+    assertEquals(payload.get(APIEnums.VISITOR.IP.value()), userIPAddress);
+  }
 }

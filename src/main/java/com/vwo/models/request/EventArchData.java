@@ -26,6 +26,8 @@ public class EventArchData {
   private Long sessionId;
   private Event event;
   private Visitor visitor;
+  private String visitor_ua;
+  private String visitor_ip;
 
   public String getMsgId() {
     return msgId;
@@ -65,5 +67,21 @@ public class EventArchData {
 
   public void setVisitor(Visitor visitor) {
     this.visitor = visitor;
+  }
+
+  public String getVisitor_ua() {
+    return visitor_ua;
+  }
+
+  public void setVisitor_ua(String visitor_ua) {
+    this.visitor_ua = visitor_ua;
+  }
+
+  public String getVisitor_ip() {
+    return visitor_ip;
+  }
+
+  public void setVisitor_ip(String visitor_ip) {
+    this.visitor_ip = visitor_ip;
   }
 }

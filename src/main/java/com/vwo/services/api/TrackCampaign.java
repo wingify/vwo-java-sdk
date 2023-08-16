@@ -59,6 +59,10 @@ public class TrackCampaign {
    * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
    * @param goalsToTrack                Enum of goal type to track a particular type of goal
+   * @param usageStats                  usage info collected at the time of VWO instantiation.
+   * @param eventProperties             key:value map of event properties
+   * @param clientUserAgent        User Agent of the visitor
+   * @param userIPAddress               IP of the visitor
    * @return Map containing the campaign name and their boolean status representing if tracked or not, and null if something went wrong.
    */
   public static Map<String, Boolean> trackGoal(
@@ -74,8 +78,33 @@ public class TrackCampaign {
       Map<String, ?> variationTargetingVariables,
       GoalEnums.GOAL_TYPES goalsToTrack,
       Map<String, Integer> usageStats,
-      Map<String, ?> eventProperties
+      Map<String, ?> eventProperties,
+      String clientUserAgent,
+      String userIPAddress
+  ) {
+    return trackGoalImpl(campaignSpecifier, userId, goalIdentifier, revenueValue, settingFile,
+      variationDecider, isDevelopmentMode, batchEventQueue, CustomVariables,
+      variationTargetingVariables, goalsToTrack, usageStats, eventProperties, clientUserAgent,
+      userIPAddress);
+  }
 
+  // implement track goal
+  public static Map<String, Boolean> trackGoalImpl(
+      Object campaignSpecifier,
+      String userId,
+      String goalIdentifier,
+      Object revenueValue,
+      SettingFile settingFile,
+      VariationDecider variationDecider,
+      boolean isDevelopmentMode,
+      BatchEventQueue batchEventQueue,
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables,
+      GoalEnums.GOAL_TYPES goalsToTrack,
+      Map<String, Integer> usageStats,
+      Map<String, ?> eventProperties,
+      String clientUserAgent,
+      String userIPAddress
   ) {
     try {
       if (!TrackCampaign.isTrackParamsValid(campaignSpecifier, userId, goalIdentifier)) {
@@ -183,7 +212,8 @@ public class TrackCampaign {
                   trackStatus.put(key, callTrackGoal(goal, revenuePropList, settingFile,
                       revenueValue, userId, campaign, variationDecider, CustomVariables,
                       variationTargetingVariables, goalIdentifier, isDevelopmentMode,
-                      batchEventQueue, eventProperties, metricMap, areGlobalGoals));
+                      batchEventQueue, eventProperties, metricMap, areGlobalGoals, clientUserAgent,
+                      userIPAddress));
                 }
               } else if (goal.getMCA() != null
                   && goal.getMCA() == GoalEnums.MCA_TYPE.REVENUE_PROP.value()) {
@@ -205,7 +235,8 @@ public class TrackCampaign {
                   trackStatus.put(key, callTrackGoal(goal, revenuePropList, settingFile,
                       revenueValue, userId, campaign, variationDecider, CustomVariables,
                       variationTargetingVariables, goalIdentifier, isDevelopmentMode,
-                      batchEventQueue, eventProperties, metricMap, areGlobalGoals));
+                      batchEventQueue, eventProperties, metricMap, areGlobalGoals, clientUserAgent,
+                      userIPAddress));
                 }
               }
             } else {
@@ -225,7 +256,7 @@ public class TrackCampaign {
             trackStatus.put(key, callTrackGoal(goal, revenuePropList, settingFile, revenueValue,
                 userId, campaign, variationDecider, CustomVariables, variationTargetingVariables,
                 goalIdentifier, isDevelopmentMode, batchEventQueue, eventProperties, metricMap,
-                areGlobalGoals));
+                areGlobalGoals, clientUserAgent, userIPAddress));
           }
         }
       } // for loop end
@@ -235,8 +266,10 @@ public class TrackCampaign {
       }
 
       if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled() && metricMap.size() > 0) {
-        Map<String, Object> trackGoalPayload = HttpRequestBuilder.getEventArchTrackGoalPayload(settingFile, userId, metricMap, goalIdentifier, revenueValue, revenuePropList, eventProperties);
-        HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, goalIdentifier, trackGoalPayload, null);
+        Map<String, Object> trackGoalPayload = HttpRequestBuilder.getEventArchTrackGoalPayload(
+            settingFile, userId, metricMap, goalIdentifier, revenueValue, revenuePropList,
+            eventProperties, clientUserAgent, userIPAddress);
+        HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, goalIdentifier, trackGoalPayload, null, clientUserAgent, userIPAddress);
         HttpPostRequest.send(httpParams, HttpUtils.handleEventArchResponse(settingFile.getSettings().getAccountId(), goalIdentifier, null), false);
       }
 
@@ -253,7 +286,8 @@ public class TrackCampaign {
       VariationDecider variationDecider, Map<String, ?> customVariables,
       Map<String, ?> variationTargetingVariables, String goalIdentifier, boolean isDevelopmentMode,
       BatchEventQueue batchEventQueue, Map<String, ?> eventProperties,
-      Map<String, Integer> metricMap, Boolean areGlobalGoals) {
+      Map<String, Integer> metricMap, Boolean areGlobalGoals, String clientUserAgent,
+      String userIPAddress) {
 
     // add revenue prop to list
     if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value())
@@ -271,7 +305,8 @@ public class TrackCampaign {
     if (variation != null) {
       TrackCampaign.sendTrackCall(settingFile, campaign, userId, goal,
           CampaignUtils.getVariationObjectFromCampaign(campaign, variation), revenue,
-          isDevelopmentMode, batchEventQueue, metricMap, areGlobalGoals, eventProperties);
+          isDevelopmentMode, batchEventQueue, metricMap, areGlobalGoals, eventProperties,
+          clientUserAgent, userIPAddress);
       return true;
     }
 
@@ -311,18 +346,24 @@ public class TrackCampaign {
         BatchEventQueue batchEventQueue,
         Map<String, Integer> metricMap,
         boolean areGlobalGoals,
-        Map<String, ?> eventProperties
+        Map<String, ?> eventProperties,
+        String clientUserAgent,
+        String userIPAddress
   ) {
     try {
+      // event batching enabled and not global goals
       if (batchEventQueue != null && !areGlobalGoals) {
-        batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingGoal(settingFile, campaign, userId, goal, variation, revenueValue, eventProperties));
+        batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingGoal(settingFile, campaign, userId, goal, variation, revenueValue, eventProperties, clientUserAgent, userIPAddress));
       } else if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled()) {
+        // event batching not enabled but event arch enabled
         metricMap.put(String.valueOf(campaign.getId()), goal.getId());
       } else {
+        // event batching not enabled and event arch not enabled and global goals
         if (areGlobalGoals) {
-          batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingGoal(settingFile, campaign, userId, goal, variation, revenueValue, eventProperties));
+          batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingGoal(settingFile, campaign, userId, goal, variation, revenueValue, eventProperties, clientUserAgent, userIPAddress));
         } else {
-          HttpParams httpParams = HttpRequestBuilder.getGoalParams(settingFile, campaign, userId, goal, variation, revenueValue);
+          // event batching not enabled and event arch not enabled and not global goals
+          HttpParams httpParams = HttpRequestBuilder.getGoalParams(settingFile, campaign, userId, goal, variation, revenueValue, clientUserAgent, userIPAddress);
           if (!isDevelopmentMode) {
             HttpGetRequest.send(httpParams, settingFile.getSettings().getAccountId());
           }

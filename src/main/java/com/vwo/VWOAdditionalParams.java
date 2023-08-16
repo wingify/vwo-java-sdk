@@ -26,6 +26,8 @@ public class VWOAdditionalParams {
   private Object revenueValue;
   private GoalEnums.GOAL_TYPES goalTypeToTrack;
   private Map<String, ?> eventProperties;
+  private String userAgent;
+  private String IPAddress;
 
   public Map<String, ?> getCustomVariables() {
     return customVariables;
@@ -60,6 +62,24 @@ public class VWOAdditionalParams {
 
   public VWOAdditionalParams setGoalTypeToTrack(GoalEnums.GOAL_TYPES goalTypeToTrack) {
     this.goalTypeToTrack = goalTypeToTrack;
+    return this;
+  }
+
+  public String getUserAgent() {
+    return userAgent;
+  }
+
+  public VWOAdditionalParams setUserAgent(String userAgent) {
+    this.userAgent = userAgent;
+    return this;
+  }
+
+  public String getIPAddress() {
+    return IPAddress;
+  }
+
+  public VWOAdditionalParams setIPAddress(String IPAddress) {
+    this.IPAddress = IPAddress;
     return this;
   }
 

@@ -112,7 +112,7 @@ public class Segmentation {
             result.put(query.getKey(), true);
           }
           Map<String, Object> pushPayload = HttpRequestBuilder.getEventArchPushPayload(settingFile, userId, customDimensionMap);
-          HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), pushPayload, null);
+          HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), pushPayload, null, null, null);
           HttpPostRequest.send(httpParams, HttpUtils.handleEventArchResponse(settingFile.getSettings().getAccountId(), null, customDimensionMap), false);
         } else {
 

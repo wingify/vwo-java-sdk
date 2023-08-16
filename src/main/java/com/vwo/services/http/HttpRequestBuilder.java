@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vwo.enums.APIEnums;
 import com.vwo.enums.EventArchEnums;
 import com.vwo.enums.GoalEnums;
 import com.vwo.enums.HTTPEnums;
@@ -91,7 +92,9 @@ public class HttpRequestBuilder {
     }
   }
 
-  public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId, Variation variation, Map<String, Integer> usageStats) {
+  public static HttpParams getUserParams(SettingFile settingFile, Campaign campaign, String userId,
+      Variation variation, Map<String, Integer> usageStats, String clientUserAgent,
+      String userIPAddress) {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams =
         BuildQueryParams.Builder.getInstance()
@@ -107,6 +110,8 @@ public class HttpRequestBuilder {
         .withsdkVersion()
         .withUsageStats(usageStats)
         .withEnvironment(settings.getSdkKey())
+        .withClientUserAgent(clientUserAgent)
+        .withUserIPAddress(userIPAddress)
         .build();
 
     Map<String, Object> map = requestParams.convertToMap();
@@ -120,12 +125,31 @@ public class HttpRequestBuilder {
         put("properties", requestParams.removeNullValues(loggingMap).toString());
       }
     }));
-
+    
+    // form http headers
+    ArrayList<Header> headers = new ArrayList<>();
+    headers.add(new BasicHeader("User-Agent", "java"));
+    
+    // add visitor IP and visitor user agent if present
+    if (clientUserAgent != null && clientUserAgent.length() > 0) {
+      headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value(),
+          clientUserAgent));
+    }
+    if (userIPAddress != null && userIPAddress.length() > 0) {
+      headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_IP.value(), userIPAddress));
+    }
+    
+    // form http params
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-    return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(IMPRESSION_PATH), map, HTTPEnums.Verbs.GET);
+    HttpParams httpParams = new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(IMPRESSION_PATH), map, HTTPEnums.Verbs.GET);
+    httpParams.setHeaders(headers.toArray(new Header[0]));
+    
+    return httpParams;
   }
 
-  public static Map<String, Object> getBatchEventForTrackingUser(SettingFile settingFile, Campaign campaign, String userId, Variation variation) {
+  public static Map<String, Object> getBatchEventForTrackingUser(SettingFile settingFile,
+      Campaign campaign, String userId, Variation variation, String clientUserAgent,
+      String userIPAddress) {
     Settings settings = settingFile.getSettings();
 
     BuildQueryParams requestParams =
@@ -135,6 +159,8 @@ public class HttpRequestBuilder {
         .withMinifiedEventType(1)
         .withSid(Instant.now().getEpochSecond())
         .withUuid(settings.getAccountId(), userId)
+        .withClientUserAgent(clientUserAgent)
+        .withUserIPAddress(userIPAddress)
         .build();
 
     Map<String, Object> map = requestParams.convertToMap();
@@ -149,7 +175,9 @@ public class HttpRequestBuilder {
     return map;
   }
 
-  public static HttpParams getGoalParams(SettingFile settingFile, Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue) {
+  public static HttpParams getGoalParams(SettingFile settingFile, Campaign campaign, String userId,
+      Goal goal, Variation variation, Object revenueValue, String clientUserAgent,
+      String userIPAddress) {
     Settings settings = settingFile.getSettings();
     BuildQueryParams requestParams =
         BuildQueryParams.Builder.getInstance()
@@ -165,6 +193,8 @@ public class HttpRequestBuilder {
         .withsdk()
         .withsdkVersion()
         .withEnvironment(settings.getSdkKey())
+        .withClientUserAgent(clientUserAgent)
+        .withUserIPAddress(userIPAddress)
         .build();
 
     Map<String, Object> map = requestParams.convertToMap();
@@ -176,14 +206,31 @@ public class HttpRequestBuilder {
         put("properties", requestParams.removeNullValues(loggingMap).toString());
       }
     }));
-
+    
+    // form http headers
+    ArrayList<Header> headers = new ArrayList<>();
+    headers.add(new BasicHeader("User-Agent", "java"));
+    
+    // add visitor IP and visitor user agent if present
+    if (clientUserAgent != null && clientUserAgent.length() > 0) {
+      headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value(),
+          clientUserAgent));
+    }
+    if (userIPAddress != null && userIPAddress.length() > 0) {
+      headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_IP.value(), userIPAddress));
+    }
+    
+    // form http params
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-    return new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(GOAL_PATH), map, HTTPEnums.Verbs.GET);
+    HttpParams httpParams = new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(GOAL_PATH), map, HTTPEnums.Verbs.GET);
+    httpParams.setHeaders(headers.toArray(new Header[0]));
+    
+    return httpParams;
   }
 
   public static Map<String, Object> getBatchEventForTrackingGoal(SettingFile settingFile,
       Campaign campaign, String userId, Goal goal, Variation variation, Object revenueValue,
-      Map<String, ?> eventProperties) {
+      Map<String, ?> eventProperties, String clientUserAgent, String userIPAddress) {
     Settings settings = settingFile.getSettings();
 
     // create the builder
@@ -194,6 +241,8 @@ public class HttpRequestBuilder {
             .withMinifiedEventType(2)
             .withMinifiedGoalId(goal.getId())
             .withSid(Instant.now().getEpochSecond())
+            .withClientUserAgent(clientUserAgent)
+            .withUserIPAddress(userIPAddress)
             .withUuid(settings.getAccountId(), userId);
     
     // check if revenue needs to be added
@@ -297,7 +346,9 @@ public class HttpRequestBuilder {
     return httpParams;
   }
 
-  public static HttpParams getEventArchQueryParams(SettingFile settingFile, String eventName, Map<String, Object> properties, Map<String, Integer> usageStats) throws JsonProcessingException {
+  public static HttpParams getEventArchQueryParams(SettingFile settingFile, String eventName, 
+      Map<String, Object> properties, Map<String, Integer> usageStats, String clientUserAgent,
+      String userIPAddress) throws JsonProcessingException {
     Settings settings = settingFile.getSettings();
     BuildQueryParams.Builder requestBuilder =
         BuildQueryParams.Builder.getInstance()
@@ -307,30 +358,42 @@ public class HttpRequestBuilder {
         .withEnvironment(settings.getSdkKey())
         .withsdk()
         .withP("FS")
+        .withClientUserAgent(clientUserAgent)
+        .withUserIPAddress(userIPAddress)
         .withRandom(Math.random());
 
     if (usageStats != null) {
       requestBuilder.withUsageStats(usageStats);
     }
 
-    BuildQueryParams requestParams = requestBuilder.build();
-
-    Map<String, Object> map = requestParams.convertToMap();
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+    
+    // build request headers
+    ArrayList<Header> headers = new ArrayList<>();
+    headers.add(new BasicHeader("User-Agent", "java"));
+    
+    // add visitor IP and visitor user agent if present
+    if (clientUserAgent != null && clientUserAgent.length() > 0) {
+      headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value(),
+          clientUserAgent));
+    }
+    if (userIPAddress != null && userIPAddress.length() > 0) {
+      headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_IP.value(), userIPAddress));
+    }
 
-
+    // build the params and set headers and body
+    BuildQueryParams requestParams = requestBuilder.build();
+    Map<String, Object> map = requestParams.convertToMap();
     HttpParams httpParams = new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(EVENTS), map, HTTPEnums.Verbs.POST);
-    final Header[] headers = new Header[1];
-    headers[0] = new BasicHeader("User-Agent", "java");
-    httpParams.setHeaders(headers);
-
+    httpParams.setHeaders(headers.toArray(new Header[0]));
     JsonNode node = objectMapper.valueToTree(properties);
     httpParams.setBody(objectMapper.writeValueAsString(node));
 
     return httpParams;
   }
 
-  public static EventArchPayload getBaseEventArchPayload(SettingFile settingFile, String userId, String eventName) {
+  public static EventArchPayload getBaseEventArchPayload(SettingFile settingFile, String userId,
+      String eventName, String clientUserAgent, String userIPAddress) {
     Settings settings = settingFile.getSettings();
     //create props map
     Props props =
@@ -357,14 +420,20 @@ public class HttpRequestBuilder {
         put("vwo_fs_environment", settings.getSdkKey());
       }
     }));
+    eventArchData.setVisitor_ua(clientUserAgent);
+    eventArchData.setVisitor_ip(userIPAddress);
+    
+    // create event arch payload
     EventArchPayload eventArchPayload = new EventArchPayload();
     eventArchPayload.setD(eventArchData);
     return eventArchPayload;
   }
 
-  public static Map<String, Object> getEventArchTrackUserPayload(SettingFile settingFile, String userId, int campaignId, int variationId) {
+  public static Map<String, Object> getEventArchTrackUserPayload(SettingFile settingFile,
+      String userId, int campaignId, int variationId, String clientUserAgent,
+      String userIPAddress) {
 
-    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, EventArchEnums.VWO_VARIATION_SHOWN.toString());
+    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, EventArchEnums.VWO_VARIATION_SHOWN.toString(), clientUserAgent, userIPAddress);
     eventArchPayload.getD().getEvent().getProps().setVariation(variationId).setIsFirst(1).setId(campaignId);
 
     LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_EVENT_ARCH_TRACK_USER"), new HashMap<String, String>() {
@@ -385,11 +454,13 @@ public class HttpRequestBuilder {
     return payloadMap;
   }
 
-  public static Map<String, Object> getEventArchTrackGoalPayload(SettingFile settingFile, String userId,
-                                                                 Map<String, Integer> metricMap, String goalIdentifier, Object revenue,
-                                                                 HashSet<String> revenueListProp, Map<String, ?> eventProperties) {
+  public static Map<String, Object> getEventArchTrackGoalPayload(SettingFile settingFile, String userId, 
+      Map<String, Integer> metricMap, String goalIdentifier, Object revenue,
+      HashSet<String> revenueListProp, Map<String, ?> eventProperties, String clientUserAgent,
+      String userIPAddress) {
 
-    final EventArchPayload eventArchPayload = getBaseEventArchPayload(settingFile, userId, goalIdentifier);
+    final EventArchPayload eventArchPayload = getBaseEventArchPayload(settingFile, userId,
+        goalIdentifier, clientUserAgent, userIPAddress);
     Map<String, Object> metric = new HashMap<String, Object>();
     Map<String, Object> eventMap = new HashMap<String, Object>();
     ArrayList<String> campaignList = new ArrayList<>();
@@ -435,7 +506,7 @@ public class HttpRequestBuilder {
 
   public static Map<String, Object> getEventArchPushPayload(SettingFile settingFile, String userId, Map<String, String> customDimensionMap) {
 
-    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, EventArchEnums.VWO_SYN_VISITOR_PROP.toString());
+    EventArchPayload eventArchPayload =  getBaseEventArchPayload(settingFile, userId, EventArchEnums.VWO_SYN_VISITOR_PROP.toString(), null, null);
 
     for (Map.Entry<String, ?> query : customDimensionMap.entrySet()) {
       eventArchPayload.getD().getVisitor().getProps().put(query.getKey(), query.getValue());
@@ -492,6 +563,8 @@ public class HttpRequestBuilder {
     private String en;
     private Long eTime;
     private String p;
+    private String visitor_ua;
+    private String visitor_ip;
     private static final Logger LOGGER = Logger.getLogger(BuildQueryParams.class);
 
 
@@ -524,6 +597,8 @@ public class HttpRequestBuilder {
       this.en = builder.en;
       this.eTime = builder.eTime;
       this.p = builder.p;
+      this.visitor_ua = builder.visitor_ua;
+      this.visitor_ip = builder.visitor_ip;
     }
 
 
@@ -556,6 +631,8 @@ public class HttpRequestBuilder {
       private String en;
       private Long eTime;
       private String p;
+      private String visitor_ua;
+      private String visitor_ip;
 
       private Builder() {
       }
@@ -707,6 +784,16 @@ public class HttpRequestBuilder {
 
       public Builder withEnvironment(String sdkKey) {
         this.env = sdkKey;
+        return this;
+      }
+      
+      public Builder withClientUserAgent(String clientUserAgent) {
+        this.visitor_ua = clientUserAgent != null ? clientUserAgent : "";
+        return this;
+      }
+      
+      public Builder withUserIPAddress(String userIPAddress) {
+        this.visitor_ip = userIPAddress != null ? userIPAddress : "";
         return this;
       }
 

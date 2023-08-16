@@ -48,8 +48,10 @@ public class FeatureCampaign {
    * @param isDevelopmentMode Development mode flag.
    * @param batchEventQueue   Event Batching Queue.
    * @param usageStats        usage info collected at the time of VWO instantiation.
-   * @param CustomVariables    Pre Segmentation custom variables
+   * @param CustomVariables   Pre Segmentation custom variables
    * @param variationTargetingVariables    User Whitelisting Targeting variables
+   * @param clientUserAgent  User Agent of the visitor
+   * @param userIPAddress     IP of the visitor
    * @return Boolean corresponding to whether user became part of feature.
    */
   public static boolean isFeatureEnabled(
@@ -61,7 +63,29 @@ public class FeatureCampaign {
       BatchEventQueue batchEventQueue,
       Map<String, Integer> usageStats,
       Map<String, ?> CustomVariables,
-      Map<String, ?> variationTargetingVariables
+      Map<String, ?> variationTargetingVariables,
+      String clientUserAgent,
+      String userIPAddress
+
+  ) {
+    return isFeatureEnabledImpl(campaignKey, userId, settingFile, variationDecider,
+      isDevelopmentMode, batchEventQueue, usageStats, CustomVariables, variationTargetingVariables,
+      clientUserAgent, userIPAddress);
+  }
+
+  // implement isFeatureEnabled
+  public static boolean isFeatureEnabledImpl(
+      String campaignKey,
+      String userId,
+      SettingFile settingFile,
+      VariationDecider variationDecider,
+      boolean isDevelopmentMode,
+      BatchEventQueue batchEventQueue,
+      Map<String, Integer> usageStats,
+      Map<String, ?> CustomVariables,
+      Map<String, ?> variationTargetingVariables,
+      String clientUserAgent,
+      String userIPAddress
 
   ) {
     try {
@@ -110,8 +134,10 @@ public class FeatureCampaign {
         return false;
       }
 
-      String variation = ActivateCampaign.activateCampaign(APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode, batchEventQueue,
-              CustomVariables, variationTargetingVariables, usageStats);
+      String variation = ActivateCampaign.activateCampaign(
+          APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile,
+          variationDecider, isDevelopmentMode, batchEventQueue, CustomVariables,
+          variationTargetingVariables, usageStats, clientUserAgent, userIPAddress);
 
       if (variation == null) {
         return false;

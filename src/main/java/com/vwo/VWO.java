@@ -240,7 +240,9 @@ public class VWO {
             this.batchEventQueue,
             this.usageStats,
             additionalParams.getCustomVariables(),
-            additionalParams.getVariationTargetingVariables()
+            additionalParams.getVariationTargetingVariables(),
+            additionalParams.getUserAgent(),
+            additionalParams.getIPAddress()
     );
   }
 
@@ -260,7 +262,7 @@ public class VWO {
       }));
       return null;
     }
-    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null);
+    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null, null, null);
   }
 
   /**
@@ -347,7 +349,9 @@ public class VWO {
             additionalParams.getVariationTargetingVariables(),
             goalsToTrack,
             this.usageStats,
-            additionalParams.getEventProperties()
+            additionalParams.getEventProperties(),
+            additionalParams.getUserAgent(),
+            additionalParams.getIPAddress()
     );
   }
 
@@ -373,7 +377,9 @@ public class VWO {
             null,
             this.goalTypeToTrack,
             this.usageStats,
-            new HashMap<>()
+            new HashMap<>(),
+            null,
+            null
     );
   }
 
@@ -406,7 +412,9 @@ public class VWO {
             this.batchEventQueue,
             this.usageStats,
             additionalParams.getCustomVariables(),
-            additionalParams.getVariationTargetingVariables()
+            additionalParams.getVariationTargetingVariables(),
+            additionalParams.getUserAgent(),
+            additionalParams.getIPAddress()
     );
   }
 
@@ -426,7 +434,9 @@ public class VWO {
       }));
       return false;
     }
-    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null);
+    return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(),
+      this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats,
+      null, null, null, null);
   }
 
   /**

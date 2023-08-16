@@ -52,6 +52,8 @@ public class ActivateCampaign {
    * @param usageStats                  usage info collected at the time of VWO instantiation.
    * @param CustomVariables             Pre Segmentation custom variables
    * @param variationTargetingVariables User Whitelisting Targeting variables
+   * @param clientUserAgent        User Agent of the visitor
+   * @param userIPAddress               IP of the visitor
    * @return String variation name, or null if the user doesn't qualify to become a part of the campaign.
    */
   public static String activate(
@@ -63,7 +65,28 @@ public class ActivateCampaign {
           BatchEventQueue batchEventQueue,
           Map<String, Integer> usageStats,
           Map<String, ?> CustomVariables,
-          Map<String, ?> variationTargetingVariables
+          Map<String, ?> variationTargetingVariables,
+          String clientUserAgent,
+          String userIPAddress
+  ) {
+    return activateImpl(campaignKey, userId, settingFile, variationDecider,
+      isDevelopmentMode, batchEventQueue, usageStats, CustomVariables,
+      variationTargetingVariables, clientUserAgent, userIPAddress);
+  }
+
+  // validate activate params and activate campaign
+  public static String activateImpl(
+          String campaignKey,
+          String userId,
+          SettingFile settingFile,
+          VariationDecider variationDecider,
+          boolean isDevelopmentMode,
+          BatchEventQueue batchEventQueue,
+          Map<String, Integer> usageStats,
+          Map<String, ?> CustomVariables,
+          Map<String, ?> variationTargetingVariables,
+          String clientUserAgent,
+          String userIPAddress
   ) {
     try {
       if (!ValidationUtils.isValidParams(
@@ -108,7 +131,7 @@ public class ActivateCampaign {
       }
 
       return ActivateCampaign.activateCampaign(APIEnums.API_TYPES.ACTIVATE.value(), campaign, userId, settingFile, variationDecider, isDevelopmentMode,
-              batchEventQueue, CustomVariables, variationTargetingVariables, usageStats);
+              batchEventQueue, CustomVariables, variationTargetingVariables, usageStats, clientUserAgent, userIPAddress);
     } catch (Exception e) {
       // LOGGER.error(LoggerMessagesEnums.ERROR_MESSAGES.GENERIC_ERROR.value(), e);
       return null;
@@ -125,7 +148,9 @@ public class ActivateCampaign {
           BatchEventQueue batchEventQueue,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
-          Map<String, Integer> usageStats
+          Map<String, Integer> usageStats,
+          String clientUserAgent,
+          String userIPAddress
   ) {
     String variation = CampaignVariation.getCampaignVariationName(settingFile.getSettings(), apiName, campaign, userId, variationDecider,
             CustomVariables, variationTargetingVariables, null);
@@ -148,7 +173,9 @@ public class ActivateCampaign {
         //          }
         //        }));
         // Send Impression Call for Stats
-        ActivateCampaign.sendUserCall(settingFile, campaign, userId, batchEventQueue, CampaignUtils.getVariationObjectFromCampaign(campaign, variation), isDevelopmentMode, usageStats);
+        ActivateCampaign.sendUserCall(settingFile, campaign, userId, batchEventQueue,
+            CampaignUtils.getVariationObjectFromCampaign(campaign, variation), isDevelopmentMode,
+            usageStats, clientUserAgent, userIPAddress);
       }
     } else {
       LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("DECISION_NO_VARIATION_ALLOTED"), new HashMap<String, String>() {
@@ -163,18 +190,24 @@ public class ActivateCampaign {
   }
 
   private static void sendUserCall(SettingFile settingFile, Campaign campaign, String userId, BatchEventQueue batchEventQueue,
-                                   Variation variation, boolean isDevelopmentMode, Map<String, Integer> usageStats) {
+                                   Variation variation, boolean isDevelopmentMode,
+                                   Map<String, Integer> usageStats, String clientUserAgent,
+                                   String userIPAddress) {
     try {
+      // event batching enabled
       if (batchEventQueue != null) {
-        batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingUser(settingFile, campaign, userId, variation));
+        batchEventQueue.enqueue(HttpRequestBuilder.getBatchEventForTrackingUser(settingFile, campaign, userId, variation, clientUserAgent, userIPAddress));
       } else if (settingFile.getSettings().getIsEventArchEnabled() != null && settingFile.getSettings().getIsEventArchEnabled()) {
+        // event batching not enabled, but event arch enabled
         if (!isDevelopmentMode) {
-          Map<String, Object> trackUserPayload = HttpRequestBuilder.getEventArchTrackUserPayload(settingFile, userId, campaign.getId(), variation.getId());
-          HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, EventArchEnums.VWO_VARIATION_SHOWN.toString(), trackUserPayload, usageStats);
+          Map<String, Object> trackUserPayload = HttpRequestBuilder.getEventArchTrackUserPayload(settingFile, userId, campaign.getId(), variation.getId(), clientUserAgent, userIPAddress);
+          HttpParams httpParams = HttpRequestBuilder.getEventArchQueryParams(settingFile, EventArchEnums.VWO_VARIATION_SHOWN.toString(), trackUserPayload, usageStats, clientUserAgent,
+              userIPAddress);
           HttpPostRequest.send(httpParams, HttpUtils.handleEventArchResponse(settingFile.getSettings().getAccountId(), EventArchEnums.VWO_VARIATION_SHOWN.toString(), null), false);
         }
       } else {
-        HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation, usageStats);
+        // event batching not enabled, event arch not enabled
+        HttpParams httpParams = HttpRequestBuilder.getUserParams(settingFile, campaign, userId, variation, usageStats, clientUserAgent, userIPAddress);
         if (!isDevelopmentMode) {
           HttpGetRequest.send(httpParams, settingFile.getSettings().getAccountId());
         }

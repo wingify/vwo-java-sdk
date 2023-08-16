@@ -56,6 +56,7 @@ public class HttpGetRequest implements Runnable {
   private void getRequest(HttpParams httpParams) throws IOException, URISyntaxException {
     URI httpUri = HttpUtils.getRequestUri(httpParams);
     HttpRequestBase request = new HttpGet(httpUri);
+    request.setHeaders(httpParams.getHeaders());
 
     //    LOGGER.debug(LoggerMessagesEnums.DEBUG_MESSAGES.HTTP_REQUEST_EXECUTED.value(new HashMap<String, String>() {
     //      {
