@@ -23,6 +23,7 @@ import com.vwo.logger.LoggerService;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
+import com.vwo.services.storage.Storage;
 import com.vwo.enums.CampaignEnums;
 import com.vwo.enums.FeatureEnums;
 import com.vwo.logger.Logger;
@@ -64,13 +65,14 @@ public class FeatureCampaign {
       Map<String, Integer> usageStats,
       Map<String, ?> CustomVariables,
       Map<String, ?> variationTargetingVariables,
+      Storage.User userStorage,
       String clientUserAgent,
       String userIPAddress
 
   ) {
     return isFeatureEnabledImpl(campaignKey, userId, settingFile, variationDecider,
       isDevelopmentMode, batchEventQueue, usageStats, CustomVariables, variationTargetingVariables,
-      clientUserAgent, userIPAddress);
+      userStorage, clientUserAgent, userIPAddress);
   }
 
   // implement isFeatureEnabled
@@ -84,9 +86,9 @@ public class FeatureCampaign {
       Map<String, Integer> usageStats,
       Map<String, ?> CustomVariables,
       Map<String, ?> variationTargetingVariables,
+      Storage.User userStorage,
       String clientUserAgent,
       String userIPAddress
-
   ) {
     try {
       if (!ValidationUtils.isValidParams(
@@ -133,6 +135,18 @@ public class FeatureCampaign {
 
         return false;
       }
+      
+      // if MAB is enabled, then UserStorage must be defined
+      if (campaign.getIsMAB() && userStorage == null) {
+        // log error message
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages
+            .get("NO_USERSTORAGE_WITH_MAB"), new HashMap<String, String>() {
+              {
+                put("campaignKey", campaign.getKey());
+              }
+            }));
+        return false;
+      }
 
       String variation = ActivateCampaign.activateCampaign(
           APIEnums.API_TYPES.IS_FEATURE_ENABLED.value(), campaign, userId, settingFile,
@@ -142,7 +156,6 @@ public class FeatureCampaign {
       if (variation == null) {
         return false;
       }
-
 
 
       boolean isFeatureEnabled = false;

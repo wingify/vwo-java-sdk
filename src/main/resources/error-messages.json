@@ -36,5 +36,6 @@
   "UNABLE_TO_CAST_VALUE": "({file}): Unable to cast value:{variableValue} to type:{variableType}, returning null",
   "VARIABLE_NOT_FOUND": "({file}): Variable:{variableKey} for User ID:{userId} is not found in settings-file, returning null",
   "MISSING_IMPORT_SETTINGS_MANDATORY_PARAMS": "AccountId and sdkKey are required for fetching account settings. Aborting!",
-  "ACCOUNT_SETTINGS_NOT_FOUND":  "({file}): Request failed for fetching account settings. Got Status Code: ${statusCode} and message: ${message}"
+  "ACCOUNT_SETTINGS_NOT_FOUND":  "({file}): Request failed for fetching account settings. Got Status Code: ${statusCode} and message: ${message}",
+  "NO_USERSTORAGE_WITH_MAB":  "({file}): This campaign:{campaignKey} has MAB configured. Please configure User Storage to proceed."
 }

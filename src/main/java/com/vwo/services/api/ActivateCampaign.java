@@ -23,6 +23,8 @@ import com.vwo.logger.LoggerService;
 import com.vwo.services.batch.BatchEventQueue;
 import com.vwo.services.core.VariationDecider;
 import com.vwo.services.settings.SettingFile;
+import com.vwo.services.storage.Storage;
+import com.vwo.services.storage.Storage.User;
 import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpGetRequest;
 import com.vwo.services.http.HttpRequestBuilder;
@@ -66,12 +68,13 @@ public class ActivateCampaign {
           Map<String, Integer> usageStats,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
+          Storage.User userStorage,
           String clientUserAgent,
           String userIPAddress
   ) {
     return activateImpl(campaignKey, userId, settingFile, variationDecider,
       isDevelopmentMode, batchEventQueue, usageStats, CustomVariables,
-      variationTargetingVariables, clientUserAgent, userIPAddress);
+      variationTargetingVariables, userStorage, clientUserAgent, userIPAddress);
   }
 
   // validate activate params and activate campaign
@@ -85,6 +88,7 @@ public class ActivateCampaign {
           Map<String, Integer> usageStats,
           Map<String, ?> CustomVariables,
           Map<String, ?> variationTargetingVariables,
+          Storage.User userStorage,
           String clientUserAgent,
           String userIPAddress
   ) {
@@ -127,6 +131,18 @@ public class ActivateCampaign {
             put("campaignType", campaign.getType());
           }
         }));
+        return null;
+      }
+      
+      // if MAB is enabled, then UserStorage must be defined
+      if (campaign.getIsMAB() && userStorage == null) {
+        // log error message
+        LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages
+            .get("NO_USERSTORAGE_WITH_MAB"), new HashMap<String, String>() {
+              {
+                put("campaignKey", campaign.getKey());
+              }
+            }));
         return null;
       }
 

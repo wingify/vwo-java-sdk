@@ -241,6 +241,7 @@ public class VWO {
             this.usageStats,
             additionalParams.getCustomVariables(),
             additionalParams.getVariationTargetingVariables(),
+            this.userStorage,
             additionalParams.getUserAgent(),
             additionalParams.getIPAddress()
     );
@@ -262,7 +263,9 @@ public class VWO {
       }));
       return null;
     }
-    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(), this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats, null, null, null, null);
+    return ActivateCampaign.activate(campaignKey, userId, this.getSettingFile(),
+      this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats,
+      null, null, this.userStorage, null, null);
   }
 
   /**
@@ -350,6 +353,7 @@ public class VWO {
             goalsToTrack,
             this.usageStats,
             additionalParams.getEventProperties(),
+            this.userStorage,
             additionalParams.getUserAgent(),
             additionalParams.getIPAddress()
     );
@@ -378,6 +382,7 @@ public class VWO {
             this.goalTypeToTrack,
             this.usageStats,
             new HashMap<>(),
+            this.userStorage,
             null,
             null
     );
@@ -413,6 +418,7 @@ public class VWO {
             this.usageStats,
             additionalParams.getCustomVariables(),
             additionalParams.getVariationTargetingVariables(),
+            this.userStorage,
             additionalParams.getUserAgent(),
             additionalParams.getIPAddress()
     );
@@ -436,7 +442,7 @@ public class VWO {
     }
     return FeatureCampaign.isFeatureEnabled(campaignKey, userId, this.getSettingFile(),
       this.getVariationDecider(), this.isDevelopmentMode(), this.batchEventQueue, this.usageStats,
-      null, null, null, null);
+      null, null, this.userStorage, null, null);
   }
 
   /**

@@ -32,6 +32,7 @@ import com.vwo.services.http.HttpParams;
 import com.vwo.services.http.HttpPostRequest;
 import com.vwo.services.http.HttpRequestBuilder;
 import com.vwo.services.settings.SettingFile;
+import com.vwo.services.storage.Storage;
 import com.vwo.utils.CampaignUtils;
 import com.vwo.utils.HttpUtils;
 import com.vwo.utils.ValidationUtils;
@@ -79,13 +80,14 @@ public class TrackCampaign {
       GoalEnums.GOAL_TYPES goalsToTrack,
       Map<String, Integer> usageStats,
       Map<String, ?> eventProperties,
+      Storage.User userStorage,
       String clientUserAgent,
       String userIPAddress
   ) {
     return trackGoalImpl(campaignSpecifier, userId, goalIdentifier, revenueValue, settingFile,
       variationDecider, isDevelopmentMode, batchEventQueue, CustomVariables,
-      variationTargetingVariables, goalsToTrack, usageStats, eventProperties, clientUserAgent,
-      userIPAddress);
+      variationTargetingVariables, goalsToTrack, usageStats, eventProperties, userStorage,
+      clientUserAgent, userIPAddress);
   }
 
   // implement track goal
@@ -103,6 +105,7 @@ public class TrackCampaign {
       GoalEnums.GOAL_TYPES goalsToTrack,
       Map<String, Integer> usageStats,
       Map<String, ?> eventProperties,
+      Storage.User userStorage,
       String clientUserAgent,
       String userIPAddress
   ) {
@@ -161,6 +164,18 @@ public class TrackCampaign {
               put("api", APIEnums.API_TYPES.TRACK.value());
             }
           }));
+          continue;
+        }
+        
+        // if MAB is enabled, then UserStorage must be defined
+        if (campaign.getIsMAB() && userStorage == null) {
+          // log error message
+          LOGGER.error(LoggerService.getComputedMsg(LoggerService.getInstance().errorMessages
+              .get("NO_USERSTORAGE_WITH_MAB"), new HashMap<String, String>() {
+                {
+                  put("campaignKey", campaign.getKey());
+                }
+              }));
           continue;
         }
         

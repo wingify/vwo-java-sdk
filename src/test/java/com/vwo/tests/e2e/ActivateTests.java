@@ -17,6 +17,7 @@
 package com.vwo.tests.e2e;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,7 @@ import com.vwo.VWO;
 import com.vwo.VWOAdditionalParams;
 import com.vwo.models.response.BatchEventData;
 import com.vwo.models.response.Settings;
+import com.vwo.services.storage.Storage;
 import com.vwo.logger.Logger;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
@@ -289,6 +291,46 @@ public class ActivateTests {
     vwoInstance.activate(campaignKey, "Ashley");
     vwoInstance.activate(campaignKey, "Ashley");
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
+  }
+  
+  @Test
+  public void userStorageDisabledWithMAB() throws IOException {
+    LOGGER.info("should return null variation");
+
+    // get campaign details
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.VALIDATE_USERSTORAGE_WITH_MAB, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+	
+    // instantiate the vwo instance and call activate
+	vwoInstance = VWO.launch(com.vwo.tests.data.Settings.VALIDATE_USERSTORAGE_WITH_MAB).withDevelopmentMode(true).build();
+	String variation = vwoInstance.activate(campaignKey, "Ashley");
+	
+	// test that variation is null since there is no user storage
+	assertNull(variation);
+  }
+  
+  @Test
+  public void userStorageEnabledWithMAB() throws IOException {
+    LOGGER.info("should return valid variation");
+
+    // get campaign details
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.VALIDATE_USERSTORAGE_WITH_MAB, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+	
+    // instantiate the vwo instance with user storage and call activate
+	vwoInstance = VWO.launch(com.vwo.tests.data.Settings.VALIDATE_USERSTORAGE_WITH_MAB).withDevelopmentMode(true).withUserStorage(new Storage.User() {
+		@Override
+		public void set(Map<String, String> userData) throws Exception {}
+		
+		@Override
+		public Map<String, String> get(String userId, String campaignKey) throws Exception {
+			return null;
+		}
+	}).build();
+	String variation = vwoInstance.activate(campaignKey, "Ashley");
+	
+	// test that variation is valid since there is user storage connected
+	assertNotNull(variation);
   }
 
   @Test

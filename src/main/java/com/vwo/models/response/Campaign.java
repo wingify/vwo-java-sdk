@@ -44,7 +44,8 @@ import java.util.Map;
         "isForcedVariationEnabled",
         "isBucketingSeedEnabled",
         "isUserListEnabled",
-        "isAlwaysCheckSegment"
+        "isAlwaysCheckSegment",
+        "isMAB"
 })
 public class Campaign implements  Cloneable {
 
@@ -78,6 +79,8 @@ public class Campaign implements  Cloneable {
   private boolean isAlwaysCheckSegment;
   @JsonProperty("isOB")
   private boolean isOB;
+  @JsonProperty("isMAB")
+  private boolean isMAB;
 
   private Integer startRange;
   private Integer endRange;
@@ -261,5 +264,15 @@ public class Campaign implements  Cloneable {
   @JsonProperty("isOB")
   public void setIsOB(boolean isOB) {
     this.isOB = isOB;
+  }
+  
+  @JsonProperty("isMAB")
+  public boolean getIsMAB() {
+    return isMAB;
+  }
+  
+  @JsonProperty("isMAB")
+  public void setIsMAB(boolean isMAB) {
+    this.isMAB = isMAB;
   }
 }
