@@ -125,11 +125,11 @@ public class HttpRequestBuilder {
         put("properties", requestParams.removeNullValues(loggingMap).toString());
       }
     }));
-    
+
     // form http headers
     ArrayList<Header> headers = new ArrayList<>();
     headers.add(new BasicHeader("User-Agent", "java"));
-    
+
     // add visitor IP and visitor user agent if present
     if (clientUserAgent != null && clientUserAgent.length() > 0) {
       headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value(),
@@ -138,12 +138,12 @@ public class HttpRequestBuilder {
     if (userIPAddress != null && userIPAddress.length() > 0) {
       headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_IP.value(), userIPAddress));
     }
-    
+
     // form http params
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     HttpParams httpParams = new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(IMPRESSION_PATH), map, HTTPEnums.Verbs.GET);
     httpParams.setHeaders(headers.toArray(new Header[0]));
-    
+
     return httpParams;
   }
 
@@ -206,11 +206,11 @@ public class HttpRequestBuilder {
         put("properties", requestParams.removeNullValues(loggingMap).toString());
       }
     }));
-    
+
     // form http headers
     ArrayList<Header> headers = new ArrayList<>();
     headers.add(new BasicHeader("User-Agent", "java"));
-    
+
     // add visitor IP and visitor user agent if present
     if (clientUserAgent != null && clientUserAgent.length() > 0) {
       headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value(),
@@ -219,12 +219,12 @@ public class HttpRequestBuilder {
     if (userIPAddress != null && userIPAddress.length() > 0) {
       headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_IP.value(), userIPAddress));
     }
-    
+
     // form http params
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     HttpParams httpParams = new HttpParams(VWO_HOST, DataLocationManager.getInstance().getDataLocation(GOAL_PATH), map, HTTPEnums.Verbs.GET);
     httpParams.setHeaders(headers.toArray(new Header[0]));
-    
+
     return httpParams;
   }
 
@@ -244,9 +244,9 @@ public class HttpRequestBuilder {
             .withClientUserAgent(clientUserAgent)
             .withUserIPAddress(userIPAddress)
             .withUuid(settings.getAccountId(), userId);
-    
+
     // check if revenue needs to be added
-    if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value()) 
+    if (goal.getType().equalsIgnoreCase(GoalEnums.GOAL_TYPES.REVENUE.value())
         && revenueValue != null) {
       // add the revenue directly
       builder.withRevenue(revenueValue);
@@ -255,7 +255,7 @@ public class HttpRequestBuilder {
       // add the revenue from the event properties
       builder.withRevenue(eventProperties.get(goal.getRevenueProp()));
     }
-    
+
     BuildQueryParams requestParams = builder.build();
     Map<String, Object> map = requestParams.convertToMap();
     map = requestParams.removeNullValues(map);
@@ -346,7 +346,7 @@ public class HttpRequestBuilder {
     return httpParams;
   }
 
-  public static HttpParams getEventArchQueryParams(SettingFile settingFile, String eventName, 
+  public static HttpParams getEventArchQueryParams(SettingFile settingFile, String eventName,
       Map<String, Object> properties, Map<String, Integer> usageStats, String clientUserAgent,
       String userIPAddress) throws JsonProcessingException {
     Settings settings = settingFile.getSettings();
@@ -367,11 +367,11 @@ public class HttpRequestBuilder {
     }
 
     objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-    
+
     // build request headers
     ArrayList<Header> headers = new ArrayList<>();
     headers.add(new BasicHeader("User-Agent", "java"));
-    
+
     // add visitor IP and visitor user agent if present
     if (clientUserAgent != null && clientUserAgent.length() > 0) {
       headers.add(new BasicHeader(APIEnums.VISITOR.CUSTOMHEADER_USERAGENT.value(),
@@ -411,7 +411,7 @@ public class HttpRequestBuilder {
     //create the d map
     EventArchData eventArchData = new EventArchData();
     String uuid = UUIDUtils.getUUId(settings.getAccountId(), userId);
-    eventArchData.setMsgId(uuid + "-" + Instant.now().getEpochSecond());
+    eventArchData.setMsgId(uuid + "-" + Instant.now().toEpochMilli());
     eventArchData.setVisId(uuid);
     eventArchData.setSessionId(Instant.now().getEpochSecond());
     eventArchData.setEvent(event);
@@ -422,7 +422,7 @@ public class HttpRequestBuilder {
     }));
     eventArchData.setVisitor_ua(clientUserAgent);
     eventArchData.setVisitor_ip(userIPAddress);
-    
+
     // create event arch payload
     EventArchPayload eventArchPayload = new EventArchPayload();
     eventArchPayload.setD(eventArchData);
@@ -450,11 +450,10 @@ public class HttpRequestBuilder {
     //      HttpUtils.attachUsageStats((Map<String, Object>) event.get("props"), usageStats);
     //    }
     event.put("props", removeNullValues((Map<String, Object>) event.get("props")));
-
     return payloadMap;
   }
 
-  public static Map<String, Object> getEventArchTrackGoalPayload(SettingFile settingFile, String userId, 
+  public static Map<String, Object> getEventArchTrackGoalPayload(SettingFile settingFile, String userId,
       Map<String, Integer> metricMap, String goalIdentifier, Object revenue,
       HashSet<String> revenueListProp, Map<String, ?> eventProperties, String clientUserAgent,
       String userIPAddress) {
@@ -486,7 +485,7 @@ public class HttpRequestBuilder {
     }
     eventArchPayload.getD().getEvent().getProps().setAdditionalProperties(eventMap);
     eventArchPayload.getD().getEvent().getProps().setVwoMeta(new VWOMeta().setMetric(metric));
-    eventArchPayload.getD().getEvent().getProps().setCustomEvent(true);
+    eventArchPayload.getD().getEvent().getProps().setIsCustomEvent(true);
 
     LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_EVENT_ARCH_TRACK_GOAL"), new HashMap<String, String>() {
       {
@@ -514,7 +513,7 @@ public class HttpRequestBuilder {
     }
 
 
-    eventArchPayload.getD().getEvent().getProps().setCustomEvent(true);
+    eventArchPayload.getD().getEvent().getProps().setIsCustomEvent(true);
 
     LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("IMPRESSION_FOR_EVENT_ARCH_PUSH"), new HashMap<String, String>() {
       {
@@ -786,12 +785,12 @@ public class HttpRequestBuilder {
         this.env = sdkKey;
         return this;
       }
-      
+
       public Builder withClientUserAgent(String clientUserAgent) {
         this.visitor_ua = clientUserAgent != null ? clientUserAgent : "";
         return this;
       }
-      
+
       public Builder withUserIPAddress(String userIPAddress) {
         this.visitor_ip = userIPAddress != null ? userIPAddress : "";
         return this;

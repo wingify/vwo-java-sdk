@@ -17,7 +17,6 @@
 package com.vwo.models.request;
 
 import com.vwo.models.request.meta.VWOMeta;
-import com.vwo.models.request.visitor.Visitor;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -99,12 +98,12 @@ public class Props {
     this.vwoMeta = vwoMeta;
   }
 
-  public Boolean getCustomEvent() {
+  public Boolean getIsCustomEvent() {
     return isCustomEvent;
   }
 
-  public void setCustomEvent(Boolean customEvent) {
-    isCustomEvent = customEvent;
+  public void setIsCustomEvent(Boolean isCustomEvent) {
+    this.isCustomEvent = isCustomEvent;
   }
 
   @JsonProperty("vwo_envKey")

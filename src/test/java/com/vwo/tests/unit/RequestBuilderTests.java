@@ -136,7 +136,7 @@ public class RequestBuilderTests {
     //assertTrue(node.get("d").get("event").get("props").get("$visitor").get("props").has("vwo_fs_environment") && node.get("d").get("event").get("props").get("$visitor").get("props").get("vwo_fs_environment").getNodeType() == JsonNodeType.STRING);
     //assertTrue(node.get("d").get("event").get("props").get("vwoMeta").has("revenue") && node.get("d").get("event").get("props").get("vwoMeta").get("revenue") .getNodeType() == JsonNodeType.NUMBER);
     assertTrue(node.get("d").get("event").get("props").get("vwoMeta").get("metric").has("id_20") && node.get("d").get("event").get("props").get("vwoMeta").get("metric").get("id_20").getNodeType() == JsonNodeType.ARRAY);
-    assertTrue(node.get("d").get("event").get("props").has("customEvent") && node.get("d").get("event").get("props").get("customEvent") .getNodeType() == JsonNodeType.BOOLEAN);
+    assertTrue(node.get("d").get("event").get("props").has("isCustomEvent") && node.get("d").get("event").get("props").get("isCustomEvent") .getNodeType() == JsonNodeType.BOOLEAN);
   }
 
   @Test
@@ -176,7 +176,7 @@ public class RequestBuilderTests {
     assertTrue(node.get("d").get("event").get("props").has("vwo_sdkVersion") && node.get("d").get("event").get("props").get("vwo_sdkVersion").getNodeType() == JsonNodeType.STRING);
     //assertTrue(node.get("d").get("event").get("props").get("$visitor").get("props").has("vwo_fs_environment") && node.get("d").get("event").get("props").get("$visitor").get("props").get("vwo_fs_environment").getNodeType() == JsonNodeType.STRING);
     //assertTrue(node.get("d").get("event").get("props").get("$visitor").get("props").has("tagKey") && node.get("d").get("event").get("props").get("$visitor").get("props").get("tagKey").getNodeType() == JsonNodeType.STRING);
-    assertTrue(node.get("d").get("event").get("props").has("customEvent") && node.get("d").get("event").get("props").get("customEvent") .getNodeType() == JsonNodeType.BOOLEAN);
+    assertTrue(node.get("d").get("event").get("props").has("isCustomEvent") && node.get("d").get("event").get("props").get("isCustomEvent") .getNodeType() == JsonNodeType.BOOLEAN);
   }
 
   @Test
@@ -228,7 +228,7 @@ public class RequestBuilderTests {
    // assertTrue(node.get("d").get("event").get("props").get("$visitor").get("props").has("int") && node.get("d").get("event").get("props").get("$visitor").get("props").get("int").getNodeType() == JsonNodeType.STRING);
    // assertTrue(node.get("d").get("event").get("props").get("$visitor").get("props").has("double") && node.get("d").get("event").get("props").get("$visitor").get("props").get("double").getNodeType() == JsonNodeType.STRING);
    // assertTrue(node.get("d").get("event").get("props").get("$visitor").get("props").has("boolean") && node.get("d").get("event").get("props").get("$visitor").get("props").get("boolean").getNodeType() == JsonNodeType.STRING);
-    assertTrue(node.get("d").get("event").get("props").has("customEvent") && node.get("d").get("event").get("props").get("customEvent") .getNodeType() == JsonNodeType.BOOLEAN);
+    assertTrue(node.get("d").get("event").get("props").has("isCustomEvent") && node.get("d").get("event").get("props").get("isCustomEvent") .getNodeType() == JsonNodeType.BOOLEAN);
   }
 
   @Test
@@ -285,7 +285,7 @@ public class RequestBuilderTests {
       new HashMap<>(), userAgent, userIP);
     HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "goalIdentifier",
         payload, null, userAgent, userIP);
-    
+
     // verify headers
     Header[] headers = queryParams.getHeaders();
     assertNotNull(headers);
@@ -321,7 +321,7 @@ public class RequestBuilderTests {
       new HashMap<>(), userAgent, userIP);
     HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "goalIdentifier",
         payload, null, userAgent, userIP);
-    
+
     // verify params
     JsonNode node = new ObjectMapper().readTree(queryParams.getBody());
     assertNotNull(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()));
@@ -345,7 +345,7 @@ public class RequestBuilderTests {
       "Ashley", campaign.getId(), variation.getId(), clientUserAgent, userIPAddress);
     HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "CUSTOM",
         payload, null, clientUserAgent, userIPAddress);
-    
+
     // verify headers
     Header[] headers = queryParams.getHeaders();
     assertNotNull(headers);
@@ -376,11 +376,11 @@ public class RequestBuilderTests {
     String clientUserAgent = "user_agent";
     String userIPAddress = "visitor_ip";
 
-    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackUserPayload(settings, 
+    Map<String, Object> payload = HttpRequestBuilder.getEventArchTrackUserPayload(settings,
         "Ashley", campaign.getId(), variation.getId(), clientUserAgent, userIPAddress);
     HttpParams queryParams = HttpRequestBuilder.getEventArchQueryParams(settings, "CUSTOM",
     payload, null, clientUserAgent, userIPAddress);
-    
+
     // verify params
     JsonNode node = new ObjectMapper().readTree(queryParams.getBody());
     assertNotNull(node.get("d").get(APIEnums.VISITOR.USERAGENT.value()));
@@ -402,9 +402,9 @@ public class RequestBuilderTests {
     String userIPAddress = "user_IP";
     boolean isHeaderUserAgent = false;
     boolean isHeaderIP = false;
-    
+
     HttpParams queryParams = HttpRequestBuilder.getGoalParams(settings, campaign, "Ashley", goal, variation, 300, clientUserAgent, userIPAddress);
-    
+
     // verify headers
     Header[] headers = queryParams.getHeaders();
     assertNotNull(headers);
@@ -433,9 +433,9 @@ public class RequestBuilderTests {
     Variation variation = vwoInstance.getSettingFile().getSettings().getCampaigns().get(0).getVariations().get(0);
     String clientUserAgent = "user_agent";
     String userIPAddress = "user_IP";
-	    
+
     HttpParams httpParams = HttpRequestBuilder.getGoalParams(settings, campaign, "Ashley", goal, variation, 300, clientUserAgent, userIPAddress);
-    
+
     // verify params
     Map<String, Object> queryParams = httpParams.getQueryParams();
     assertNotNull(queryParams.get(APIEnums.VISITOR.USERAGENT.value()));
@@ -457,9 +457,9 @@ public class RequestBuilderTests {
     String userIPAddress = "user_IP";
     boolean isHeaderUserAgent = false;
     boolean isHeaderIP = false;
-    
+
     HttpParams queryParams = HttpRequestBuilder.getUserParams(settings, campaign, "Ashley", variation, usageStats, clientUserAgent, userIPAddress);
-    
+
     // verify headers
     Header[] headers = queryParams.getHeaders();
     assertNotNull(headers);
@@ -491,9 +491,9 @@ public class RequestBuilderTests {
     usageStats.put("ll", 1);
     String clientUserAgent = "user_agent";
     String userIPAddress = "user_IP";
-    
+
     HttpParams httpParams = HttpRequestBuilder.getUserParams(settings, campaign, "Ashley", variation, usageStats, clientUserAgent, userIPAddress);
-    
+
     // verify params
     Map<String, Object> queryParams = httpParams.getQueryParams();
     assertNotNull(queryParams.get(APIEnums.VISITOR.USERAGENT.value()));
@@ -520,7 +520,7 @@ public class RequestBuilderTests {
     assertNotNull(payload.keySet().contains(APIEnums.VISITOR.IP.value()));
     assertEquals(payload.get(APIEnums.VISITOR.IP.value()), userIPAddress);
   }
-  
+
   @Test
   public void payloadForBatchingTrackGoalWithUAAndIPTest() throws Exception {
 	SettingFile settings = SettingsFileUtil.Builder.getInstance(com.vwo.tests.data.Settings.AB_TRAFFIC_50_WEIGHT_50_50).build();
