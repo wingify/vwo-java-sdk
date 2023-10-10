@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    # branches: [ master ]
+    branches: [ testCI ]
   pull_request:
     branches: [ master ]
 
@@ -12,6 +13,8 @@ jobs:
     name: Test on java ${{ matrix.java_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      # add max-parallel to stop running in parallel and run sequentially
+      max-parallel: 1
       matrix:
         os:
           - ubuntu-latest
