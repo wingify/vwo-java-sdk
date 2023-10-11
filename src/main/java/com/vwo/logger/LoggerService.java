@@ -31,8 +31,6 @@ public class LoggerService {
   public Map<String, String> infoMessages;
   public Map<String, String> warningMessages;
 
-  // singleton instance should be private and should be accessed only by getInstance() to avoid getting NLP's
-  // public static LoggerService instance;
   private static LoggerService instance = null;
 
   public static LoggerService getInstance() {
@@ -46,21 +44,16 @@ public class LoggerService {
           instance = new LoggerService();
         }
       }
-
-      // return new LoggerService();
     }
 
     return instance;
   }
 
-  // constructor for a singleton should be private, since it is only called from a nember function
-  // [THIS CAN ALSO CAUSE LOTS OF TESTS TO BREAK, SO PLEASE RUN ALL UNIT/FUNCTIONAL TESTS FOR THIS]
-  // public LoggerService() {
   private LoggerService() {
-    debugMessages = readLogsData("debug-messages.json");
-    infoMessages = readLogsData("info-messages.json");
-    errorMessages = readLogsData("error-messages.json");
-    warningMessages = readLogsData("warning-messages.json");
+    debugMessages = readLogsData("debug-messages-local.json");
+    infoMessages = readLogsData("info-messages-local.json");
+    errorMessages = readLogsData("error-messages-local.json");
+    warningMessages = readLogsData("warning-messages-local.json");
   }
 
   private Map<String, String> readLogsData(String fileName) {
@@ -74,7 +67,6 @@ public class LoggerService {
     return new HashMap<String, String>();
   }
 
-
   public static String getComputedMsg(String msg, Map<String, String> map) {
     for (Map.Entry<String, String> pair : map.entrySet()) {
       String key = pair.getKey();
@@ -85,7 +77,7 @@ public class LoggerService {
           msg = msg.replaceAll("\\{" + key + "}", value.replaceAll("\\$", "\\\\\\$"));
         }
       } catch (Exception e) {
-        LOGGER.error("Exception occurred while logging the value: " + value);
+        LOGGER.error("Exception occurred while logging the value: " + key + "=" + value);
       }
     }
     return msg;

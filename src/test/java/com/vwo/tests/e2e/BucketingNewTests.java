@@ -25,6 +25,7 @@ import com.vwo.VWOAdditionalParams;
 import com.vwo.models.response.BatchEventData;
 import com.vwo.models.response.Settings;
 import com.vwo.logger.Logger;
+import com.vwo.tests.data.SettingsNewBucketingAlgo;
 import com.vwo.tests.data.UserExpectations;
 import com.vwo.tests.utils.TestUtils;
 import java.io.IOException;
@@ -38,7 +39,7 @@ import org.junit.jupiter.api.Test;
 public class BucketingNewTests {
   @Test
   public void testWithoutSeedWithoutIsOB() {
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITHOUT_SEED_WITHOUT_ISOB).build();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITHOUT_SEED_WITHOUT_ISOB).withDevelopmentMode(true).build();
     String campaignKey = "BUCKET_ALGO_WITHOUT_SEED";
     String[] users = new String[] {"Ashley", "Bill", "Chris", "Dominic", "Emma",
     		"Faizan", "Gimmy", "Harry", "Ian", "John",
@@ -63,7 +64,7 @@ public class BucketingNewTests {
 
   @Test
   public void testWithSeedWithoutIsOB() {
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITH_SEED_WITHOUT_ISOB).build();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITH_SEED_WITHOUT_ISOB).withDevelopmentMode(true).build();
     String campaignKey = "BUCKET_ALGO_WITH_SEED";
     String[] users = new String[] {"Ashley", "Bill", "Chris", "Dominic", "Emma",
     		"Faizan", "Gimmy", "Harry", "Ian", "John",
@@ -88,7 +89,7 @@ public class BucketingNewTests {
 
   @Test
   public void testWithIsNBWithIsOB() {
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITH_ISNB_WITH_ISOB).build();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITH_ISNB_WITH_ISOB).withDevelopmentMode(true).build();
     String campaignKey = "BUCKET_ALGO_WITH_SEED_WITH_isNB_WITH_isOB";
     String[] users = new String[] {"Ashley", "Bill", "Chris", "Dominic", "Emma",
     		"Faizan", "Gimmy", "Harry", "Ian", "John",
@@ -113,7 +114,7 @@ public class BucketingNewTests {
 
   @Test
   public void testWithIsNBWithoutIsOB() {
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITH_ISNB_WITHOUT_ISOB).build();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITH_ISNB_WITHOUT_ISOB).withDevelopmentMode(true).build();
     String campaignKey = "BUCKET_ALGO_WITH_SEED_WITH_isNB_WITHOUT_isOB";
     String[] users = new String[] {"Ashley", "Bill", "Chris", "Dominic", "Emma",
     		"Faizan", "Gimmy", "Harry", "Ian", "John",
@@ -138,7 +139,7 @@ public class BucketingNewTests {
 
   @Test
   public void testWithoutSeedWithIsNBWithoutIsOB() {
-    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITHOUT_SEED_WITH_ISNB_WITHOUT_ISOB).build();
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.SettingsNewBucketingAlgo.SETTINGS_WITHOUT_SEED_WITH_ISNB_WITHOUT_ISOB).withDevelopmentMode(true).build();
     String campaignKey = "BUCKET_ALGO_WITHOUT_SEED_FLAG_WITH_isNB_WITHOUT_isOB";
     String[] users = new String[] {"Ashley", "Bill", "Chris", "Dominic", "Emma",
     		"Faizan", "Gimmy", "Harry", "Ian", "John",
@@ -158,6 +159,40 @@ public class BucketingNewTests {
 
     	// verify corresponding variation
     	assertEquals(variation, variations[x]);
+    }
+  }
+
+  @Test
+  public void testSameUserMultipleCampaignsWithIsNBv2() {
+    VWO vwoInstance = VWO.launch(SettingsNewBucketingAlgo.SETTINGS_WITH_ISNB_WITH_ISNBV2).withDevelopmentMode(true).build();
+    String[] campaignKeys = {"BUCKET_ALGO_WITH_isNB_WITH_isNBv2", "BUCKET_ALGO_WITH_isNB_WITH_isNBv2_1", "BUCKET_ALGO_WITH_isNB_WITH_isNBv2_2"};
+    String user = "Ashley";
+    String[] variations = {"Control", "Variation-1", "Variation-1"};
+    String variation;
+
+    // parse through the user/campaign combination and verify variation received
+    for (int x = 0; x < campaignKeys.length; x++) {
+      variation = vwoInstance.activate(campaignKeys[x], user);
+
+      // verify corresponding variation
+      assertEquals(variation, variations[x]);
+    }
+  }
+  
+  @Test
+  public void testSameUserMultipleCampaignsWithIsNB() {
+    VWO vwoInstance = VWO.launch(SettingsNewBucketingAlgo.SETTINGS_WITH_ISNB_WITHOUT_ISOB).withDevelopmentMode(true).build();
+    String[] campaignKeys = {"BUCKET_ALGO_WITH_SEED_WITH_isNB_WITHOUT_isOB", "BUCKET_ALGO_WITH_SEED_WITH_isNB_WITHOUT_isOB_1", "BUCKET_ALGO_WITH_SEED_WITH_isNB_WITHOUT_isOB_2"};
+    String user = "Ashley";
+    String[] variations = {"Control", "Control", "Control"};
+    String variation;
+
+    // parse through the user/campaign combination and verify variation received
+    for (int x = 0; x < campaignKeys.length; x++) {
+      variation = vwoInstance.activate(campaignKeys[x], user);
+
+      // verify corresponding variation
+      assertEquals(variation, variations[x]);
     }
   }
 }

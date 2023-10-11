@@ -54,5 +54,6 @@
   "INITIATING_GET_VARIATION": "({file}): Initiating getVariation of user '{userId}' for campaign '{campaignKey}'.",
   "INITIATING_GET_FEATURE_VARIATION": "({file}): Initiating getFeatureVariable for variable key '{variableKey}' of user '{userId}' for campaign '{campaignKey}'.",
   "INITIATING_IS_FEATURE_ENABLED": "({file}): Initiating isFeatureEnabled of user '{userId}' for campaign '{campaignKey}'.",
-  "INITIATING_PUSH_DIMENSION": "({file}): Initiating push segment of user '{userId}' with tag name `{tagKey}` and tag value '{tagValue}'."
+  "INITIATING_PUSH_DIMENSION": "({file}): Initiating push segment of user '{userId}' with tag name `{tagKey}` and tag value '{tagValue}'.",
+  "BUCKETING_ALGO": "({file}): Bucketing Algo used : {algo}"
 }

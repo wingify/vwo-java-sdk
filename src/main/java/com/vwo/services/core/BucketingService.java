@@ -74,17 +74,21 @@ public class BucketingService {
     return bucketValueOfUser > traffic ? -1 : signedMurmurHash;
   }
 
-  public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic, String userId, boolean isNewBucketingEnabled) {
-    String seed = CampaignUtils.getBucketingSeed(userId, null, null, isNewBucketingEnabled);
-    long murmurHash;
+  public Object getUserVariation(Object variations, Campaign campaign, int campaignTraffic,
+      String userId, boolean isNewBucketingEnabled, boolean isNewBucketingEnabledV2,
+      Integer accountId) {
+    String seed;
+    long murmurHash = 0L;
     double multiplier = 1;
-    int variationHashValue;
+    boolean isBucketingDone = false;
     
     // use old algorithm if old bucketing flag is set
-    if (!isNewBucketingEnabled || campaign.getIsOB()) {
-      // for old algo, regenerate seed using userId AND camapignId
-      murmurHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId,
-        campaign, null, isNewBucketingEnabled), campaign, userId, campaignTraffic, false);
+    if ((!isNewBucketingEnabled && !isNewBucketingEnabledV2)
+        || (isNewBucketingEnabled && campaign.getIsOB())) {
+      // seed uses userId AND campaignId
+      seed = CampaignUtils.getBucketingSeed(userId, campaign, null, isNewBucketingEnabled);
+      murmurHash = BucketingService.getUserHashForCampaign(seed, campaign, userId, campaignTraffic,
+        false);
       if (murmurHash != -1) {
         multiplier = ((double) MAX_TRAFFIC_VALUE) / campaignTraffic / 100;
       } else {
@@ -98,20 +102,56 @@ public class BucketingService {
         return null;
       }
       
-      // log algo type
-      LOGGER.debug("Bucketing Algo Type : Old, for (" + userId + ", " + campaign.getKey() + ")");
-    } else {
-      // use new algorithm if old bucketing flag is not set
-      // for new algo, use seed that used only userId
+      // log algo type as info message
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
+          .get("BUCKETING_ALGO"), new HashMap<String, String>() {
+            {
+              put("algo", "Old");
+            }
+          }));
+      
+      // set flag
+      isBucketingDone = true;
+    }
+    
+    // use new bucketing
+    if (!isBucketingDone && ((isNewBucketingEnabled && !campaign.getIsOB()
+        && !isNewBucketingEnabledV2) || (isNewBucketingEnabledV2 && campaign.getIsOBv2()))) {
+      // seed uses userId ONLY
+      seed = CampaignUtils.getBucketingSeed(userId, null, null, isNewBucketingEnabled);
       murmurHash = getMurmurHashVal(seed);
       
-      // log algo type
-      LOGGER.debug("Bucketing Algo Type : New, for (" + userId + ", " + campaign.getKey() + ")");
+      // log algo type as info message
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get(
+          "BUCKETING_ALGO"), new HashMap<String, String>() {
+            {
+              put("algo", "New");
+            }
+          }));
+      
+      // set flag
+      isBucketingDone = true;
+    }
+    
+    // use new bucketing v2
+    if (!isBucketingDone) {
+      // seed uses userId, campaignId and accountId
+      seed = CampaignUtils.getBucketingSeed(accountId + "_" + userId, campaign, null, true);
+      murmurHash = getMurmurHashVal(seed);
+        
+      // log algo type as info message
+      LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get(
+          "BUCKETING_ALGO"), new HashMap<String, String>() {
+            {
+              put("algo", "New_v2");
+            }
+          }));
     }
 
-    variationHashValue = BucketingService.getMultipliedHashValue(murmurHash, MAX_TRAFFIC_VALUE,
-      multiplier);
+    int variationHashValue = BucketingService.getMultipliedHashValue(murmurHash, MAX_TRAFFIC_VALUE,
+        multiplier);
 
+    final long murmurHash_final = murmurHash;
     LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get(
         "USER_CAMPAIGN_BUCKET_VALUES"), new HashMap<String, String>() {
           {
@@ -119,7 +159,7 @@ public class BucketingService {
             put("bucketValue", String.valueOf(variationHashValue));
             put("userId", userId);
             put("percentTraffic", String.valueOf(campaignTraffic));
-            put("hashValue", String.valueOf(murmurHash));
+            put("hashValue", String.valueOf(murmurHash_final));
           }
         }));
 

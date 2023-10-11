@@ -44,6 +44,7 @@ public class Settings {
   private String sdkKey;
   @JsonProperty("isNB")
   private boolean isNB;
+  private boolean isNBv2;
   @JsonProperty("collectionPrefix")
   private String collectionPrefix;
   @JsonProperty("campaigns")
@@ -79,6 +80,16 @@ public class Settings {
   @JsonProperty("isNB")
   public void setIsNB(boolean isNB) {
     this.isNB = isNB;
+  }
+
+  @JsonProperty("isNBv2")
+  public boolean getIsNBv2() {
+    return isNBv2;
+  }
+
+  @JsonProperty("isNBv2")
+  public void setIsNBv2(boolean isNBv2) {
+    this.isNBv2 = isNBv2;
   }
 
   @JsonProperty("campaigns")

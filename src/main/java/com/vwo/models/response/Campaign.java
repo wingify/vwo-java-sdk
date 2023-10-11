@@ -79,6 +79,8 @@ public class Campaign implements  Cloneable {
   private boolean isAlwaysCheckSegment;
   @JsonProperty("isOB")
   private boolean isOB;
+  @JsonProperty("isOBv2")
+  private boolean isOBv2;
   @JsonProperty("isMAB")
   private boolean isMAB;
 
@@ -274,5 +276,15 @@ public class Campaign implements  Cloneable {
   @JsonProperty("isMAB")
   public void setIsMAB(boolean isMAB) {
     this.isMAB = isMAB;
+  }
+  
+  @JsonProperty("isOBv2")
+  public boolean getIsOBv2() {
+    return isOBv2;
+  }
+  
+  @JsonProperty("isOBv2")
+  public void setIsOBv2(boolean isOBv2) {
+    this.isOBv2 = isOBv2;
   }
 }
