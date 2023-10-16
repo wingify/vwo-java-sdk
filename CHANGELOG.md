@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.63.0] - 2023-10-16
+
+### Fixed
+
+- Test case fails when batch event queue not cleared before testing in parallel
+
 ## [1.62.0] - 2023-10-10
 
 ### Fixed

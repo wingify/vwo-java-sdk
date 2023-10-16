@@ -186,6 +186,7 @@ public class FeatureEnabledTests {
     String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
 
     vwoInstance = VWO.launch(com.vwo.tests.data.Settings.FEATURE_TEST_TRAFFIC_100).withBatchEvents(batchEventData).build();
+    vwoInstance.getBatchEventQueue().flushAndClearInterval();
     vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
     vwoInstance.isFeatureEnabled(campaignKey, "Ashley");
     assertEquals(vwoInstance.getBatchEventQueue().getBatchQueue().size(), 2);
