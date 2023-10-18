@@ -57,7 +57,7 @@ public class VariationDecider {
   private final int accountId;
   private Map<String, Object> integrationsMap;
   private static final Logger LOGGER = Logger.getLogger(VariationDecider.class);
-  
+
   // MEG related
   public static final int ALGO_RANDOM = 1;
   public static final int ALGO_ADVANCED = 2;
@@ -107,7 +107,7 @@ public class VariationDecider {
     ((Map<String, Object>) variationTargetingVariables).put(VWOAttributesEnum.USER_ID.value(), campaign.isUserListEnabled()
         ? uuid
         : userId);
-    
+
     Map<String, List<Campaign>> processedCampaigns = null;
 
     LOGGER.debug(LoggerService.getComputedMsg(LoggerService.getInstance().debugMessages.get("USER_UUID"), new HashMap<String, String>() {
@@ -140,12 +140,13 @@ public class VariationDecider {
 
     Variation whitelistedVariation = checkForWhitelisting(campaign, userId, 
         variationTargetingVariables, false, settings.getIsNB(), settings.getIsNBv2(), settings.getAccountId());
+
     if (whitelistedVariation != null) {
       return whitelistedVariation;
     }
 
     if (campaign.getIsAlwaysCheckSegment()) {
-      Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, 
+      Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables,
           false);
       if (isPreSegmentationValid) {
         return evaluateTrafficAndGetVariation(campaign, userId, goalIdentifier, settings.getIsNB(), settings.getIsNBv2(), settings.getAccountId());
@@ -160,7 +161,7 @@ public class VariationDecider {
     }
 
     // Check if user satisfies pre segmentation. If not, return null.
-    Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables, 
+    Boolean isPreSegmentationValid = checkForPreSegmentation(campaign, userId, customVariables,
         false);
     if (!(isPreSegmentationValid && BucketingService.getUserHashForCampaign(CampaignUtils
         .getBucketingSeed(userId, campaign, null, settings.getIsNB()),
@@ -194,7 +195,7 @@ public class VariationDecider {
       // get eligible campaigns
       processedCampaigns = getEligibleCampaigns(campaignList, userId, customVariables, settings.getIsNB());
       final int numEligibleCampaigns = processedCampaigns.get("eligibleCampaigns").size();
-      
+
       StringBuilder eligibleCampaignKeys = new StringBuilder();
       for (Campaign eachCampaign : processedCampaigns.get("eligibleCampaigns")) {
         eligibleCampaignKeys.append(eachCampaign.getKey()).append(", ");
@@ -385,7 +386,7 @@ public class VariationDecider {
 
 
           if (goalIdentifier != null) {
-            if (checkGoalTracked(goalIdentifier, userStorageMap) && !checkMCA(goalIdentifier, campaign)) {
+            if (checkGoalTracked(goalIdentifier, userStorageMap) && !checkMCA(goalIdentifier, campaign) && !checkHasProps(goalIdentifier, campaign)) {
               LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages.get("CAMPAIGN_GOAL_ALREADY_TRACKED"), new HashMap<String, String>() {
                 {
                   put("goalIdentifier", goalIdentifier);
@@ -653,7 +654,7 @@ public class VariationDecider {
    * @param groupName            - Name of the group
    * @return variation of the winner campaign.
    */
-  private Variation advancedFindWinningCampaign(List<Campaign> shortlistedCampaigns, 
+  private Variation advancedFindWinningCampaign(List<Campaign> shortlistedCampaigns,
       Campaign calledCampaign, String userId, String goalIdentifier, String groupName, int groupId,
       Settings settings) {
     Campaign winnerCampaign = null;
@@ -745,13 +746,13 @@ public class VariationDecider {
    *
    * @param campaigns        - List of shortlisted campaigns
    * @param trafficWeightage - Corresponding traffic weightage of the campaigns
-   * @return selected campaign based on random weightage of traffic 
+   * @return selected campaign based on random weightage of traffic
    */
   public static Campaign getCampaignBasedOnTrafficWeightage(List<Campaign> campaigns,
       List<Integer> trafficWeightage) {
     List<Integer> cumulativeWeights = new ArrayList<>();
     int sum = 0;
-      
+
     // get the cumulative weights for the campaigns
     for (int weight : trafficWeightage) {
       sum += weight;
@@ -926,6 +927,18 @@ public class VariationDecider {
     Goal goal = TrackCampaign.getGoalId(campaign, goalIdentifier);
     boolean isMCA = (goal.getMCA() != null && goal.getMCA() == -1) && Objects.equals(goal.getType(), "REVENUE_TRACKING");
     return isMCA;
+  }
+
+  /**
+   * check if goal has where condition.
+   *
+   * @param goalIdentifier - goalIdentifier string
+   * @param campaign - campaign instance
+   * @return true if goal contains hasProps and is equal to true, else false
+   */
+  private boolean checkHasProps(String goalIdentifier, Campaign campaign) {
+    Goal goal = TrackCampaign.getGoalId(campaign, goalIdentifier);
+    return goal.getHasProps();
   }
 
 

@@ -478,7 +478,43 @@ public class TrackTests {
 
     assertEquals(vwoInstance.track(campaignKey, "Ashley", "track2", params).get(campaignKey), true);
   }
-  
+
+  @Test
+  public void trackGoal_HasPropsTest() throws IOException {
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100_HAS_PROPS, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    ArrayList<Map<String, String>> campaignStorageArray = new ArrayList<>();
+    Map<String, String> userStorageMap = new HashMap<String, String>(){{
+      put("userId", "Ashley");
+      put("campaignKey", campaignKey);
+      put("variationName", "Variation-1");
+      put("goalIdentifier", "track2");
+    }};
+    campaignStorageArray.add(userStorageMap);
+    Storage.User userStorage = this.getUserStorage(campaignStorageArray);
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100_HAS_PROPS).withDevelopmentMode(true).withUserStorage(userStorage).build();
+
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", "track2").get(campaignKey), true);
+  }
+
+  @Test
+  public void trackGoal_noHasPropsTest() throws IOException {
+    Settings settingsConfig = new ObjectMapper().readValue(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100_HAS_PROPS, Settings.class);
+    String campaignKey = settingsConfig.getCampaigns().get(0).getKey();
+    ArrayList<Map<String, String>> campaignStorageArray = new ArrayList<>();
+    Map<String, String> userStorageMap = new HashMap<String, String>(){{
+      put("userId", "Ashley");
+      put("campaignKey", campaignKey);
+      put("variationName", "Variation-1");
+      put("goalIdentifier", "track1");
+    }};
+    campaignStorageArray.add(userStorageMap);
+    Storage.User userStorage = this.getUserStorage(campaignStorageArray);
+    VWO vwoInstance = VWO.launch(com.vwo.tests.data.Settings.AB_AND_FT_TRAFFIC_100_HAS_PROPS).withDevelopmentMode(true).withUserStorage(userStorage).build();
+
+    assertEquals(vwoInstance.track(campaignKey, "Ashley", "track1").get(campaignKey), false);
+  }
+
   @Test
   public void trackEventProps_noRevenueValueInRevenueGoal() {
     String campaignKey = "track1";
@@ -489,7 +525,7 @@ public class TrackTests {
     params.setEventProperties(eventProperties);
     assertEquals(vwoInstance.track(campaignKey, "Ashley", goalIdentifier, params).get(campaignKey), false);
   }
-  
+
   @Test
   public void trackEventProps_noRevenueValueInNumberGoal() {
     String campaignKey = "track1";
@@ -500,7 +536,7 @@ public class TrackTests {
     params.setEventProperties(eventProperties);
     assertEquals(vwoInstance.track(campaignKey, "Ashley", goalIdentifier, params).get(campaignKey), true);
   }
-  
+
   @Test
   public void trackEventProps_eventPropertiesInsteadOfRevenueValueInRevenueGoal() {
     String campaignKey = "track1";
@@ -512,7 +548,7 @@ public class TrackTests {
     params.setEventProperties(eventProperties);
     assertEquals(vwoInstance.track(campaignKey, "Ashley", goalIdentifier, params).get(campaignKey), true);
   }
-  
+
   @Test
   public void trackEventProps_wrongEventPropertiesInsteadOfRevenueValueInRevenueGoal() {
     String campaignKey = "track1";

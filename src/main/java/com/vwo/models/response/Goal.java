@@ -32,8 +32,8 @@ import java.util.Map;
         "id",
         "type",
         "revenueProp",
-        "mca"
-
+        "mca",
+        "hasProps"
 })
 public class Goal {
 
@@ -48,6 +48,9 @@ public class Goal {
 
   @JsonProperty("mca")
   private Integer mca;
+
+  @JsonProperty("hasProps")
+  private boolean hasProps;
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -105,5 +108,13 @@ public class Goal {
 
   public void setMCA(Integer mca) {
     this.mca = mca;
+  }
+
+  public boolean getHasProps() {
+    return hasProps;
+  }
+
+  public void setHasProps(boolean hasProps) {
+    this.hasProps = hasProps;
   }
 }
