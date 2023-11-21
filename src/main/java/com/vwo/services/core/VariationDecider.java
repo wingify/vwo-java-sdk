@@ -138,7 +138,7 @@ public class VariationDecider {
       integrationsMap.put("groupName", groupDetails.get("groupName"));
     }
 
-    Variation whitelistedVariation = checkForWhitelisting(campaign, userId, 
+    Variation whitelistedVariation = checkForWhitelisting(campaign, userId,
         variationTargetingVariables, false, settings.getIsNB(), settings.getIsNBv2(), settings.getAccountId());
 
     if (whitelistedVariation != null) {
@@ -179,7 +179,7 @@ public class VariationDecider {
       }
 
       if (checkForStorageAndWhitelisting(apiName, campaignList,
-          (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier, 
+          (String) groupDetails.get("groupName"), campaign, userId, goalIdentifier,
           variationTargetingVariables, settings.getIsNB(), settings.getIsNBv2(), settings.getAccountId())) {
         LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
             .get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
@@ -669,29 +669,30 @@ public class VariationDecider {
     List<Integer> percentageTrafficForWeightageCampaigns = new ArrayList<>();
 
     // parse through the priority campaigns and find winner from shortlisted campaigns
-    for (int priorityCampaignId : priorityCampaigns) {
-      // stop parsing if winner found
-      if (winnerCampaign != null) {
-        break;
-      }
-
-      // parse through the shortlisted campaigns to search for this priority campaign
-      for (Campaign shortlistedCampaign : shortlistedCampaigns) {
-        if (shortlistedCampaign.getId() == priorityCampaignId) {
-          // set winner campaign
-          winnerCampaign = shortlistedCampaign;
-          final String winnerCampaignKey = winnerCampaign.getKey();
-
-          LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
-              .get("MEG_GOT_WINNER_CAMPAIGN"), new HashMap<String, String>() {
-                {
-                  put("userId", userId);
-                  put("campaignKey", winnerCampaignKey);
-                  put("groupName", groupName);
-                }
-              }));
-
+    if (priorityCampaigns != null) {
+      for (int priorityCampaignId : priorityCampaigns) {
+        // stop parsing if winner found
+        if (winnerCampaign != null) {
           break;
+        }
+
+        // parse through the shortlisted campaigns to search for this priority campaign
+        for (Campaign shortlistedCampaign : shortlistedCampaigns) {
+          if (shortlistedCampaign.getId() == priorityCampaignId) {
+            // set winner campaign
+            winnerCampaign = shortlistedCampaign;
+            final String winnerCampaignKey = winnerCampaign.getKey();
+
+            LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
+                .get("MEG_GOT_WINNER_CAMPAIGN"), new HashMap<String, String>() {
+                  {
+                    put("userId", userId);
+                    put("campaignKey", winnerCampaignKey);
+                    put("groupName", groupName);
+                  }
+                }));
+            break;
+          }
         }
       }
     }
