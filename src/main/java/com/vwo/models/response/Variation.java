@@ -59,6 +59,7 @@ public class Variation implements Cloneable {
 
   private Integer startRangeVariation;
   private Integer endRangeVariation;
+  private Integer campaignId;
 
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -146,6 +147,14 @@ public class Variation implements Cloneable {
 
   public void setEndRangeVariation(Integer endRangeVariation) {
     this.endRangeVariation = endRangeVariation;
+  }
+  
+  public Integer getCampaignId() {
+    return this.campaignId;
+  }
+  
+  public void setCampaignId(Integer campaignId) {
+    this.campaignId = campaignId;
   }
 
   @JsonAnyGetter

@@ -235,12 +235,14 @@ public class VariationDecider {
           case ALGO_RANDOM:
             return normalizeAndFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"),
                 campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"),
-                (int) groupDetails.get("groupId"), settings.getIsNB(), settings.getIsNBv2(), settings.getAccountId());
+                (int) groupDetails.get("groupId"), settings.getIsNB(), settings.getIsNBv2(),
+                settings.getAccountId(), false, null);
 
           case ALGO_ADVANCED:
             return advancedFindWinningCampaign(processedCampaigns.get("eligibleCampaigns"),
                 campaign, userId, goalIdentifier, (String) groupDetails.get("groupName"),
-                (int) groupDetails.get("groupId"), settings);
+                (int) groupDetails.get("groupId"), settings.getIsNB(), settings.getIsNBv2(),
+                settings.getAccountId(), settings);
 
           default:
             return null;
@@ -596,6 +598,9 @@ public class VariationDecider {
       this.setVariationInUserStorage(variation, campaign.getKey(), userId, goalIdentifier);
       executeIntegrationsCallback(false, campaign, variation, false);
     }
+    
+    // add campaign id to variation
+    variation.setCampaignId(campaign.getId());
 
     return variation;
   }
@@ -612,10 +617,20 @@ public class VariationDecider {
    */
   private Variation normalizeAndFindWinningCampaign(List<Campaign> shortlistedCampaigns,
       Campaign calledCampaign, String userId, String goalIdentifier, String groupName, int groupId,
-      boolean isNewBucketingEnabled, boolean isNewBucketingEnabledV2, Integer accountId) {
+      boolean isNewBucketingEnabled, boolean isNewBucketingEnabledV2, Integer accountId,
+      boolean isAdvancedOrRandomAlgo, List<Integer> percentageTrafficForWeightageCampaigns) {
+    int count = 0;
 
     for (Campaign campaign : shortlistedCampaigns) {
-      campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
+      // set weight based on advanced or random algo
+      if (!isAdvancedOrRandomAlgo) {
+        campaign.setWeight((double) (100 / shortlistedCampaigns.size()));
+      } else {
+        campaign.setWeight((double) percentageTrafficForWeightageCampaigns.get(count));
+      }
+      
+      // update count to keep shortlisted campaign and percentageTrafficWeightage in sync
+      count++;
     }
     CampaignUtils.setCampaignRange(shortlistedCampaigns);
     Long bucketHash = BucketingService.getUserHashForCampaign(CampaignUtils.getBucketingSeed(userId, null, groupId, isNewBucketingEnabled), calledCampaign, userId, 100, true);
@@ -656,8 +671,9 @@ public class VariationDecider {
    */
   private Variation advancedFindWinningCampaign(List<Campaign> shortlistedCampaigns,
       Campaign calledCampaign, String userId, String goalIdentifier, String groupName, int groupId,
-      Settings settings) {
+      boolean isNewBucketingEnabled, boolean isNewBucketingEnabledV2, Integer accountId, Settings settings) {
     Campaign winnerCampaign = null;
+    Variation winnerVariation = null;
 
     // priority campaigns
     List<Integer> priorityCampaigns = settings.getGroups().get(toString().valueOf(groupId)).getP();
@@ -698,7 +714,7 @@ public class VariationDecider {
     }
 
     // if winner not found, parse through traffic weightage campaigns
-    if (winnerCampaign == null) {
+    if (winnerCampaign == null && shortlistedCampaigns != null) {
       // parse through shortlisted campaigns and get their traffic weightages
       for (Campaign campaign : shortlistedCampaigns) {
         if (trafficWeightageCampaigns.containsKey(toString().valueOf(campaign.getId()))) {
@@ -711,10 +727,16 @@ public class VariationDecider {
 
       // select winner based on traffic weightage, from shortlisted campaigns
       if (!eligibleTrafficWeightageCampaigns.isEmpty()) {
-        winnerCampaign = getCampaignBasedOnTrafficWeightage(eligibleTrafficWeightageCampaigns,
+        // get winner variation and winner campaign
+        winnerVariation = normalizeAndFindWinningCampaign(
+            eligibleTrafficWeightageCampaigns, calledCampaign, userId, goalIdentifier, groupName,
+            groupId, isNewBucketingEnabled, isNewBucketingEnabledV2, accountId, true, 
             percentageTrafficForWeightageCampaigns);
-        final String winnerCampaignKey = winnerCampaign.getKey();
+        winnerCampaign = CampaignUtils.getCampaignBasedOnId(settings, winnerVariation
+            .getCampaignId());
 
+        // log MEG winner
+        final String winnerCampaignKey = winnerCampaign.getKey();
         LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
             .get("MEG_GOT_WINNER_CAMPAIGN"), new HashMap<String, String>() {
               {
@@ -727,8 +749,13 @@ public class VariationDecider {
     }
 
     // return variation if winner is called campaign
-    if (winnerCampaign.getId().equals(calledCampaign.getId())) {
-      return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier, settings.getIsNB(), settings.getIsNBv2(), settings.getAccountId());
+    if (winnerCampaign != null && winnerCampaign.getId().equals(calledCampaign.getId())) {
+      if (winnerVariation == null) {
+        return evaluateTrafficAndGetVariation(winnerCampaign, userId, goalIdentifier, settings.getIsNB(), settings.getIsNBv2(), settings.getAccountId());
+      }
+      
+      // return the winner variation that is already calculated (for traffic distribution campaigns)
+      return winnerVariation;
     } else {
       LOGGER.info(LoggerService.getComputedMsg(LoggerService.getInstance().infoMessages
           .get("MEG_CALLED_CAMPAIGN_NOT_WINNER"), new HashMap<String, String>() {
@@ -740,36 +767,6 @@ public class VariationDecider {
           }));
     }
     return null;
-  }
-
-  /**
-   * Get a winner campaign based on traffic weightage of campaigns.
-   *
-   * @param campaigns        - List of shortlisted campaigns
-   * @param trafficWeightage - Corresponding traffic weightage of the campaigns
-   * @return selected campaign based on random weightage of traffic
-   */
-  public static Campaign getCampaignBasedOnTrafficWeightage(List<Campaign> campaigns,
-      List<Integer> trafficWeightage) {
-    List<Integer> cumulativeWeights = new ArrayList<>();
-    int sum = 0;
-
-    // get the cumulative weights for the campaigns
-    for (int weight : trafficWeightage) {
-      sum += weight;
-      cumulativeWeights.add(sum);
-    }
-
-    // get a weighted random
-    int randomNum = (int) (Math.random() * sum);
-    int index = Collections.binarySearch(cumulativeWeights, randomNum);
-
-    // binarysearch returns a negative value when generated number is between cumulative weights
-    if (index < 0) {
-      index = -(index + 1);
-    }
-
-    return campaigns.get(index);
   }
 
   /**

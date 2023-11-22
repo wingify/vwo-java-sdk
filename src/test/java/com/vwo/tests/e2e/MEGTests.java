@@ -165,6 +165,48 @@ public class MEGTests {
     variation = vwoInstance.activate(calledCampaign, TestUtils.getUsers()[1]);
     assertNull(variation);
   }
+  
+  @Test
+  public void sameUserGetSameVariationWhenCampaignPartOfNewMEG() {
+    LOGGER.debug("test for consistency of variation bucketing for same user");
+    vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_NEWIMPL_ADVANCED_TRAFFIC).withDevelopmentMode(true).build();
+    String calledCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(2).getKey();
+    String variation;
+    String userId = TestUtils.getUsers()[0];
+    int correctCount = 0;
+    
+    // repeat 1000 times for the same user expecting the same variation
+    for (int x = 0; x < 1000; x++) {
+      variation = vwoInstance.activate(calledCampaign, userId);
+      if (variation.compareTo("Control") == 0) {
+        correctCount++;
+      }
+    }
+    assertEquals(correctCount, 1000);
+  }
+  
+  @Test
+  public void trafficWeightageMatchesBucketingWhenCampaignPartOfNewMEG() {
+    LOGGER.debug("test for consistency of variation bucketing across different users");
+    vwoInstance = VWO.launch(Settings.MEG_TRAFFIC_NEWIMPL_ADVANCED_TRAFFIC).withDevelopmentMode(true).build();
+    String calledCampaign = vwoInstance.getSettingFile().getSettings().getCampaigns().get(2).getKey();
+    String variation;
+    String userIdGeneric = TestUtils.getUsers()[0];
+    int correctCount = 0;
+    int expectedCountHigh = 850; // 80-20 split with 5% error acceptance
+    int expectedCountLow = 750; // 80-20 split with 5% error acceptance
+    
+    // repeat for 1000 users expecting bucketing along traffic weightage numbers
+    for (int x = 0; x < 1000; x++) {
+      variation = vwoInstance.activate(calledCampaign, userIdGeneric + "_" + Integer.toString(x));
+      if (variation != null) {
+        correctCount++;
+      }
+    }
+    
+    // correct count should fall in the range of expected count +/- error tolerance
+    assertTrue(correctCount < expectedCountHigh && correctCount > expectedCountLow);
+  }
 
   @Test
   public void preSegmentationFailed() {

@@ -145,7 +145,7 @@ public class CampaignUtils {
    * @param campaignId    - Campaign id
    * @return Campaign object.
    */
-  private static Campaign getCampaignBasedOnId(Settings settings, int campaignId) {
+  public static Campaign getCampaignBasedOnId(Settings settings, int campaignId) {
     Campaign campaign = null;
     for (Campaign eachCampaign: settings.getCampaigns()) {
       if (eachCampaign.getId() == campaignId) {
